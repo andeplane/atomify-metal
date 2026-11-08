@@ -55,6 +55,8 @@ final class AppModel {
         }
         self.catalog = catalog
         self.catalogError = catalogError
+        // Play the examples at Atomify 2's pace, `#/speed` lines included.
+        session.appliesScriptSpeed = true
     }
 
     /// Runs the first example, once.

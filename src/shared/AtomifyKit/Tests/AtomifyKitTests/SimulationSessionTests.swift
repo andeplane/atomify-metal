@@ -192,7 +192,21 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
                               atomifyMetal: options)
         let catalog = ExampleCatalog(directory: scratch, examples: [example])
 
+        // By default (the Mac app) the pacing is ignored and the console shows the directives.
+        let mac = SimulationSession()
+        #expect(!mac.appliesScriptSpeed)
+        mac.load(example, from: catalog)
+        #expect(mac.stepsPerFrame == nil)
+        #expect(mac.effectiveMaxStepsPerSecond == nil)
+        try await waitUntil("label without pacing") { mac.scriptLabel == "Warming up" }
+        #expect(mac.stepsPerFrame == nil)
+        #expect(mac.effectiveMaxStepsPerSecond == nil)
+        try await waitUntil("directives in the console") { mac.console.text.contains("#/label Warming up") }
+        #expect(mac.console.text.contains("#/speed 2"))
+        mac.stop()
+
         let session = SimulationSession()
+        session.appliesScriptSpeed = true
         session.continueAfterScript = true
         session.load(example, from: catalog)
         #expect(session.stepsPerFrame == 1)

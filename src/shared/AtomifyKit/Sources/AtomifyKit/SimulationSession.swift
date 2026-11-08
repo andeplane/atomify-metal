@@ -98,6 +98,11 @@ public final class SimulationSession {
     public private(set) var directiveWarnings: [String] = []
     /// Keep integrating when the script's last command is done.
     public var continueAfterScript = true
+    /// Whether runs follow the example's `stepsPerFrame` and the script's
+    /// `#/speed` lines (Atomify 2's pacing, for the iOS app). Off, as the
+    /// Mac app runs, they are ignored and the console shows `#/speed` and
+    /// `#/label` lines as written. Takes effect from the next run.
+    public var appliesScriptSpeed = false
 
     // MARK: View state
 
@@ -422,7 +427,8 @@ public final class SimulationSession {
             var directives = ScriptDirectives.parse(text, dialect: options?.dialect ?? .web)
             if let camera = options?.camera { directives.camera = camera.hint }
             directiveWarnings = directives.warnings
-            stepsPerFrame = options?.stepsPerFrame.flatMap { Self.speedLimit($0) }
+            stepsPerFrame = appliesScriptSpeed ? options?.stepsPerFrame.flatMap { Self.speedLimit($0) } : nil
+            eventFilter = ScriptEventFilter(echoesEvents: !appliesScriptSpeed)
             let simulation = try Simulation()
             let run = Run(simulation: simulation, directives: directives)
             self.run = run
@@ -604,6 +610,7 @@ public final class SimulationSession {
     private func apply(_ event: ScriptEvent) {
         switch event {
         case .speed(let steps):
+            guard appliesScriptSpeed else { return }
             stepsPerFrame = Self.speedLimit(steps)
             applySpeed()
         case .label(let text):
