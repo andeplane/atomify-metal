@@ -50,6 +50,16 @@ COMPATIBILITY = [
     (r"^(\s*fix\s+\S+\s+\S+\s+qeq/reax\b.*\s)reax/c(\s*)$", r"\1reaxff\2", "qeq/reax reads its parameters from reaxff"),
     (r"^(\s*pair_style\s+[\w/]+?)/opt\b", r"\1", "OPT package style replaced by the plain one"),
 ]
+# Lines added to single scripts, keyed by their path: (pattern, replacement, note).
+SCRIPT_FIXES = {
+    "granular/maxwell/maxwell.in": [(
+        r"^(thermo_style custom step v_atomify_left v_atomify_right)$",
+        "# Atomify 2's counter panel defined these; the script needs them on its own.\n"
+        "variable atomify_left equal count(left)/atoms\n"
+        "variable atomify_right equal count(right)/atoms\n\\1",
+        "defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added",
+    )],
+}
 # Files regenerated with current LAMMPS, from atomify2-replacements next to this script.
 REPLACEMENTS = {
     "granular/patterns_final/patterns_final.bin":
@@ -206,7 +216,7 @@ def main():
                         potentials_used.add(name)
                         files.append({"fileName": name, "url": f"potentialparameters/{name}"})
                     text = text.replace(POTENTIALS, "")
-                    for pattern, replacement, note in COMPATIBILITY:
+                    for pattern, replacement, note in COMPATIBILITY + SCRIPT_FIXES.get(f"{folder}/{path.name}", []):
                         text, count = re.subn(pattern, replacement, text, flags=re.M)
                         if count:
                             changes.append(f"{path.name}: {note}")

@@ -16,13 +16,18 @@ public struct Thermostat: Sendable, Equatable {
     public var target: Double
     /// Damping time in timesteps (LAMMPS recommends about 100).
     public var dampingSteps: Double
+    /// Damping time in the run's time units; when set, it replaces
+    /// `dampingSteps` (Atomify 2's panels give it this way).
+    public var dampingTime: Double?
     /// Random seed, a positive integer.
     public var seed: Int
 
-    public init(isEnabled: Bool = false, target: Double = 300, dampingSteps: Double = 100, seed: Int = 48279) {
+    public init(isEnabled: Bool = false, target: Double = 300, dampingSteps: Double = 100,
+                dampingTime: Double? = nil, seed: Int = 48279) {
         self.isEnabled = isEnabled
         self.target = target
         self.dampingSteps = dampingSteps
+        self.dampingTime = dampingTime
         self.seed = seed
     }
 
@@ -31,8 +36,13 @@ public struct Thermostat: Sendable, Equatable {
     /// in every unit style.
     public var addCommand: String {
         let target = Self.commandNumber(self.target)
-        let damping = Self.commandNumber(dampingSteps)
-        return "fix \(Self.fixID) all langevin \(target) \(target) $(\(damping)*dt) \(max(seed, 1)) zero yes"
+        let damping: String
+        if let dampingTime, dampingTime > 0, dampingTime.isFinite {
+            damping = Self.commandNumber(dampingTime)
+        } else {
+            damping = "$(\(Self.commandNumber(dampingSteps))*dt)"
+        }
+        return "fix \(Self.fixID) all langevin \(target) \(target) \(damping) \(max(seed, 1)) zero yes"
     }
 
     /// Commands that take a run with `old` applied to `new`: add, remove,

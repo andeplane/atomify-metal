@@ -211,13 +211,52 @@ public final class SimulationSession {
         get { storedThermostat }
         set {
             var thermostat = newValue
-            thermostat.target = Thermostat.clampedTarget(thermostat.target, units: thermostatUnits ?? "")
+            thermostat.target = clampedThermostatTarget(thermostat.target)
+            if let panel = thermostatPanel { thermostat.dampingTime = panel.dampingTime }
             if run == nil || !status.isActive { thermostat.isEnabled = false }
             guard thermostat != storedThermostat else { return }
             let commands = Thermostat.commands(from: storedThermostat, to: thermostat)
             storedThermostat = thermostat
             for command in commands { enqueue(command) }
         }
+    }
+
+    /// The example's dashboard panels (Atomify 2's controllers), or
+    /// `DashboardLayout.fallback` for runs without them.
+    public private(set) var dashboard: [DashboardPanel] = DashboardLayout.fallback
+    /// The example's thermostat panel, which sets the target's range.
+    public private(set) var thermostatPanel: ThermostatPanel?
+    /// Points of every line the dashboard draws, downsampled like plots.
+    public private(set) var dashboardData: [DashboardSource: [SIMD2<Double>]] = [:]
+
+    /// The example's gravity panel's force, nil without one. Setting it
+    /// queues the commands that add, change or remove the fix; it can only
+    /// be switched on while a run is active.
+    public var gravity: GravityControl? {
+        get { storedGravity }
+        set {
+            guard var gravity = newValue, let old = storedGravity else { return }
+            gravity.magnitude = min(max(gravity.magnitude.isFinite ? gravity.magnitude : 0, gravity.range.lowerBound),
+                                    gravity.range.upperBound)
+            if run == nil || !status.isActive { gravity.isEnabled = false }
+            guard gravity != old else { return }
+            let commands = GravityControl.commands(from: old, to: gravity)
+            storedGravity = gravity
+            for command in commands { enqueue(command) }
+        }
+    }
+
+    /// The thermostat's target range: the panel's, else `Thermostat.targetRange`.
+    public var thermostatRange: ClosedRange<Double> {
+        thermostatPanel?.range ?? Thermostat.targetRange(units: thermostatUnits ?? "")
+    }
+
+    private func clampedThermostatTarget(_ target: Double) -> Double {
+        guard let range = thermostatPanel?.range else {
+            return Thermostat.clampedTarget(target, units: thermostatUnits ?? "")
+        }
+        guard target.isFinite else { return range.lowerBound }
+        return min(max(target, range.lowerBound), range.upperBound)
     }
 
     /// The camera that frames the run (after the first snapshot, or the
@@ -290,6 +329,15 @@ public final class SimulationSession {
     private var storedSpeedFactor = 1.0
     @ObservationIgnored private var eventFilter = ScriptEventFilter()
     private var storedThermostat = Thermostat()
+    private var storedGravity: GravityControl?
+    @ObservationIgnored private var dashboardSources: [DashboardSource] = []
+    /// Series the app measures from snapshots (angles, volume), by source.
+    @ObservationIgnored private var measured: [DashboardSource: [SIMD2<Double>]] = [:]
+    @ObservationIgnored private var lastMeasuredTimestep: Int64?
+    /// The panels' commands and starting controls were applied for this run.
+    @ObservationIgnored private var dashboardStarted = false
+    /// Points kept per measured series.
+    static let measuredCapacity = 10_000
     /// Unit style the thermostat target was chosen for.
     @ObservationIgnored private var thermostatUnits: String?
 
@@ -353,6 +401,7 @@ public final class SimulationSession {
         pollTask?.cancel()
         pollTask = nil
         storedThermostat.isEnabled = false
+        storedGravity?.isEnabled = false
         if status.isActive { status = .idle }
     }
 
@@ -429,6 +478,7 @@ public final class SimulationSession {
             directiveWarnings = directives.warnings
             stepsPerFrame = appliesScriptSpeed ? options?.stepsPerFrame.flatMap { Self.speedLimit($0) } : nil
             eventFilter = ScriptEventFilter(echoesEvents: !appliesScriptSpeed)
+            configureDashboard(options?.dashboard ?? [])
             let simulation = try Simulation()
             let run = Run(simulation: simulation, directives: directives)
             self.run = run
@@ -493,6 +543,7 @@ public final class SimulationSession {
         eventFilter = ScriptEventFilter()
         scriptLabel = nil
         stepsPerFrame = nil
+        configureDashboard([])
         stats = SessionStats()
         pendingStats = SessionStats()
         errorMessage = nil
@@ -506,6 +557,7 @@ public final class SimulationSession {
         publish()
         status = RunStatus.after(outcome)
         storedThermostat.isEnabled = false
+        storedGravity?.isEnabled = false
         if case .failed(let message) = outcome { errorMessage = message }
         self.run = nil
         pollTask?.cancel()
@@ -596,6 +648,12 @@ public final class SimulationSession {
 
         if let quantity = storedColorQuantity, let values = frame.values(for: quantity) {
             rangeTracker.include(values)
+        }
+
+        measureDashboard(frame: frame, snapshot: snapshot)
+        if !dashboardStarted && snapshot.atomCount > 0 && status.isActive {
+            dashboardStarted = true
+            startDashboard()
         }
 
         if !cameraFramed {
@@ -722,6 +780,84 @@ public final class SimulationSession {
                                                maxPoints: maxPlotPoints)
         }
         plotData = data
+        refreshDashboard()
+    }
+
+    // MARK: Dashboard
+
+    private func configureDashboard(_ examplePanels: [DashboardPanel]) {
+        let panels = examplePanels.isEmpty ? DashboardLayout.fallback : examplePanels
+        dashboard = panels
+        dashboardSources = DashboardLayout.sources(for: panels)
+        thermostatPanel = DashboardLayout.thermostat(in: panels)
+        storedGravity = DashboardLayout.gravity(in: panels).map { panel in
+            var gravity = panel
+            gravity.isEnabled = false
+            return gravity
+        }
+        storedThermostat.dampingTime = thermostatPanel?.dampingTime
+        measured = [:]
+        lastMeasuredTimestep = nil
+        dashboardStarted = false
+        dashboardData = [:]
+    }
+
+    /// Once the system has atoms: the panels' computes, and the thermostat
+    /// and force they switch on.
+    private func startDashboard() {
+        for command in DashboardLayout.setupCommands(for: dashboard) { enqueue(command) }
+        if let panel = thermostatPanel {
+            var thermostat = storedThermostat
+            thermostat.target = panel.initialTarget(default: Thermostat.defaultTarget(units: thermostatUnits ?? ""))
+            thermostat.isEnabled = panel.startsEnabled
+            self.thermostat = thermostat
+        }
+        if let start = DashboardLayout.gravity(in: dashboard), start.isEnabled, var gravity = storedGravity {
+            gravity.isEnabled = true
+            self.gravity = gravity
+        }
+    }
+
+    private func measureDashboard(frame: AtomFrame, snapshot: SimulationSnapshot) {
+        guard dashboardSources.contains(where: \.isMeasured), lastMeasuredTimestep != snapshot.timestep else { return }
+        lastMeasuredTimestep = snapshot.timestep
+        for source in dashboardSources {
+            let value: Double?
+            switch source {
+            case .angle(let tags): value = DashboardMeasure.angle(tags, in: frame)
+            case .volume: value = pendingStats.volume
+            default: continue
+            }
+            guard let value, value.isFinite else { continue }
+            var points = measured[source, default: []]
+            points.append(SIMD2(snapshot.time, value))
+            if points.count > Self.measuredCapacity { points.removeFirst(points.count - Self.measuredCapacity) }
+            measured[source] = points
+        }
+        historyChanged = true
+    }
+
+    private func refreshDashboard() {
+        guard !dashboardSources.isEmpty else { return }
+        var data: [DashboardSource: [SIMD2<Double>]] = [:]
+        for source in dashboardSources {
+            data[source] = PlotCatalog.downsample(points(for: source), maxPoints: maxPlotPoints)
+        }
+        dashboardData = data
+    }
+
+    private func points(for source: DashboardSource) -> [SIMD2<Double>] {
+        switch source {
+        case .observable(let key):
+            return history.series(id: key.observableID, component: key.component)
+        case .angle, .volume:
+            return measured[source] ?? []
+        case .diffusion(let msd):
+            return DashboardMeasure.diffusion(fromMSD: history.series(id: msd.observableID, component: msd.component),
+                                              dimension: pendingStats.dimension)
+        case .average(let inner):
+            return DashboardMeasure.cumulativeAverage(points(for: inner))
+        }
     }
 
     // MARK: Renderer feedback

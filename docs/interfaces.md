@@ -385,10 +385,28 @@ public enum CameraFraming { static func camera(hint: CameraHint?, boxLow:boxHigh
     static func orbit(position:target:) -> (distance, yaw, pitch); static func eye(target:distance:yaw:pitch:)
     static func isSameView(_: OrbitCamera, _: OrbitCamera, tolerance: Float = 1e-4) -> Bool }
 
-/// The app's Langevin heat bath: `fix atomify_thermostat all langevin T T $(100.0*dt) seed zero yes`.
-public struct Thermostat: Sendable, Equatable { isEnabled, target, dampingSteps, seed; var addCommand: String
+/// The app's Langevin heat bath: `fix atomify_thermostat all langevin T T $(100.0*dt) seed zero yes`
+/// (or the panel's damping time when `dampingTime` is set).
+public struct Thermostat: Sendable, Equatable { isEnabled, target, dampingSteps, dampingTime?, seed; var addCommand: String
     static let fixID, removeCommand; static func commands(from:to:) -> [String]
     static func defaultTarget(units:), presets(units:), targetRange(units:), clampedTarget(_:units:) }
+
+/// Atomify 2's dashboard controllers (Dashboard.swift). Charts read c_thermo_temp, c_thermo_press,
+/// c_atomify_msd[4] (added by setupCommands once there are atoms), the scripts' v_atomify_left/right,
+/// or values measured from snapshots (angle at atom1 between atom2 and atom3, box volume).
+public enum DashboardPanelKind: String { summary, thermometer, pressure, thermostat, angle, gravity, atomPosition,
+    diffusionCoefficient, meanSquareDisplacement, volume }
+extension DashboardPanel { panelKind; func string/number/flag/list(_ key: String) }
+public indirect enum DashboardSource: Hashable { observable(PlotSeriesKey), angle(SIMD3<Int64>), volume,
+    diffusion(msd: PlotSeriesKey), average(DashboardSource) }
+public struct DashboardLine { title, source, color? }
+public struct DashboardChart { title, xLabel, yLabel, xScale, yScale, xRange?, yDomain?, lines, note?
+    func displayed(_ points:) -> [SIMD2<Double>] }   // scaled, last xRange only
+public enum DashboardLayout { static let fallback, msdKey, temperatureKey, pressureKey
+    static func chart(for:) -> DashboardChart?; setupCommands(for:); sources(for:); thermostat(in:); gravity(in:) }
+public struct ThermostatPanel { range (run units), unitScale, dampingTime?, startsEnabled, startTarget?; initialTarget(default:) }
+public struct GravityControl { isEnabled, magnitude, range, group = "mobile"; addCommand; static func commands(from:to:) }
+public enum DashboardMeasure { static func angle(_:in: AtomFrame) -> Double?; cumulativeAverage(_:); diffusion(fromMSD:dimension:) }
 
 /// Render quality by system size: `automatic` is high below 50,000 atoms
 /// (fast when constrained); 2 pixels per point from 300,000 atoms.
@@ -421,6 +439,10 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     stepsPerFrame: Double? (example, then #/speed), speedFactor: Double (∞: unlimited), scriptLabel: String?
     effectiveMaxStepsPerSecond: Double?   // min(stepsPerFrame × 60 × speedFactor, maxStepsPerSecond)
     thermostat: Thermostat      // setting it enqueues fix/unfix; off when a run ends or starts
+    // dashboard: the example's panels (or DashboardLayout.fallback); the thermostat and gravity panels
+    // switch on as configured once there are atoms
+    dashboard: [DashboardPanel], dashboardData: [DashboardSource: [SIMD2<Double>]], thermostatPanel: ThermostatPanel?,
+    thermostatRange: ClosedRange<Double>, gravity: GravityControl?   // setting gravity enqueues fix/unfix
     // view
     scene: SceneData?, camera: OrbitCamera, renderSettings: RenderSettings,
     colorQuantity: String?, colormap: Colormap, customColorRange, colorRange, availableQuantities, colorMode,

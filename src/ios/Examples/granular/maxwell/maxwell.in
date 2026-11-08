@@ -53,6 +53,9 @@ run 2000
 unfix zlower
 fix zlower all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 zplane 0.99 200.0 wiggle z 0.7 1
 thermo 1000
+# Atomify 2's counter panel defined these; the script needs them on its own.
+variable atomify_left equal count(left)/atoms
+variable atomify_right equal count(right)/atoms
 thermo_style custom step v_atomify_left v_atomify_right
 #/label Vibrating. One side will have'm all
 run 100000
