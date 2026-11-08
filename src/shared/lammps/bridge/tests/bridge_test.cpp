@@ -943,6 +943,8 @@ void test_threads()
   const std::string output = read_all_output(threaded);
   CHECK(contains(output, "lj/cut"));
   CHECK(contains(output, "running the input again") == (threads > 1));
+  // The internal error that ends the first pass is not shown.
+  CHECK(!contains(output, "ERROR"));
   CHECK(!contains(read_all_output(serial), "/omp"));
   // Same trajectory up to rounding, after exactly 50 steps.
   const Snapshot a = copy(serial), b = copy(threaded);
@@ -974,11 +976,30 @@ void test_threads()
   CHECK(atomify_sim_run_file(big, path.c_str()) == ATOMIFY_OK);
   CHECK(atomify_sim_threads(big) == threads);
   atomify_sim_destroy(big);
+
+  // A small system from a file restarts on one thread; its output shows the
+  // input once, without the first pass.
+  {
+    std::ofstream file(path);
+    for (const auto &line : lj_melt) file << line << "\n";
+    file << "run 5\n";
+  }
+  atomify_sim *small = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_run_file(small, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(small) == 1);
+  const std::string small_output = read_all_output(small);
+  CHECK(!contains(small_output, "ERROR"));
+  const size_t created = small_output.find("Created 256 atoms");
+  CHECK(created != std::string::npos);
+  CHECK(small_output.find("Created 256 atoms", created + 1) == std::string::npos);
+  CHECK(contains(small_output, "Loop time"));
+  atomify_sim_destroy(small);
   std::remove(path.c_str());
 
   // An input error before the choice is reported as usual.
   atomify_sim *broken = atomify_sim_create_threaded(0, threads);
   CHECK(atomify_sim_command(broken, "pair_style nonsense") == ATOMIFY_ERROR);
+  CHECK(contains(read_all_output(broken), "ERROR"));
   atomify_sim_destroy(broken);
 
   // Asking for more threads than there are processors is capped, not an error.

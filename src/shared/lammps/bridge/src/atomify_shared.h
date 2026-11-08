@@ -158,9 +158,14 @@ struct AtomifyShared {
   AtomifySnapshotData back;
   uint64_t next_sequence = 1;
 
-  // Captured screen output (output_mutex).
+  // Captured screen output (output_mutex). While the thread count is being
+  // chosen, output goes to `held` instead: a restart on fewer threads runs
+  // the input again, so the first pass's output is dropped rather than shown
+  // twice (with the internal error that ends it).
   std::mutex output_mutex;
   std::string output;
+  std::string held;
+  bool holding = false;
   bool echo = false;
 
   // OpenMP threads (see atomify_before_init): the count the instance runs
@@ -178,6 +183,9 @@ struct AtomifyShared {
   std::chrono::steady_clock::time_point last_step{};
 
   void append_output(const char *data, size_t size);
+  void hold_output();
+  // Moves held output to `output` (keep) or drops it, and stops holding.
+  void release_output(bool keep);
   void mark_progress();
 };
 

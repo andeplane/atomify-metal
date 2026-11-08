@@ -21,7 +21,7 @@ if [ ! -f "$build/CMakeCache.txt" ]; then
 fi
 source "$here/host-openmp.sh"
 host_openmp "$build"
-cmake -S "$source_dir/cmake" -B "$build" "${generator[@]}" -C "$here/atomify-preset.cmake" \
+cmake -S "$source_dir/cmake" -B "$build" ${generator[@]+"${generator[@]}"} -C "$here/atomify-preset.cmake" \
   -D CMAKE_BUILD_TYPE=Release ${openmp_cmake[@]+"${openmp_cmake[@]}"}
 cmake --build "$build" --target lammps -j "$jobs"
 

@@ -78,12 +78,34 @@ void AtomifyShared::append_output(const char *data, size_t size)
 {
   if (!data || size == 0) return;
   std::lock_guard<std::mutex> lock(output_mutex);
+  if (holding) {
+    held.append(data, size);
+    return;
+  }
   output.append(data, size);
   if (output.size() > kMaxOutput) output.erase(0, output.size() - kKeptOutput);
   if (echo) {
     std::fwrite(data, 1, size, stdout);
     std::fflush(stdout);
   }
+}
+
+void AtomifyShared::hold_output()
+{
+  std::lock_guard<std::mutex> lock(output_mutex);
+  holding = true;
+}
+
+void AtomifyShared::release_output(bool keep)
+{
+  std::string text;
+  {
+    std::lock_guard<std::mutex> lock(output_mutex);
+    if (!holding) return;
+    holding = false;
+    text.swap(held);
+  }
+  if (keep) append_output(text.data(), text.size());
 }
 
 void AtomifyShared::mark_progress()
@@ -186,7 +208,10 @@ void atomify_before_init(LAMMPS *lmp)
   if (!shared->choosing_threads) return;
   shared->choosing_threads = false;
   // A system that starts empty (atoms poured in later) keeps every thread.
-  if (lmp->atom->natoms == 0) return;
+  if (lmp->atom->natoms == 0) {
+    shared->release_output(true);
+    return;
+  }
   // Measured on Apple silicon with the bundled examples: pairwise potentials
   // gain from about 1500 atoms, ReaxFF from a few hundred, long range
   // Coulomb and manybody potentials from 200-300.
@@ -197,7 +222,10 @@ void atomify_before_init(LAMMPS *lmp)
   else if (lmp->force->kspace || (pair && pair->manybody_flag))
     atoms_per_thread = 100;
   const int threads = atomify_threads_for(lmp->atom->natoms, atoms_per_thread, comm->nthreads);
-  if (threads == comm->nthreads) return;
+  if (threads == comm->nthreads) {
+    shared->release_output(true);    // the run goes on: show its output
+    return;
+  }
   shared->restart_threads = threads;
   lmp->error->all(FLERR, "Atomify restarts on {} OpenMP thread(s)", threads);
 }
@@ -420,14 +448,19 @@ void execute_once(atomify_sim *sim, bool file, const std::string &text)
 void execute(atomify_sim *sim, bool file, const std::string &text)
 {
   AtomifyShared *shared = sim->shared.get();
-  if (shared->choosing_threads) sim->journal.emplace_back(file, text);
+  if (shared->choosing_threads) {
+    sim->journal.emplace_back(file, text);
+    shared->hold_output();
+  }
   execute_once(sim, file, text);
   const int threads = shared->restart_threads;
   if (threads == 0) {
     if (!shared->choosing_threads) sim->journal.clear();
+    shared->release_output(true);
     return;
   }
   shared->restart_threads = 0;
+  shared->release_output(false);    // the input runs again below
   std::string ignored;
   take_error(sim, ignored);
   shared->error_line.clear();
