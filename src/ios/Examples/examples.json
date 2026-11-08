@@ -1488,6 +1488,9 @@
         ],
         "notPorted": [
           "customColorShaderCode"
+        ],
+        "changes": [
+          "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added"
         ]
       },
       "imageUrl": "granular/maxwell/maxwell.png"

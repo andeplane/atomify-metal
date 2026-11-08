@@ -224,6 +224,67 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         session.stop()
     }
 
+    @Test(.timeLimit(.minutes(1))) func dashboardPanelsMeasureAndControl() async throws {
+        let fixtures = try fixturesDirectory()
+        let panels = [
+            DashboardPanel(kind: "summary"),
+            DashboardPanel(kind: "thermometer"),
+            DashboardPanel(kind: "meanSquareDisplacement"),
+            DashboardPanel(kind: "angle", parameters: ["atom1": "1", "atom2": "2", "atom3": "3"]),
+            DashboardPanel(kind: "volume"),
+            DashboardPanel(kind: "thermostat", parameters: ["nvtEnabled": "true", "targetTemperature": "0.5",
+                                                            "minimumValue": "0.1", "maximumValue": "2",
+                                                            "temperatureDampening": "0.5"]),
+        ]
+        let example = Example(id: "lj-dashboard", title: "LJ", description: "", inputScript: "lj.in",
+                              files: [ExampleFile(fileName: "lj.in", url: "lj/lj.in"),
+                                      ExampleFile(fileName: "settings.lmp", url: "shared/settings.lmp")],
+                              atomifyMetal: ExampleOptions(dashboard: panels))
+        let catalog = ExampleCatalog(directory: fixtures, examples: [example])
+        let session = SimulationSession()
+        session.continueAfterScript = true
+        session.load(example, from: catalog)
+        #expect(session.dashboard == panels)
+        #expect(session.thermostatRange == 0.1...2)
+        #expect(session.gravity == nil)
+
+        // The thermostat panel switches the heat bath on once there are atoms.
+        try await waitUntil("thermostat") { session.thermostat.isEnabled }
+        #expect(session.thermostat.target == 0.5)
+        #expect(session.console.text.contains("> fix atomify_thermostat all langevin 0.5 0.5 0.5"))
+        #expect(session.console.text.contains("> compute atomify_msd all msd"))
+        session.thermostat.target = 10                   // limited to the panel's range
+        #expect(session.thermostat.target == 2)
+
+        let msd = DashboardSource.observable(DashboardLayout.msdKey)
+        let temperature = DashboardSource.observable(DashboardLayout.temperatureKey)
+        let angle = DashboardSource.angle(SIMD3(1, 2, 3))
+        try await waitUntil("dashboard data", timeout: .seconds(40)) {
+            (session.dashboardData[msd]?.count ?? 0) > 2 && (session.dashboardData[angle]?.count ?? 0) > 2
+                && (session.dashboardData[temperature]?.count ?? 0) > 2
+        }
+        let angles = try #require(session.dashboardData[angle])
+        #expect(angles.allSatisfy { $0.y >= 0 && $0.y <= 180 })
+        let volume = try #require(session.dashboardData[.volume]?.last)
+        #expect(abs(volume.y - session.stats.volume) < 1e-6 * max(session.stats.volume, 1))
+        let average = try #require(session.dashboardData[.average(temperature)])
+        #expect(average.count == session.dashboardData[temperature]?.count)
+        #expect(!session.console.text.contains("ERROR"), "LAMMPS rejected a dashboard command")
+
+        session.stop()
+        #expect(!session.thermostat.isEnabled)
+
+        // A plain script gets the summary and temperature.
+        let scratch = try scratchDirectory()
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        let script = scratch.appendingPathComponent("plain.in")
+        try "units lj\n".write(to: script, atomically: true, encoding: .utf8)
+        session.load(script: script)
+        #expect(session.dashboard == DashboardLayout.fallback)
+        #expect(session.thermostatPanel == nil)
+        session.stop()
+    }
+
     @Test(.timeLimit(.minutes(1))) func scriptErrorsAreSurfaced() async throws {
         let scratch = try scratchDirectory()
         defer { try? FileManager.default.removeItem(at: scratch) }
