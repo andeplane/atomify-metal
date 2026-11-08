@@ -127,6 +127,8 @@ struct SimulationChrome: View {
     let model: AppModel
     let session: SimulationSession
     @Environment(\.layoutMetrics) private var metrics
+    /// The width between the margins, measured, for the atom card.
+    @State private var contentWidth: CGFloat = 0
 
     var body: some View {
         let atomShown = session.selectedAtom != nil
@@ -135,10 +137,12 @@ struct SimulationChrome: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             PanelRail(model: model)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            SelectedAtomCard(model: model, session: session, maxWidth: atomCardMaxWidth)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+            // Above the card, which never reaches it.
             TimeRail(session: session)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            SelectedAtomCard(model: model, session: session)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             if session.status == .finished && !atomShown {
                 FinishedBanner(session: session)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
@@ -151,6 +155,12 @@ struct SimulationChrome: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
         .animation(.easeInOut(duration: 0.2), value: session.status == .finished)
+    }
+
+    /// From the leading margin to a margin short of the time rail.
+    private var atomCardMaxWidth: CGFloat {
+        guard contentWidth > 0 else { return AtomCard.fullWidth }
+        return max(contentWidth - TimeRail.width - metrics.margin, 0)
     }
 }
 
@@ -234,6 +244,8 @@ struct PanelRail: View {
 /// Bottom trailing: speed, Restart and Play or Pause, one glass capsule.
 struct TimeRail: View {
     let session: SimulationSession
+    /// Three 44 pt buttons and the capsule's 2 pt padding.
+    static let width: CGFloat = 48
 
     var body: some View {
         VStack(spacing: 0) {
@@ -251,8 +263,11 @@ struct TimeRail: View {
 
 /// How fast the simulation plays, relative to the example's own speed
 /// (Atomify 2's: one timestep per frame unless the script says otherwise).
+/// The choices open in a popover beside the rail, which the system places
+/// so all seven fit; a menu from the bottom rail ran off the top.
 struct SpeedMenu: View {
     let session: SimulationSession
+    @State private var showsChoices = false
 
     static let choices: [(label: String, factor: Double)] = [
         ("¼×", 0.25), ("½×", 0.5), ("1×", 1), ("2×", 2), ("4×", 4), ("10×", 10), ("Max", .infinity),
@@ -260,15 +275,8 @@ struct SpeedMenu: View {
 
     var body: some View {
         let factor = session.speedFactor
-        Menu {
-            Picker("Speed", selection: Binding(
-                get: { Self.choices.firstIndex { $0.factor == factor } ?? 2 },
-                set: { session.speedFactor = Self.choices[$0].factor }
-            )) {
-                ForEach(Self.choices.indices, id: \.self) { index in
-                    Text(Self.choices[index].label).tag(index)
-                }
-            }
+        Button {
+            showsChoices = true
         } label: {
             Text(Self.label(for: factor))
                 .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -278,10 +286,44 @@ struct SpeedMenu: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())
         }
-        .menuIndicator(.hidden)
+        .buttonStyle(.plain)
         .disabled(session.stepsPerFrame == nil)
         .accessibilityLabel("Speed")
         .accessibilityValue(Self.label(for: factor))
+        .popover(isPresented: $showsChoices, attachmentAnchor: .rect(.bounds), arrowEdge: .trailing) {
+            choiceList(selected: factor)
+                .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    private func choiceList(selected: Double) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Self.choices.indices, id: \.self) { index in
+                let choice = Self.choices[index]
+                Button {
+                    session.speedFactor = choice.factor
+                    showsChoices = false
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                            .font(.footnote.weight(.semibold))
+                            .opacity(choice.factor == selected ? 1 : 0)
+                        Text(choice.label)
+                            .monospacedDigit()
+                        Spacer(minLength: 0)
+                    }
+                    .font(.body)
+                    .padding(.horizontal, 14)
+                    .frame(height: 40)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(choice.factor == selected ? .isSelected : [])
+            }
+        }
+        .padding(.vertical, 6)
+        .frame(width: 112)
+        .dynamicTypeSize(...DynamicTypeSize.xLarge)
     }
 
     static func label(for factor: Double) -> String {
@@ -450,10 +492,11 @@ struct PerformanceHUD: View {
 struct SelectedAtomCard: View {
     let model: AppModel
     let session: SimulationSession
+    var maxWidth = AtomCard.fullWidth
 
     var body: some View {
         if let atom = session.selectedAtom {
-            AtomCard(atom: atom, units: session.stats.units,
+            AtomCard(atom: atom, units: session.stats.units, maxWidth: maxWidth,
                      onCenter: { model.centerOnSelectedAtom() },
                      onClose: { session.clearSelection() })
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -464,12 +507,18 @@ struct SelectedAtomCard: View {
 /// What the tapped atom is and where it is, in one row. The swatch is the
 /// color the atom is drawn in; the renderer rings the atom itself.
 struct AtomCard: View {
+    static let fullWidth: CGFloat = 404
+
     let atom: AtomInfo
     let units: String
+    /// Narrower than `fullWidth` (a side panel is open), the card drops
+    /// the coordinates and keeps the name and its buttons.
+    var maxWidth = AtomCard.fullWidth
     let onCenter: () -> Void
     let onClose: () -> Void
 
     var body: some View {
+        let width = min(Self.fullWidth, maxWidth)
         HStack(spacing: 10) {
             Circle()
                 .fill(swatch)
@@ -489,10 +538,12 @@ struct AtomCard: View {
             .fixedSize()
             .accessibilityElement(children: .combine)
             Spacer(minLength: 4)
-            HStack(spacing: 0) {
-                coordinate("x", atom.position.x)
-                coordinate("y", atom.position.y)
-                coordinate("z", atom.position.z)
+            if width >= 380 {
+                HStack(spacing: 0) {
+                    coordinate("x", atom.position.x)
+                    coordinate("y", atom.position.y)
+                    coordinate("z", atom.position.z)
+                }
             }
             circleButton("scope", label: "Center", action: onCenter)
                 .accessibilityHint("Turns the camera around this atom.")
@@ -500,7 +551,7 @@ struct AtomCard: View {
         }
         .padding(.leading, 14)
         .padding(.trailing, 10)
-        .frame(width: 404, height: 56)
+        .frame(width: width, height: 56)
         .glass(in: Capsule())
     }
 
