@@ -156,6 +156,25 @@ public final class SimulationSession {
         }
     }
 
+    /// The app's heat bath (see `Thermostat`). Setting it queues the LAMMPS
+    /// commands that add, change or remove the fix and echoes them in the
+    /// console. It can only be switched on while a run is active, and it is
+    /// off again when the run ends or another starts; the target is kept,
+    /// limited to `Thermostat.targetRange`, and reset to the default when the
+    /// unit style changes.
+    public var thermostat: Thermostat {
+        get { storedThermostat }
+        set {
+            var thermostat = newValue
+            thermostat.target = Thermostat.clampedTarget(thermostat.target, units: thermostatUnits ?? "")
+            if run == nil || !status.isActive { thermostat.isEnabled = false }
+            guard thermostat != storedThermostat else { return }
+            let commands = Thermostat.commands(from: storedThermostat, to: thermostat)
+            storedThermostat = thermostat
+            for command in commands { enqueue(command) }
+        }
+    }
+
     /// The camera that frames the run (after the first snapshot, or the
     /// last reset); nil before the first snapshot.
     public private(set) var framedCamera: OrbitCamera?
@@ -223,6 +242,9 @@ public final class SimulationSession {
     private var storedShowBonds = true
     private var storedShowBox = true
     private var storedMaxStepsPerSecond: Double?
+    private var storedThermostat = Thermostat()
+    /// Unit style the thermostat target was chosen for.
+    @ObservationIgnored private var thermostatUnits: String?
 
     @ObservationIgnored private var run: Run?
     @ObservationIgnored private var launch: Launch?
@@ -283,6 +305,7 @@ public final class SimulationSession {
         self.run = nil
         pollTask?.cancel()
         pollTask = nil
+        storedThermostat.isEnabled = false
         if status.isActive { status = .idle }
     }
 
@@ -428,6 +451,7 @@ public final class SimulationSession {
         drain(run)
         publish()
         status = RunStatus.after(outcome)
+        storedThermostat.isEnabled = false
         if case .failed(let message) = outcome { errorMessage = message }
         self.run = nil
         pollTask?.cancel()
@@ -477,6 +501,13 @@ public final class SimulationSession {
         pendingStats.dimension = snapshot.dimension
         pendingStats.volume = SessionStats.volume(boxSize: pendingStats.boxSize, dimension: snapshot.dimension)
         pendingStats.typeCount = snapshot.typeCount
+
+        if thermostatUnits != snapshot.units {
+            thermostatUnits = snapshot.units
+            if !storedThermostat.isEnabled {
+                storedThermostat.target = Thermostat.defaultTarget(units: snapshot.units)
+            }
+        }
 
         let key = StyleKey(typeCount: frame.highestType, units: snapshot.units)
         if key != styleKey {

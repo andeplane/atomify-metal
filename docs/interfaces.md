@@ -358,6 +358,11 @@ public enum CameraFraming { static func camera(hint: CameraHint?, boxLow:boxHigh
     static func orbit(position:target:) -> (distance, yaw, pitch); static func eye(target:distance:yaw:pitch:)
     static func isSameView(_: OrbitCamera, _: OrbitCamera, tolerance: Float = 1e-4) -> Bool }
 
+/// The app's Langevin heat bath: `fix atomify_thermostat all langevin T T $(100.0*dt) seed zero yes`.
+public struct Thermostat: Sendable, Equatable { isEnabled, target, dampingSteps, seed; var addCommand: String
+    static let fixID, removeCommand; static func commands(from:to:) -> [String]
+    static func defaultTarget(units:), presets(units:), targetRange(units:), clampedTarget(_:units:) }
+
 /// Gallery rows: curated sections of example ids; unlisted examples go to a last "More" section.
 public struct ExampleSection: Sendable, Equatable, Identifiable { id, title, examples: [Example] }
 public enum ExampleSections { struct Definition { id, title, exampleIDs }; static let curated: [Definition]
@@ -380,6 +385,7 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     func load(script: URL, workingDirectory: URL? = nil)
     func restart(); func stop(); func pause(); func resume(); func togglePause(); func enqueue(_ command: String)
     maxStepsPerSecond: Double?   // nil, zero or negative: no limit (static func speedLimit(_:))
+    thermostat: Thermostat      // setting it enqueues fix/unfix; off when a run ends or starts
     // view
     scene: SceneData?, camera: OrbitCamera, renderSettings: RenderSettings,
     colorQuantity: String?, colormap: Colormap, customColorRange, colorRange, availableQuantities, colorMode,
