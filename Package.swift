@@ -11,6 +11,7 @@ let package = Package(
         .library(name: "AtomifyEngine", targets: ["AtomifyEngine"]),
         .library(name: "AtomifyKit", targets: ["AtomifyKit"]),
         .executable(name: "AtomifyMac", targets: ["AtomifyMac"]),
+        .executable(name: "RenderLab", targets: ["RenderLab"]),
     ],
     targets: [
         .binaryTarget(name: "CLammps", path: "src/shared/lammps/Frameworks/CLammps.xcframework"),
@@ -31,5 +32,10 @@ let package = Package(
 
         .executableTarget(name: "AtomifyMac", dependencies: ["AtomifyKit"], path: "src/macos/AtomifyMac",
                           resources: [.copy("Examples")]),
+
+        // Renderer test bench: synthetic scenes, no LAMMPS.
+        .executableTarget(name: "RenderLab", dependencies: ["AtomifyRender"], path: "src/macos/RenderLab",
+                          exclude: ["README.md"]),
+        .testTarget(name: "RenderLabTests", dependencies: ["RenderLab"], path: "src/macos/RenderLabTests"),
     ]
 )
