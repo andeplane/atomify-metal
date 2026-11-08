@@ -1,0 +1,14 @@
+diff --git a/src/input.h b/src/input.h
+index 7330424..c598e3b 100644
+--- a/src/input.h
++++ b/src/input.h
+@@ -45,6 +45,9 @@ class Input : protected Pointers {
+   void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
+   void write_echo(const std::string &);                    // send text to active echo file pointers
+   [[nodiscard]] int get_jump_skip() const { return jump_skip; }
++  // Atomify (from lammps.js): read-only access to the input line being
++  // processed, so the app can report which command an error came from.
++  const char *get_last_line() const { return line; }
+ 
+  protected:
+   int echo_screen;    // 0 = no, 1 = yes
