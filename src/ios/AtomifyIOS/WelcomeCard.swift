@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Atomify 2's welcome, over the running simulation on every launch (and
-/// from Settings). The close button, a tap outside the card or the escape
-/// gesture closes it.
+/// from Settings). A tap anywhere (on the card or outside it), the close
+/// button or the escape gesture closes it.
 struct WelcomeCard: View {
     let onClose: () -> Void
 
@@ -37,6 +37,7 @@ struct WelcomeCard: View {
         .padding(.bottom, 20)
         .panelBackground(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .onTapGesture(perform: onClose)
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
     }
