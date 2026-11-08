@@ -45,6 +45,8 @@ final class AppModel {
 
     /// The examples gallery is up over the simulation.
     var showsGallery = false
+    /// Where the gallery is: empty at its root, where Examples always opens it.
+    var galleryPath: [ExampleRoute] = []
     /// Atomify 2's welcome over the running simulation, on every launch.
     var showsWelcome = true
     /// The side panel shown beside the simulation, if any.
@@ -103,6 +105,7 @@ final class AppModel {
     /// Back to the gallery. A running simulation pauses until it is shown again.
     func showGallery() {
         panel = nil
+        galleryPath = []
         if session.status == .running {
             session.pause()
             pausedForGallery = true

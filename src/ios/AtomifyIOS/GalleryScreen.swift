@@ -2,32 +2,6 @@ import AtomifyKit
 import SwiftUI
 import UIKit
 
-/// The app's root, as in Atomify 2: a running simulation from launch, with
-/// the welcome over it, and the examples gallery full screen over it when
-/// asked for.
-struct RootView: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.scenePhase) private var scenePhase
-
-    var body: some View {
-        @Bindable var model = model
-        SimulationScreen()
-            .fullScreenCover(isPresented: $model.showsGallery) {
-                GalleryScreen(model: model)
-                    .environment(model)
-            }
-            .task { model.start() }
-            .onChange(of: scenePhase) { _, phase in
-                switch phase {
-                case .active: model.enterForeground()
-                case .background: model.enterBackground()
-                default: break
-                }
-            }
-            .preferredColorScheme(.dark)
-    }
-}
-
 /// Where a tap in the gallery leads.
 enum ExampleRoute: Hashable {
     case detail(Example)
@@ -35,64 +9,48 @@ enum ExampleRoute: Hashable {
     case files(Example)
 }
 
-/// The examples by topic, as in Atomify 2: a row of cards per section, the
-/// simulation that is loaded on top, and search. A card opens the
-/// example's detail, where Run starts it.
+/// The examples by topic, as in Atomify 2: a row of cards per section and
+/// a search field that narrows them. A card opens the example's detail,
+/// where Run starts it. It always opens at its root (`AppModel.galleryPath`).
 struct GalleryScreen: View {
-    let model: AppModel
-    @State private var path: [ExampleRoute] = []
+    @Bindable var model: AppModel
     @State private var query = ""
     @State private var showsSettings = false
     @State private var wantsWelcome = false
 
     var body: some View {
-        NavigationStack(path: $path) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 26) {
-                    if let error = model.catalogError {
-                        Label(error, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
-                            .padding(.horizontal, 16)
-                    }
-                    if query.isEmpty {
-                        if model.session.title != nil {
-                            NowSimulatingCard(model: model, session: model.session)
-                                .padding(.horizontal, 16)
+        NavigationStack(path: $model.galleryPath) {
+            GalleryContent(model: model, query: query)
+                .navigationTitle("Examples")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            model.returnToSimulation()
+                        } label: {
+                            Label(model.session.title ?? "Simulation", systemImage: "chevron.backward")
+                                .labelStyle(.titleAndIcon)
+                                .lineLimit(1)
                         }
-                        ForEach(model.sections) { section in
-                            SectionRow(model: model, section: section)
+                        .accessibilityHint("Returns to the simulation.")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        GallerySearchField(text: $query)
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showsSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
                         }
-                    } else {
-                        SearchResults(model: model, query: query)
+                        .accessibilityLabel("Settings")
                     }
                 }
-                .padding(.vertical, 12)
-            }
-            .navigationTitle("Atomify")
-            .searchable(text: $query, prompt: "Search examples")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        model.returnToSimulation()
-                    } label: {
-                        Label("Simulation", systemImage: "chevron.backward")
-                            .labelStyle(.titleAndIcon)
-                    }
-                    .accessibilityHint("Returns to the simulation.")
+                .navigationDestination(for: ExampleRoute.self) { route in
+                    ExampleRouteView(model: model, route: route)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showsSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    .accessibilityLabel("Settings")
-                }
-            }
-            .navigationDestination(for: ExampleRoute.self) { route in
-                ExampleRouteView(model: model, route: route)
-            }
         }
+        .readsLayoutMetrics()
         .sheet(isPresented: $showsSettings, onDismiss: {
             if wantsWelcome {
                 wantsWelcome = false
@@ -105,153 +63,159 @@ struct GalleryScreen: View {
     }
 }
 
+/// The section rows, narrowed to the examples that match the search.
+private struct GalleryContent: View {
+    let model: AppModel
+    let query: String
+    @Environment(\.layoutMetrics) private var metrics
+
+    var body: some View {
+        let sections = visibleSections
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                if let error = model.catalogError {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, metrics.margin)
+                }
+                ForEach(sections) { section in
+                    SectionRow(model: model, section: section)
+                }
+            }
+            .padding(.top, 6)
+            .padding(.bottom, 12)
+        }
+        .scrollIndicatorsFlash(onAppear: true)
+        .overlay {
+            if sections.isEmpty && !query.isEmpty {
+                ContentUnavailableView.search(text: query)
+            }
+        }
+    }
+
+    private var visibleSections: [ExampleSection] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return model.sections }
+        let matches = Set(model.catalog.filtered(query: trimmed).map(\.id))
+        return model.sections.compactMap { section in
+            var section = section
+            section.examples = section.examples.filter { matches.contains($0.id) }
+            return section.examples.isEmpty ? nil : section
+        }
+    }
+}
+
+/// Search in the bar: a small glass field, since `.searchable` turns into
+/// a bar over the cards at the bottom of the screen on iOS 26.
+private struct GallerySearchField: View {
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            TextField("Search", text: $text)
+                .textFieldStyle(.plain)
+                .submitLabel(.search)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear Search")
+            }
+        }
+        .font(.subheadline)
+        .padding(.horizontal, 12)
+        .frame(width: 200, height: 36)
+        .glass(in: Capsule())
+        .accessibilityLabel("Search examples")
+    }
+}
+
 /// One section: its title and a horizontally scrolling row of cards.
 private struct SectionRow: View {
     let model: AppModel
     let section: ExampleSection
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(section.title)
-                .font(.title2.weight(.bold))
-                .padding(.horizontal, 16)
+                .font(metrics.isWide ? .title2.bold() : .title3.bold())
+                .padding(.horizontal, metrics.margin)
                 .accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 14) {
+                LazyHStack(alignment: .top, spacing: metrics.isWide ? 14 : 12) {
                     ForEach(section.examples) { example in
                         NavigationLink(value: ExampleRoute.detail(example)) {
                             GalleryCard(model: model, example: example)
                         }
                         .buttonStyle(.plain)
-                        .containerRelativeFrame(.horizontal) { length, _ in min(length * 0.62, 300) }
                     }
                 }
                 .scrollTargetLayout()
             }
-            .contentMargins(.horizontal, 16, for: .scrollContent)
+            .contentMargins(.horizontal, metrics.margin, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned)
         }
     }
 }
 
-/// An example in a section row: its picture, title and first sentence.
+/// An example in a section row: its picture and title.
 private struct GalleryCard: View {
     let model: AppModel
     let example: Example
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ExampleThumbnail(url: model.catalog.imageURL(for: example), cornerRadius: 12)
-                .aspectRatio(16 / 10, contentMode: .fit)
+        let size = metrics.cardSize
+        let running = model.session.example?.id == example.id && model.session.title != nil
+        VStack(alignment: .leading, spacing: 6) {
+            ExampleThumbnail(url: model.catalog.imageURL(for: example), cornerRadius: 10)
+                .frame(width: size.width, height: size.height)
                 .overlay(alignment: .topLeading) {
-                    if model.session.example?.id == example.id && model.session.title != nil {
-                        LoadedBadge()
-                            .padding(8)
+                    if running {
+                        RunningBadge()
+                            .padding(6)
                     }
                 }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(example.title)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Text(ExampleText.summary(of: example.description))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2, reservesSpace: true)
-            }
+            Text(example.title)
+                .font(.footnote.weight(.semibold))
+                .lineLimit(1)
+                .frame(width: size.width, alignment: .leading)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+        .accessibilityValue(running ? "Running" : "")
     }
 }
 
-private struct LoadedBadge: View {
+/// Marks the example that is loaded in the simulation.
+private struct RunningBadge: View {
     var body: some View {
-        Text("Loaded")
-            .font(.caption2.weight(.semibold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(.tint, in: Capsule())
-            .foregroundStyle(.white)
-    }
-}
-
-/// The simulation that is loaded, with a way back to it.
-private struct NowSimulatingCard: View {
-    let model: AppModel
-    let session: SimulationSession
-
-    var body: some View {
-        Button {
-            model.returnToSimulation()
-        } label: {
-            HStack(spacing: 14) {
-                ExampleThumbnail(url: session.example.flatMap { model.catalog.imageURL(for: $0) }, cornerRadius: 8)
-                    .frame(width: 72, height: 46)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Currently simulating")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(session.title ?? "")
-                        .font(.headline)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                Text("Return")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(.tint, in: Capsule())
-                    .foregroundStyle(.white)
-            }
-            .padding(12)
-            .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        HStack(spacing: 4) {
+            Circle()
+                .fill(.green)
+                .frame(width: 6, height: 6)
+            Text("Running")
         }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint("Returns to the simulation.")
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(.black.opacity(0.6), in: Capsule())
+        .accessibilityHidden(true)
     }
 }
 
-/// Examples whose title, description or keywords match the search.
-private struct SearchResults: View {
-    let model: AppModel
-    let query: String
-
-    var body: some View {
-        let matches = model.catalog.filtered(query: query)
-        if matches.isEmpty {
-            ContentUnavailableView.search(text: query)
-        } else {
-            VStack(spacing: 0) {
-                ForEach(matches) { example in
-                    NavigationLink(value: ExampleRoute.detail(example)) {
-                        HStack(spacing: 12) {
-                            ExampleThumbnail(url: model.catalog.imageURL(for: example))
-                                .frame(width: 88, height: 55)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(example.title)
-                                    .font(.body.weight(.medium))
-                                    .lineLimit(2)
-                                Text(ExampleText.summary(of: example.description))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-}
-
-/// Short forms of the catalog's Markdown descriptions.
+/// Reading the catalog's Markdown descriptions.
 enum ExampleText {
     /// A paragraph of a description, or a heading: a paragraph that is all
     /// bold.
@@ -289,17 +253,6 @@ enum ExampleText {
         }
         flush()
         return blocks
-    }
-
-    /// The first paragraph without Markdown emphasis, for cards.
-    static func summary(of description: String) -> String {
-        let paragraph = description
-            .components(separatedBy: "\n\n")
-            .first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } ?? ""
-        return paragraph
-            .replacingOccurrences(of: "**", with: "")
-            .replacingOccurrences(of: "\n", with: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
