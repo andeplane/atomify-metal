@@ -1,7 +1,17 @@
-# LAMMPS configuration shared by the host test build and the visionOS slices.
-# Serial (MPI STUBS), static, no optional image/compression libraries.
+# LAMMPS configuration shared by the host test build and the Apple slices.
+# No MPI (STUBS), static, no optional image/compression libraries.
+# Threads come from OpenMP and the OPENMP package (/omp styles); the bridge
+# turns them on per simulation (atomify_sim_create_threaded). Apple ships no
+# OpenMP runtime, so build-xcframework.sh builds LLVM's libomp per slice
+# (build-libomp.sh) and passes it in. The environment variable
+# ATOMIFY_OPENMP=OFF gives a serial build.
 set(BUILD_MPI OFF CACHE BOOL "" FORCE)
-set(BUILD_OMP OFF CACHE BOOL "" FORCE)
+set(ATOMIFY_OPENMP ON)
+if(DEFINED ENV{ATOMIFY_OPENMP})
+  set(ATOMIFY_OPENMP $ENV{ATOMIFY_OPENMP})
+endif()
+set(BUILD_OMP ${ATOMIFY_OPENMP} CACHE BOOL "" FORCE)
+set(PKG_OPENMP ${ATOMIFY_OPENMP} CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_LAMMPS_GUI OFF CACHE BOOL "" FORCE)

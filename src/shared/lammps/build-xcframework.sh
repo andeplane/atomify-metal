@@ -9,6 +9,7 @@
 #   MACOS_ARCHS="arm64;x86_64"  universal macOS slice (default arm64)
 #   SIMULATOR_ARCHS="arm64;x86_64"  universal simulator slices (default arm64)
 #   JOBS=8  parallel compile jobs (default: all cores)
+#   ATOMIFY_OPENMP=OFF  serial LAMMPS without OpenMP threads (default ON)
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 build="$here/build"
@@ -26,13 +27,27 @@ python3 "$here/prepare_lammps.py" "$source_dir"
 
 build_slice() {
   local name="$1" archs="$2"; shift 2
+  local openmp=() runtime=()
+  if [ "${ATOMIFY_OPENMP:-ON}" != OFF ]; then
+    # LLVM's libomp for this slice, handed to LAMMPS' FindOpenMP.
+    local omp="$build/libomp/$name"
+    JOBS="$jobs" "$here/build-libomp.sh" "$omp/build" "$omp/install" \
+      -D "CMAKE_OSX_ARCHITECTURES=$archs" "$@"
+    local flags="-Xclang -fopenmp -I$omp/install/include"
+    openmp=(-D "OpenMP_C_FLAGS=$flags" -D "OpenMP_CXX_FLAGS=$flags"
+            -D OpenMP_C_LIB_NAMES=omp -D OpenMP_CXX_LIB_NAMES=omp
+            -D "OpenMP_omp_LIBRARY=$omp/install/lib/libomp.a")
+    runtime=("$omp/install/lib/libomp.a")
+  fi
   cmake -S "$source_dir/cmake" -B "$build/$name" -C "$here/atomify-preset.cmake" \
     -D CMAKE_BUILD_TYPE=Release -D "CMAKE_OSX_ARCHITECTURES=$archs" \
-    -D CMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY "$@"
+    -D CMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY ${openmp[@]+"${openmp[@]}"} "$@"
   cmake --build "$build/$name" --target lammps -j "$jobs"
-  # One archive per slice, including any helper libraries LAMMPS built.
+  # One archive per slice, including any helper libraries LAMMPS built and
+  # the OpenMP runtime.
   rm -f "$build/$name/libCLammps.a"
-  find "$build/$name" -maxdepth 2 -name '*.a' ! -name libCLammps.a -print0 \
+  { find "$build/$name" -maxdepth 2 -name '*.a' ! -name libCLammps.a -print0
+    for library in ${runtime[@]+"${runtime[@]}"}; do printf '%s\0' "$library"; done; } \
     | xargs -0 libtool -static -no_warning_for_no_symbols -o "$build/$name/libCLammps.a"
 }
 

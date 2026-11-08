@@ -22,6 +22,11 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -319,13 +324,36 @@ FILE *open_output(AtomifyShared *shared)
 
 extern "C" {
 
+int atomify_max_threads(void)
+{
+#ifdef _OPENMP
+  return std::max(1, omp_get_num_procs());
+#else
+  return 1;
+#endif
+}
+
 atomify_sim *atomify_sim_create(int echo)
+{
+  return atomify_sim_create_threaded(echo, 1);
+}
+
+atomify_sim *atomify_sim_create_threaded(int echo, int threads)
 {
   auto *sim = new atomify_sim();
   sim->shared->mark_progress();
   sim->shared->echo = echo != 0;
-  const char *argv[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
-  sim->lmp = lammps_open_no_mpi(6, const_cast<char **>(argv), nullptr);
+  std::vector<std::string> args = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
+  threads = std::min(threads, atomify_max_threads());
+  if (threads > 1) {
+    // Command line settings survive "clear": LAMMPS applies them again to
+    // each new instance. Styles without an /omp variant stay serial.
+    for (const char *arg : {"-suffix", "omp", "-package", "omp"}) args.emplace_back(arg);
+    args.push_back(std::to_string(threads));
+  }
+  std::vector<char *> argv;
+  for (auto &arg : args) argv.push_back(arg.data());
+  sim->lmp = lammps_open_no_mpi(static_cast<int>(argv.size()), argv.data(), nullptr);
   if (!sim->lmp) {
     delete sim;
     return nullptr;

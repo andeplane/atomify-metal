@@ -10,6 +10,7 @@ import pathlib
 import platform
 import plistlib
 import shutil
+import subprocess
 import sys
 
 here = pathlib.Path(__file__).resolve().parent
@@ -27,7 +28,13 @@ if info.exists():
         raise SystemExit('Existing distribution framework preserved; use its macOS slice for tests.')
 destination = output / identifier
 (destination / 'Headers').mkdir(parents=True, exist_ok=True)
-shutil.copy2(archive, destination / 'libCLammps.a')
+# An OpenMP build also needs the libomp that build-host.sh made.
+runtime = here / 'build/libomp/host/install/lib/libomp.a'
+if runtime.exists():
+    subprocess.run(['libtool', '-static', '-no_warning_for_no_symbols', '-o',
+                    str(destination / 'libCLammps.a'), str(archive), str(runtime)], check=True)
+else:
+    shutil.copy2(archive, destination / 'libCLammps.a')
 for source in (here / 'bridge/include').iterdir():
     if source.is_file():
         shutil.copy2(source, destination / 'Headers' / source.name)

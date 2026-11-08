@@ -2,6 +2,7 @@
 
 #include "atomify_lammps.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -922,6 +923,40 @@ void test_output_capture()
   atomify_sim_destroy(sim);
 }
 
+void test_threads()
+{
+  CHECK(atomify_max_threads() >= 1);
+  const int threads = std::min(2, atomify_max_threads());
+  atomify_sim *serial = atomify_sim_create(0);
+  atomify_sim *threaded = atomify_sim_create_threaded(0, threads);
+  CHECK(threaded != nullptr);
+  for (atomify_sim *sim : {serial, threaded}) {
+    atomify_sim_set_publish_interval(sim, 0);
+    CHECK(run(sim, lj_melt));
+    CHECK(run(sim, {"run 50"}));
+  }
+  const std::string output = read_all_output(threaded);
+  // With OpenMP the /omp pair style runs; without, the plain one.
+  CHECK(contains(output, threads > 1 ? "lj/cut/omp" : "lj/cut"));
+  CHECK(!contains(read_all_output(serial), "/omp"));
+  // Same trajectory up to rounding.
+  const Snapshot a = copy(serial), b = copy(threaded);
+  CHECK(a.positions.size() == b.positions.size());
+  for (size_t n = 0; n < a.positions.size() && n < b.positions.size(); n++)
+    CHECK(std::fabs(a.positions[n] - b.positions[n]) < 1e-3);
+  // The threads stay after clear, which builds a new LAMMPS instance.
+  CHECK(run(threaded, {"clear"}));
+  CHECK(run(threaded, lj_melt));
+  CHECK(run(threaded, {"run 1"}));
+  if (threads > 1) CHECK(contains(read_all_output(threaded), "lj/cut/omp"));
+  atomify_sim_destroy(serial);
+  atomify_sim_destroy(threaded);
+  // Asking for more threads than there are processors is capped, not an error.
+  atomify_sim *many = atomify_sim_create_threaded(0, 1 << 20);
+  CHECK(many != nullptr && run(many, single_atom));
+  atomify_sim_destroy(many);
+}
+
 void test_queued_commands_change_a_running_simulation()
 {
   atomify_sim *sim = atomify_sim_create(0);
@@ -1115,6 +1150,7 @@ int main()
   test_queued_commands_run_while_paused();
   test_queued_commands_outside_runs();
   test_clear_reinstalls_the_fix();
+  test_threads();
   if (failures) {
     std::fprintf(stderr, "%d check(s) failed\n", failures);
     return 1;

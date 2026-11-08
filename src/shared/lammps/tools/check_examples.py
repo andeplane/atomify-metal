@@ -4,7 +4,7 @@ bridge and prints a results table (the Linux counterpart of
 `swift run atomify-check-examples`).
 
 Usage: check_examples.py --binary example_check [--examples DIR] [--steps N]
-                         [--timeout S] [--filter TEXT] [--jobs N] [--keep]
+                         [--timeout S] [--filter TEXT] [--jobs N] [--threads T] [--keep]
 
 Each example runs in a fresh working copy (its files under their fileName,
 `suffix kk` lines commented out, as AtomifyKit's ExampleCatalog does) and in
@@ -89,7 +89,7 @@ def run(binary, catalog, example, args, scratch):
         return dict(status="failed", atoms=0, steps=0, seconds=0.0, error=str(error), line="")
     try:
         process = subprocess.run([str(binary), example["inputScript"], "--steps", str(args.steps),
-                                  "--timeout", str(args.timeout)],
+                                  "--timeout", str(args.timeout), "--threads", str(args.threads)],
                                  cwd=folder, capture_output=True, text=True, timeout=args.timeout + 60)
         lines = [line for line in process.stdout.splitlines() if line.startswith("{")]
         if lines:
@@ -131,6 +131,7 @@ def main():
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--filter", default="", help="only ids containing this text")
     parser.add_argument("--jobs", type=int, default=1, help="examples run at the same time")
+    parser.add_argument("--threads", type=int, default=1, help="OpenMP threads per example")
     parser.add_argument("--keep", action="store_true", help="keep working copies of passing examples too")
     args = parser.parse_args()
 

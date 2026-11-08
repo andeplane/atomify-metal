@@ -147,6 +147,13 @@ typedef struct {
 
 // Lifecycle. echo != 0 also copies LAMMPS output to stdout (debugging).
 atomify_sim *atomify_sim_create(int echo);
+// Same, with LAMMPS running on up to `threads` OpenMP threads: the OPENMP
+// package's /omp styles where they exist, the plain style elsewhere. Capped
+// at atomify_max_threads(); below 2 it is the serial engine.
+atomify_sim *atomify_sim_create_threaded(int echo, int threads);
+// Most threads a simulation can use: the processor count, or 1 when the
+// library was built without OpenMP.
+int atomify_max_threads(void);
 void atomify_sim_destroy(atomify_sim *sim);
 
 // Blocking script execution. Relative paths in the script resolve against
