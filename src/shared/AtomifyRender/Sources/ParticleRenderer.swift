@@ -455,7 +455,7 @@ public final class ParticleRenderer {
             if let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: occlusionPass) {
                 encoder.label = "AtomifyRender.ambientOcclusion"
                 var uniforms = SSAOUniforms(projection: view.projectionMatrix,
-                                            params: SIMD4(radius, 2 * strength, 0.002, Float(occlusionSamples.count)),
+                                            params: SIMD4(radius, 1.5 * strength, 0.002, Float(occlusionSamples.count)),
                                             screen: SIMD4(lowHalf: fullSize, highHalf: occlusionSize))
                 encoder.setRenderPipelineState(ssao)
                 encoder.setFragmentTexture(targets.normalDepth, index: 0)

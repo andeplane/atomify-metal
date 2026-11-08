@@ -667,11 +667,6 @@ enum ShaderSource {
         return out;
     }
 
-    static float hash12(float2 p) {
-        float3 p3 = fract(float3(p.xyx) * 0.1031);
-        p3 += dot(p3, p3.yzx + 33.33);
-        return fract((p3.x + p3.y) * p3.z);
-    }
 
     /// View-space position of a pixel (uv, top-left origin) at view depth
     /// `depth` (positive), for any perspective projection.
@@ -698,7 +693,11 @@ enum ShaderSource {
         }
         float3 n = normalize(center.xyz);
         float3 p = viewPositionAt(in.uv, depth, u.projection);
-        float angle = hash12(in.position.xy) * 6.2831853;
+        // Rotations from a 4×4 interleaved pattern: the composite's 4×4 blur
+        // averages over exactly one tile, so no noise is left.
+        constexpr float bayer[16] = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+        uint2 cell = uint2(in.position.xy) & 3u;
+        float angle = (bayer[cell.y * 4u + cell.x] + 0.5) / 16.0 * 6.2831853;
         float3 jitter = float3(cos(angle), sin(angle), 0.0);
         float3 tangent = jitter - n * dot(jitter, n);
         if (dot(tangent, tangent) < 1e-6) {
@@ -738,6 +737,9 @@ enum ShaderSource {
                                       texture2d<float> occlusionTexture [[texture(2)]],
                                       constant CompositeUniforms &u [[buffer(0)]]) {
         constexpr sampler nearestSampler(coord::normalized, filter::nearest, address::clamp_to_edge);
+        // Bilinear: the occlusion is at half resolution, and nearest
+        // sampling would show its 2×2 pixel steps.
+        constexpr sampler linearSampler(coord::normalized, filter::linear, address::clamp_to_edge);
         float4 color = colorTexture.sample(nearestSampler, in.uv);
         float inverseDepth = normalDepth.sample(nearestSampler, in.uv).w;
         float3 rgb = color.rgb;
@@ -747,9 +749,10 @@ enum ShaderSource {
                 float2 texel = 1.0 / max(u.sizes.zw, float2(1.0));
                 float sum = 0.0;
                 float weight = 0.0;
-                for (int y = -2; y <= 2; y++) {
-                    for (int x = -2; x <= 2; x++) {
-                        float2 o = occlusionTexture.sample(nearestSampler, in.uv + float2(float(x), float(y)) * texel).rg;
+                for (int y = 0; y < 4; y++) {
+                    for (int x = 0; x < 4; x++) {
+                        float2 offset = float2(float(x) - 1.5, float(y) - 1.5) * texel;
+                        float2 o = occlusionTexture.sample(linearSampler, in.uv + offset).rg;
                         if (o.y <= 0.0) {
                             continue;
                         }

@@ -18,7 +18,7 @@ enum AmbientOcclusionKernel {
         return (0..<count).map { i in
             // A direction in the hemisphere, rejecting ones almost in the
             // tangent plane (they self-occlude on curved surfaces).
-            var d = SIMD3<Float>(next() * 2 - 1, next() * 2 - 1, next() * 0.85 + 0.15)
+            var d = SIMD3<Float>(next() * 2 - 1, next() * 2 - 1, next() * 0.65 + 0.35)
             if simd_length_squared(d) < 1e-6 { d = SIMD3(0, 0, 1) }
             d = simd_normalize(d)
             let t = Float(i + 1) / Float(count)
