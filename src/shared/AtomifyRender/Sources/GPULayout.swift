@@ -55,7 +55,9 @@ struct FrameUniforms {
     /// x, y: near fade distances (gone, full), z: highlight radius scale,
     /// w: ambient occlusion strength.
     var nearFade: SIMD4<Float>
-    /// x: bond radius (scene units), y: max bond length (scene units).
+    /// x: bond radius (scene units), y: max bond length (scene units),
+    /// z: selection ring width as a fraction of the highlighted radius (0
+    /// tints the selected particle instead).
     var bond: SIMD4<Float>
     /// x: has per-particle radii, y: has per-particle colors, z: has
     /// per-bond colors, w: style count.

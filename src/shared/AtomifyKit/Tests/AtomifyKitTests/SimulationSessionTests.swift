@@ -90,6 +90,13 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         try await waitUntil("vx colors") { session.scene?.particles.colors != nil }
         #expect(session.colorRange != nil)
         #expect(session.colorMode.quantity == "vx")
+        // The selected atom's swatch is the color it is drawn in, not its type's.
+        session.selectParticle(3)
+        let drawn = try #require(session.scene?.particles.colors?[3])
+        let swatch = try #require(session.selectedAtom?.color)
+        func linear(_ c: Float) -> Float { c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4) }
+        #expect(abs(linear(swatch.x) - drawn.x) < 1e-3 && abs(linear(swatch.z) - drawn.z) < 1e-3)
+        session.clearSelection()
         session.customColorRange = -1...1
         #expect(session.colorRange == -1...1)
         session.customColorRange = nil

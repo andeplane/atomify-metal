@@ -93,7 +93,7 @@ enum ShaderSource {
     struct FrameUniforms {
         float4 highlightColor;
         float4 nearFade;        // x gone, y full size, z highlight radius scale, w AO strength
-        float4 bond;            // x radius, y max length
+        float4 bond;            // x radius, y max length, z selection ring width (0: tint)
         uint4 options;          // x radii, y colors, z bond colors, w style count
     };
     struct DrawUniforms { float4 offset; };   // xyz image offset, w radius factor
@@ -170,9 +170,13 @@ enum ShaderSource {
         info.ambient = mix(1.0, float(p.styleFlags >> 24) / 255.0, saturate(frame.nearFade.w));
         if ((info.flags & flagSelected) != 0u) {
             info.radius *= frame.nearFade.z;
-            info.color = float4(mix(info.color.rgb, frame.highlightColor.rgb, 0.6)
-                                + 0.15 * frame.highlightColor.rgb, 1.0);
-            info.ambient = 1.0;
+            // With a ring (frame.bond.z > 0) the particle keeps its color and
+            // the sphere fragments draw the ring.
+            if (frame.bond.z <= 0.0) {
+                info.color = float4(mix(info.color.rgb, frame.highlightColor.rgb, 0.6)
+                                    + 0.15 * frame.highlightColor.rgb, 1.0);
+                info.ambient = 1.0;
+            }
         }
         return info;
     }
@@ -221,6 +225,7 @@ enum ShaderSource {
         float radius [[flat]];
         float4 color [[flat]];
         float ambient [[flat]];
+        float4 ring [[flat]];       // rgb ring color, w ring width / radius (0: none)
         uint id [[flat]];
         uint viewIndex [[flat]];
     };
@@ -248,6 +253,8 @@ enum ShaderSource {
         out.radius = radius;
         out.color = info.color;
         out.ambient = info.ambient;
+        out.ring = ((info.flags & flagSelected) != 0u && frame.bond.z > 0.0)
+                   ? float4(frame.highlightColor.rgb, frame.bond.z) : float4(0.0);
         out.id = instanceID + 1u;
         out.viewIndex = viewIndex;
         out.viewPosition = center;
@@ -275,6 +282,7 @@ enum ShaderSource {
         float3 position;
         float3 normal;
         float alpha;
+        float offset;       // distance from the ray to the center
     };
 
     static SphereHit traceSphere(SphereVaryings in) {
@@ -283,11 +291,20 @@ enum ShaderSource {
         // Squared distance from the center to the ray.
         float miss = max(dot(in.center, in.center) - b * b, 0.0);
         SphereHit hit;
-        hit.alpha = coverage(in.radius - sqrt(miss));
+        hit.offset = sqrt(miss);
+        hit.alpha = coverage(in.radius - hit.offset);
         // Rays just outside the silhouette shade its rim.
         hit.position = rd * (b - sqrt(max(in.radius * in.radius - miss, 0.0)));
         hit.normal = normalize(hit.position - in.center);
         return hit;
+    }
+
+    /// The shaded sphere, with the selection ring (unlit, so it reads as an
+    /// outline) over its outer part when it has one.
+    static float3 sphereColor(SphereVaryings in, SphereHit hit, constant ViewUniforms &view) {
+        float3 color = shade(hit.position, hit.normal, in.color.rgb, in.ambient, view);
+        float ring = coverage(hit.offset - in.radius * (1.0 - in.ring.w)) * step(1e-6, in.ring.w);
+        return mix(color, in.ring.rgb, ring);
     }
 
     fragment ColorOutput sphereFragment(SphereVaryings in [[stage_in]],
@@ -298,7 +315,7 @@ enum ShaderSource {
             discard_fragment();
         }
         ColorOutput out;
-        out.color = float4(shade(hit.position, hit.normal, in.color.rgb, in.ambient, view), outputAlpha(hit.alpha));
+        out.color = float4(sphereColor(in, hit, view), outputAlpha(hit.alpha));
         out.depth = clipDepth(hit.position, view);
         return out;
     }
@@ -311,7 +328,7 @@ enum ShaderSource {
             discard_fragment();
         }
         GBufferOutput out;
-        out.color = float4(shade(hit.position, hit.normal, in.color.rgb, in.ambient, view), outputAlpha(hit.alpha));
+        out.color = float4(sphereColor(in, hit, view), outputAlpha(hit.alpha));
         out.normalDepth = float4(hit.normal, 1.0 / max(-hit.position.z, 1e-6));
         out.depth = clipDepth(hit.position, view);
         return out;

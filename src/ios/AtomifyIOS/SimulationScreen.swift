@@ -10,7 +10,7 @@ enum SettingsKey {
 }
 
 /// The running simulation, the app's main screen: the Metal view edge to
-/// edge, with glass controls floating on top and everything else in sheets.
+/// edge, with glass controls floating along its edges.
 /// The app is landscape only, as Atomify 2 was.
 struct SimulationScreen: View {
     @Environment(AppModel.self) private var model
@@ -38,9 +38,9 @@ struct SimulationScreen: View {
         }
         .animation(.easeInOut(duration: 0.2), value: model.chromeHidden)
         .animation(.easeInOut(duration: 0.25), value: model.showsWelcome)
-        .background(Color(red: 0.08, green: 0.08, blue: 0.1))
+        .background(Color.canvas)
+        .readsLayoutMetrics()
         .preferredColorScheme(.dark)
-        .statusBarHidden(model.chromeHidden)
         .persistentSystemOverlays(model.chromeHidden ? .hidden : .automatic)
         .sheet(item: $model.sheet) { sheet in
             SheetContent(sheet: sheet, model: model)
@@ -119,57 +119,155 @@ func performOnMain(_ work: @escaping @MainActor @Sendable () -> Void) {
     }
 }
 
-/// The floating controls: title, speed and reset view on top; messages and
-/// the atom card bottom left, the toolbar bottom right.
+/// The floating controls, in four groups along the edges so the middle
+/// stays on the atoms: the Examples button and the title top leading with
+/// the script's messages under them, the panels top trailing, time bottom
+/// trailing and the selected atom bottom leading.
 struct SimulationChrome: View {
     let model: AppModel
     let session: SimulationSession
-    @AppStorage(SettingsKey.showPerformance) private var showPerformance = false
+    @Environment(\.layoutMetrics) private var metrics
+    /// The width between the margins, measured, for the atom card.
+    @State private var contentWidth: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 10) {
-            HStack(alignment: .top, spacing: 10) {
-                TitleCapsule(session: session) { model.sheet = .about }
-                if showPerformance {
-                    PerformanceHUD(session: session)
-                }
-                Spacer(minLength: 8)
-                ResetViewButton(session: session)
-                SpeedMenu(session: session)
-            }
-            ScriptLabelBanner(session: session)
-            if session.colorQuantity != nil {
-                HStack {
-                    ColorLegend(session: session, compact: true)
-                        .frame(width: 170)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .glass(in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .onTapGesture { model.sheet = .view }
-                    Spacer(minLength: 0)
-                }
-            }
-            Spacer(minLength: 0)
-            HStack(alignment: .bottom, spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
-                    RunMessages(model: model, session: session)
-                    SelectedAtomCard(model: model, session: session)
-                }
-                .frame(maxWidth: 380, alignment: .leading)
-                Spacer(minLength: 0)
-                SimulationToolbar(model: model, session: session)
+        let atomShown = session.selectedAtom != nil
+        ZStack {
+            LeadingCluster(model: model, session: session)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            PanelRail(model: model)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            SelectedAtomCard(model: model, session: session, maxWidth: atomCardMaxWidth)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+            // Above the card, which never reaches it.
+            TimeRail(session: session)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            if session.status == .finished && !atomShown {
+                FinishedBanner(session: session)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .transition(.opacity)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
+        .safeAreaPadding(.horizontal, metrics.margin)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
+        .animation(.easeInOut(duration: 0.2), value: session.status == .finished)
+    }
+
+    /// From the leading margin to a margin short of the time rail.
+    private var atomCardMaxWidth: CGFloat {
+        guard contentWidth > 0 else { return AtomCard.fullWidth }
+        return max(contentWidth - TimeRail.width - metrics.margin, 0)
+    }
+}
+
+/// Top leading: Examples, what is running, Reset View; under them the
+/// script's label, warnings and errors, the color legend and the
+/// performance numbers.
+struct LeadingCluster: View {
+    let model: AppModel
+    let session: SimulationSession
+    @AppStorage(SettingsKey.showPerformance) private var showPerformance = false
+    /// Warnings dismissed this run; kept here because both layouts below
+    /// show the same messages.
+    @State private var dismissedWarnings: Set<String> = []
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            HStack(alignment: .top, spacing: 8) {
+                RoundGlassButton(systemImage: "square.grid.2x2", label: "Examples") {
+                    model.showGallery()
+                }
+                TitleCapsule(session: session) { model.sheet = .about }
+                ResetViewButton(session: session)
+            }
+            // Down to the vertical centre at most: the legend goes first
+            // when there is no room (the View options show it too).
+            ViewThatFits(in: .vertical) {
+                messages(legend: true)
+                messages(legend: false)
+            }
+            .frame(maxWidth: 340, alignment: .topLeading)
+            .containerRelativeFrame(.vertical, alignment: .topLeading) { height, _ in
+                max(height / 2 - 64, 0)
+            }
+            .padding(.top, 52)
+        }
+        .onChange(of: session.title) { dismissedWarnings = [] }
+    }
+
+    private func messages(legend: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ScriptLabelBanner(session: session)
+            RunMessages(model: model, session: session, dismissed: $dismissedWarnings)
+            if legend && session.colorQuantity != nil {
+                ColorLegend(session: session, compact: true)
+                    .frame(width: 170)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .glass(in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .onTapGesture { model.sheet = .view }
+                    .accessibilityAddTraits(.isButton)
+            }
+            if showPerformance {
+                PerformanceHUD(session: session)
+            }
+        }
+    }
+}
+
+/// Top trailing: Info, Dashboard and View, one glass capsule.
+struct PanelRail: View {
+    let model: AppModel
+
+    var body: some View {
+        VStack(spacing: 0) {
+            RailButton(systemImage: "info.circle", label: "Info", isSelected: model.sheet == .about) {
+                model.sheet = .about
+            }
+            RailButton(systemImage: "chart.xyaxis.line", label: "Dashboard", isSelected: model.sheet == .dashboard) {
+                model.sheet = .dashboard
+            }
+            RailButton(systemImage: "slider.horizontal.3", label: "View", isSelected: model.sheet == .view) {
+                model.sheet = .view
+            }
+        }
+        .padding(2)
+        .glass(in: Capsule())
+    }
+}
+
+/// Bottom trailing: speed, Restart and Play or Pause, one glass capsule.
+struct TimeRail: View {
+    let session: SimulationSession
+    /// Three 44 pt buttons and the capsule's 2 pt padding.
+    static let width: CGFloat = 48
+
+    var body: some View {
+        VStack(spacing: 0) {
+            SpeedMenu(session: session)
+            RailButton(systemImage: "arrow.counterclockwise", label: "Restart") {
+                session.restart()
+            }
+            .disabled(session.title == nil)
+            PlayPauseButton(session: session)
+        }
+        .padding(2)
+        .glass(in: Capsule())
     }
 }
 
 /// How fast the simulation plays, relative to the example's own speed
 /// (Atomify 2's: one timestep per frame unless the script says otherwise).
+/// The choices open in a popover beside the rail, which the system places
+/// so all seven fit; a menu from the bottom rail ran off the top.
 struct SpeedMenu: View {
     let session: SimulationSession
+    @State private var showsChoices = false
 
     static let choices: [(label: String, factor: Double)] = [
         ("¼×", 0.25), ("½×", 0.5), ("1×", 1), ("2×", 2), ("4×", 4), ("10×", 10), ("Max", .infinity),
@@ -177,32 +275,55 @@ struct SpeedMenu: View {
 
     var body: some View {
         let factor = session.speedFactor
-        Menu {
-            Picker("Speed", selection: Binding(
-                get: { Self.choices.firstIndex { $0.factor == factor } ?? 2 },
-                set: { session.speedFactor = Self.choices[$0].factor }
-            )) {
-                ForEach(Self.choices.indices, id: \.self) { index in
-                    Text(Self.choices[index].label).tag(index)
-                }
-            }
+        Button {
+            showsChoices = true
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "gauge.with.dots.needle.67percent")
-                    .font(.footnote)
-                Text(Self.label(for: factor))
-                    .monospacedDigit()
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 14)
-            .frame(minHeight: 46)
-            .contentShape(Capsule())
+            Text(Self.label(for: factor))
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(.primary)
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
         }
-        .glass(in: Capsule())
+        .buttonStyle(.plain)
         .disabled(session.stepsPerFrame == nil)
         .accessibilityLabel("Speed")
         .accessibilityValue(Self.label(for: factor))
+        .popover(isPresented: $showsChoices, attachmentAnchor: .rect(.bounds), arrowEdge: .trailing) {
+            choiceList(selected: factor)
+                .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    private func choiceList(selected: Double) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Self.choices.indices, id: \.self) { index in
+                let choice = Self.choices[index]
+                Button {
+                    session.speedFactor = choice.factor
+                    showsChoices = false
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                            .font(.footnote.weight(.semibold))
+                            .opacity(choice.factor == selected ? 1 : 0)
+                        Text(choice.label)
+                            .monospacedDigit()
+                        Spacer(minLength: 0)
+                    }
+                    .font(.body)
+                    .padding(.horizontal, 14)
+                    .frame(height: 40)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(choice.factor == selected ? .isSelected : [])
+            }
+        }
+        .padding(.vertical, 6)
+        .frame(width: 112)
+        .dynamicTypeSize(...DynamicTypeSize.xLarge)
     }
 
     static func label(for factor: Double) -> String {
@@ -216,20 +337,19 @@ struct ScriptLabelBanner: View {
     let session: SimulationSession
 
     var body: some View {
-        if let label = session.scriptLabel {
-            HStack {
+        ZStack(alignment: .leading) {
+            if let label = session.scriptLabel {
                 Text(label)
-                    .font(.callout)
+                    .font(.subheadline)
                     .lineLimit(2)
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
+                    .frame(minHeight: 34)
                     .glass(in: Capsule())
                     .transition(.opacity)
                     .id(label)
-                Spacer(minLength: 0)
             }
-            .animation(.easeInOut(duration: 0.3), value: label)
         }
+        .animation(.easeInOut(duration: 0.3), value: session.scriptLabel)
     }
 }
 
@@ -251,41 +371,43 @@ struct ResetViewButton: View {
     }
 }
 
-/// What is running, and how it is going. Opens the about sheet.
+/// What is running, and how it is going. Opens the Info panel.
 struct TitleCapsule: View {
     let session: SimulationSession
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(session.title ?? "Atomify")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(session.title ?? "Atomify")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 7, height: 7)
+                    Text(statusLine)
+                        .monospacedDigit()
                         .lineLimit(1)
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(statusColor)
-                            .frame(width: 7, height: 7)
-                        Text(statusLine)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 36)
+            .frame(height: 44)
+            .overlay(alignment: .trailing) {
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)
+                    .padding(.trailing, 13)
             }
-            .padding(.leading, 16)
-            .padding(.trailing, 14)
-            .padding(.vertical, 8)
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .glass(in: Capsule())
+        .widthCap(300)
         .disabled(session.title == nil)
         .accessibilityElement(children: .combine)
         .accessibilityHint("Shows what this simulation is about.")
@@ -317,36 +439,6 @@ struct TitleCapsule: View {
     }
 }
 
-/// Gallery, Restart, Play or Pause, View and Dashboard.
-struct SimulationToolbar: View {
-    let model: AppModel
-    let session: SimulationSession
-
-    var body: some View {
-        HStack(spacing: 2) {
-            ToolbarButton(systemImage: "square.grid.2x2", label: "Examples") {
-                model.showGallery()
-            }
-            ToolbarButton(systemImage: "arrow.counterclockwise", label: "Restart") {
-                session.restart()
-            }
-            .disabled(session.title == nil)
-
-            PlayPauseButton(session: session)
-                .padding(.horizontal, 4)
-
-            ToolbarButton(systemImage: "slider.horizontal.3", label: "View") {
-                model.sheet = .view
-            }
-            ToolbarButton(systemImage: "chart.xyaxis.line", label: "Dashboard") {
-                model.sheet = .dashboard
-            }
-        }
-        .padding(6)
-        .glass(in: Capsule())
-    }
-}
-
 /// The one tinted control: pauses a running simulation, resumes a paused
 /// one and runs a finished or failed one again.
 struct PlayPauseButton: View {
@@ -362,10 +454,10 @@ struct PlayPauseButton: View {
             }
         } label: {
             Image(systemName: running ? "pause.fill" : "play.fill")
-                .font(.title2)
+                .font(.body.weight(.semibold))
                 .foregroundStyle(.white)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 56, height: 56)
+                .frame(width: 44, height: 44)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -373,25 +465,6 @@ struct PlayPauseButton: View {
         .accessibilityLabel(running ? "Pause" : session.status == .paused ? "Resume" : "Run Again")
         .disabled(session.title == nil)
         .sensoryFeedback(.selection, trigger: running)
-    }
-}
-
-struct ToolbarButton: View {
-    let systemImage: String
-    let label: String
-    let action: () -> Void
-    @Environment(\.isEnabled) private var isEnabled
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.title3)
-                .frame(width: 50, height: 50)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .opacity(isEnabled ? 1 : 0.4)
-        .accessibilityLabel(label)
     }
 }
 
@@ -419,10 +492,11 @@ struct PerformanceHUD: View {
 struct SelectedAtomCard: View {
     let model: AppModel
     let session: SimulationSession
+    var maxWidth = AtomCard.fullWidth
 
     var body: some View {
         if let atom = session.selectedAtom {
-            AtomCard(atom: atom, units: session.stats.units,
+            AtomCard(atom: atom, units: session.stats.units, maxWidth: maxWidth,
                      onCenter: { model.centerOnSelectedAtom() },
                      onClose: { session.clearSelection() })
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -430,67 +504,55 @@ struct SelectedAtomCard: View {
     }
 }
 
-/// What the tapped atom is and where it is.
+/// What the tapped atom is and where it is, in one row. The swatch is the
+/// color the atom is drawn in; the renderer rings the atom itself.
 struct AtomCard: View {
+    static let fullWidth: CGFloat = 404
+
     let atom: AtomInfo
     let units: String
+    /// Narrower than `fullWidth` (a side panel is open), the card drops
+    /// the coordinates and keeps the name and its buttons.
+    var maxWidth = AtomCard.fullWidth
     let onCenter: () -> Void
     let onClose: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(swatch)
-                    .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
-                    .frame(width: 24, height: 24)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(name)
-                        .font(.headline)
-                    Text("ID \(atom.tag.formatted()) · type \(atom.type)")
-                        .font(.caption)
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 8)
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 30, height: 30)
-                        .background(.quaternary, in: Circle())
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Deselect")
+        let width = min(Self.fullWidth, maxWidth)
+        HStack(spacing: 10) {
+            Circle()
+                .fill(swatch)
+                .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1))
+                .frame(width: 22, height: 22)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Text("ID \(atom.tag.formatted()) · type \(atom.type)")
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-
-            HStack(spacing: 8) {
-                coordinate("x", atom.position.x)
-                coordinate("y", atom.position.y)
-                coordinate("z", atom.position.z)
-            }
-
-            HStack(spacing: 8) {
-                Button(action: onCenter) {
-                    Label("Center", systemImage: "scope")
-                        .font(.subheadline.weight(.medium))
+            .fixedSize()
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 4)
+            if width >= 380 {
+                HStack(spacing: 0) {
+                    coordinate("x", atom.position.x)
+                    coordinate("y", atom.position.y)
+                    coordinate("z", atom.position.z)
                 }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.capsule)
+            }
+            circleButton("scope", label: "Center", action: onCenter)
                 .accessibilityHint("Turns the camera around this atom.")
-
-                if let radius = atom.radius, radius.isFinite, radius > 0 {
-                    pill("Radius \(Format.length(Double(radius), units: units))")
-                }
-                if let quantity = atom.quantity, let value = atom.value {
-                    pill("\(quantity) \(Format.number(Double(value)))")
-                }
-            }
+            circleButton("xmark", label: "Deselect", action: onClose)
         }
-        .padding(14)
-        .frame(maxWidth: 420)
-        .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.leading, 14)
+        .padding(.trailing, 10)
+        .frame(width: width, height: 56)
+        .glass(in: Capsule())
     }
 
     private var name: String {
@@ -503,39 +565,39 @@ struct AtomCard: View {
     }
 
     private func coordinate(_ axis: String, _ value: Float) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(Format.axis(axis, units: units))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Text(Format.number(Double(value)))
-                .font(.callout.monospacedDigit())
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .font(.footnote.monospacedDigit())
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .frame(width: 48, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
-    private func pill(_ text: String) -> some View {
-        Text(text)
-            .font(.caption.monospacedDigit())
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(.quaternary.opacity(0.6), in: Capsule())
+    private func circleButton(_ systemImage: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 32, height: 32)
+                .background(.quaternary, in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 }
 
-/// Errors, script warnings and the end of a run, as glass banners above the
-/// toolbar. Tapping a warning dismisses it for this run.
+/// Errors and script warnings, as glass banners under the title. Tapping a
+/// warning dismisses it for this run.
 struct RunMessages: View {
     let model: AppModel
     let session: SimulationSession
-    @State private var dismissed: Set<String> = []
+    @Binding var dismissed: Set<String>
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -550,40 +612,47 @@ struct RunMessages: View {
                     .onTapGesture { dismissed.insert(warning) }
                     .accessibilityHint("Dismisses the warning.")
             }
-            if session.status == .finished {
-                HStack(spacing: 10) {
-                    Label {
-                        Text("The script finished.")
-                    } icon: {
-                        Image(systemName: "flag.checkered").foregroundStyle(.green)
-                    }
-                    Spacer(minLength: 8)
-                    Button("Run Again") { session.restart() }
-                        .font(.callout.weight(.semibold))
-                }
-                .font(.callout)
-                .padding(.leading, 12)
-                .padding(.trailing, 14)
-                .padding(.vertical, 10)
-                .glass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
         }
-        .frame(maxWidth: 500)
-        .onChange(of: session.title) { dismissed = [] }
     }
 
     private func banner(_ text: String, systemImage: String, tint: Color) -> some View {
         Label {
             Text(text)
-                .lineLimit(4)
+                .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
         } icon: {
             Image(systemName: systemImage).foregroundStyle(tint)
         }
-        .font(.callout)
+        .font(.footnote)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .glass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+}
+
+/// "The script finished · Run Again", bottom centre.
+struct FinishedBanner: View {
+    let session: SimulationSession
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "flag.checkered")
+                .foregroundStyle(.green)
+                .accessibilityHidden(true)
+            Text("The script finished")
+            Text("·")
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+            Button("Run Again") { session.restart() }
+                .fontWeight(.semibold)
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+        }
+        .font(.callout)
+        .lineLimit(1)
+        .padding(.horizontal, 16)
+        .frame(height: 40)
+        .glass(in: Capsule())
     }
 }
 
@@ -596,7 +665,6 @@ struct Placeholder: View {
         VStack(spacing: 14) {
             if session.status.isActive {
                 ProgressView()
-                    .controlSize(.large)
                 Text("Starting \(session.title ?? "simulation")…")
                     .foregroundStyle(.secondary)
             } else if case .failed = session.status {

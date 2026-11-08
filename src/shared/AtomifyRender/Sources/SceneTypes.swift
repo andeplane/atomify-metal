@@ -212,7 +212,7 @@ public enum RenderQuality: String, Sendable, CaseIterable {
 public struct RenderSettings: Sendable, Equatable {
     public var quality: RenderQuality = .fast
     /// Linear RGBA clear color.
-    public var background: SIMD4<Float> = SIMD4(0.08, 0.08, 0.1, 1)
+    public var background: SIMD4<Float> = RenderSettings.defaultBackground
     /// Toward the light, in view space.
     public var lightDirection: SIMD3<Float> = simd_normalize(SIMD3(0.3, 1, 0.45))
     /// Multiplies every particle radius.
@@ -227,6 +227,10 @@ public struct RenderSettings: Sendable, Equatable {
     public var outlineWidth: Float = 0
     /// Linear RGBA for selected particles.
     public var highlightColor: SIMD4<Float> = SIMD4(1, 0.85, 0.2, 1)
+    /// Draw a selected particle in its own color inside a ring of
+    /// `highlightColor` (the enlarged part of its sphere), rather than
+    /// tinting the whole particle, so a swatch of its color matches it.
+    public var selectionRing: Bool = false
     /// Darken particles in crowded regions, computed on the CPU from
     /// particle density (cheap on the GPU, refreshed every few updates).
     public var densityOcclusion: Bool = true
@@ -236,6 +240,9 @@ public struct RenderSettings: Sendable, Equatable {
     public var nearFade: SIMD2<Float> = .zero
 
     public init() {}
+
+    /// Near-black `#121214` (sRGB), Atomify 2's canvas, as linear RGBA.
+    public static let defaultBackground = SIMD4<Float>(0.006049, 0.006049, 0.006995, 1)
 }
 
 /// One eye/view to render.
