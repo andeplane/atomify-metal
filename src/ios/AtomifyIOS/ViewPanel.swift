@@ -1,31 +1,33 @@
 import AtomifyKit
 import SwiftUI
 
-/// How the atoms look: size and color, what else is drawn, render quality
-/// and the camera.
-struct ViewOptionsSheet: View {
+/// The side panel's View tab: how the atoms look (size and color), what
+/// else is drawn, render quality and the camera. Changes show at once
+/// beside the panel, which stays open. Grouped cards in the panel's own
+/// scroll view, as the Dashboard tab is (a Form here did not scroll inside
+/// the panel).
+struct ViewPanel: View {
     @Bindable var model: AppModel
     @Bindable var session: SimulationSession
-    @AppStorage(SettingsKey.showPerformance) private var showPerformance = false
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        Form {
-            atoms
-            coloring
-            Section("Show") {
-                Toggle("Bonds", isOn: $session.showBonds)
-                Toggle("Simulation box", isOn: $session.showBox)
-                Toggle("Performance overlay", isOn: $showPerformance)
+        PanelScroll {
+            VStack(alignment: .leading, spacing: 14) {
+                atoms
+                coloring
+                ViewSection("Show") {
+                    Toggle("Bonds", isOn: $session.showBonds)
+                    Divider()
+                    Toggle("Simulation box", isOn: $session.showBox)
+                }
+                rendering
+                camera
             }
-            rendering
-            camera
         }
-        .scrollContentBackground(.hidden)
     }
 
     private var atoms: some View {
-        Section("Atoms") {
+        ViewSection("Atoms") {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Size")
@@ -43,54 +45,70 @@ struct ViewOptionsSheet: View {
                 }
             }
             if session.renderSettings.radiusScale != 1 {
+                Divider()
                 Button("Normal Size") { session.renderSettings.radiusScale = 1 }
             }
         }
     }
 
-    @ViewBuilder
     private var coloring: some View {
-        Section {
-            Picker("Color by", selection: $session.colorQuantity) {
-                Text("Atom type").tag(String?.none)
-                ForEach(session.availableQuantities, id: \.self) { quantity in
-                    Text(QuantityName.title(quantity)).tag(String?.some(quantity))
-                }
-            }
-            if session.colorQuantity != nil {
-                Picker("Colormap", selection: $session.colormap) {
-                    ForEach(Colormap.allCases, id: \.self) { colormap in
-                        Label {
-                            Text(colormap.rawValue.capitalized)
-                        } icon: {
-                            ColormapSwatch(colormap: colormap)
-                        }
-                        .tag(colormap)
+        ViewSection("Color", footer: colorFooter) {
+            HStack {
+                Text("Color by")
+                Spacer(minLength: 8)
+                Picker("Color by", selection: $session.colorQuantity) {
+                    Text("Atom type").tag(String?.none)
+                    ForEach(session.availableQuantities, id: \.self) { quantity in
+                        Text(QuantityName.title(quantity)).tag(String?.some(quantity))
                     }
                 }
+                .labelsHidden()
+                .pickerStyle(.menu)
+            }
+            if session.colorQuantity != nil {
+                Divider()
+                HStack {
+                    Text("Colormap")
+                    Spacer(minLength: 8)
+                    Picker("Colormap", selection: $session.colormap) {
+                        ForEach(Colormap.allCases, id: \.self) { colormap in
+                            Label {
+                                Text(colormap.rawValue.capitalized)
+                            } icon: {
+                                ColormapSwatch(colormap: colormap)
+                            }
+                            .tag(colormap)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                }
+                Divider()
                 ColorLegend(session: session)
+                Divider()
                 Button("Reset Range") { session.resetColorRange() }
                     .disabled(session.colorRange == nil)
-            }
-        } header: {
-            Text("Color")
-        } footer: {
-            if session.colorQuantity == nil, session.example?.atomifyMetal?.colorRamp != nil {
-                Text("This example shades its atoms by position, as Atomify 2 did.")
-            } else if session.colorQuantity != nil {
-                Text("The range grows to cover every value seen in this run.")
             }
         }
     }
 
+    private var colorFooter: String? {
+        if session.colorQuantity == nil, session.example?.atomifyMetal?.colorRamp != nil {
+            return "Shaded by position, as in Atomify 2."
+        }
+        return session.colorQuantity != nil ? "The range grows with every value seen." : nil
+    }
+
     private var rendering: some View {
-        Section {
+        ViewSection("Rendering", footer: "Automatic adds shadows and outlines below 50,000 atoms.") {
             Picker("Quality", selection: $model.qualityPolicy.mode) {
                 ForEach(QualityPolicy.Mode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
+            Divider()
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Ambient occlusion")
@@ -104,30 +122,62 @@ struct ViewOptionsSheet: View {
                     Text("Ambient occlusion")
                 }
             }
-        } header: {
-            Text("Rendering")
-        } footer: {
-            Text("Automatic draws shadows and outlines below 50,000 atoms, and saves battery above. "
-                 + "Ambient occlusion darkens atoms in crowded places.")
         }
     }
 
     private var camera: some View {
-        Section("Camera") {
+        ViewSection("Camera") {
             Button {
                 session.resetCamera()
-                dismiss()
             } label: {
                 Label("Reset View", systemImage: "viewfinder")
             }
             .disabled(session.scene == nil || session.isCameraFramed)
+            Divider()
             Button {
                 model.centerOnSelectedAtom()
-                dismiss()
             } label: {
                 Label("Center on Selected Atom", systemImage: "scope")
             }
             .disabled(session.selectedAtom == nil)
+        }
+    }
+}
+
+/// A titled group of rows on the panel's lighter fill, like a grouped
+/// form section, with an optional one-line footer.
+private struct ViewSection<Content: View>: View {
+    let title: String
+    let footer: String?
+    let content: Content
+
+    init(_ title: String, footer: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.footer = footer
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title.uppercased())
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 12)
+                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 10) {
+                content
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            if let footer {
+                Text(footer)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+            }
         }
     }
 }

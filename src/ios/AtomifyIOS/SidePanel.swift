@@ -56,10 +56,13 @@ struct SidePanelView: View {
         .gesture(
             DragGesture(minimumDistance: 12)
                 .onChanged { value in
+                    // Only a mostly horizontal drag moves the panel.
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
                     dragOffset = max(value.translation.width, 0)
                 }
                 .onEnded { value in
-                    if value.translation.width > 60 || value.predictedEndTranslation.width > 120 {
+                    let horizontal = abs(value.translation.width) > abs(value.translation.height)
+                    if horizontal && (value.translation.width > 60 || value.predictedEndTranslation.width > 120) {
                         close()
                     }
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) { dragOffset = 0 }
@@ -75,8 +78,7 @@ struct SidePanelView: View {
         case .dashboard:
             PanelScroll { DashboardTab(session: model.session) }
         case .view:
-            ViewOptionsSheet(model: model, session: model.session)
-                .panelFade()
+            ViewPanel(model: model, session: model.session)
         }
     }
 
