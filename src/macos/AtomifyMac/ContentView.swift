@@ -12,7 +12,7 @@ struct ContentView: View {
         } detail: {
             ViewerView(session: model.session)
                 .toolbar {
-                    SessionToolbar(session: model.session, showInspector: $showInspector)
+                    SessionToolbar(model: model, session: model.session, showInspector: $showInspector)
                 }
                 .inspector(isPresented: $showInspector) {
                     InspectorView(session: model.session)
@@ -24,11 +24,16 @@ struct ContentView: View {
         .onChange(of: model.selectedExampleID) { _, id in
             model.open(id)
         }
+        .onChange(of: model.session.stats.atoms, initial: true) { model.applyQuality() }
+        .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)) { _ in
+            model.applyQuality()
+        }
     }
 }
 
 /// Run controls and the look of the atoms.
 struct SessionToolbar: ToolbarContent {
+    @Bindable var model: AppModel
     @Bindable var session: SimulationSession
     @Binding var showInspector: Bool
 
@@ -69,13 +74,14 @@ struct SessionToolbar: ToolbarContent {
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
-            Picker("Quality", selection: $session.renderSettings.quality) {
-                ForEach(RenderQuality.allCases, id: \.self) { quality in
-                    Text(quality.rawValue.capitalized).tag(quality)
+            Picker("Quality", selection: $model.qualityPolicy.mode) {
+                ForEach(QualityPolicy.Mode.allCases) { mode in
+                    Text(mode.title).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
-            .help("Fast: impostors only. High: ambient occlusion, outlines and shadows.")
+            .help("Automatic: ambient occlusion below \(model.qualityPolicy.highQualityAtomLimit.formatted()) atoms. "
+                + "Fast: impostors only. High: always ambient occlusion and outlines.")
 
             Picker("Color", selection: $session.colorQuantity) {
                 Text("By type").tag(String?.none)
