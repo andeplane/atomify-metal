@@ -319,7 +319,9 @@ public enum ScriptPreparation {
     /// numbers.
     public static func prepare(_ script: String) -> String {
         var changed = false
-        let lines = script.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
+        // "\r\n" is a single Character in Swift, so split on it explicitly.
+        let lines = script.split(omittingEmptySubsequences: false,
+                                 whereSeparator: { $0 == "\n" || $0 == "\r\n" }).map { line -> String in
             let words = line.split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\r" })
             if words.count >= 2, words[0] == "suffix", words[1] == "kk" || words[1].hasPrefix("kk#") {
                 changed = true

@@ -60,6 +60,8 @@ final class AppModel {
         self.catalogError = catalogError
         sections = ExampleSections.sections(for: catalog.examples,
                                             definitions: catalog.sections ?? ExampleSections.curated)
+        // Play the examples at Atomify 2's pace, `#/speed` lines included.
+        session.appliesScriptSpeed = true
     }
 
     /// Runs the example with this id, replacing the current run.
