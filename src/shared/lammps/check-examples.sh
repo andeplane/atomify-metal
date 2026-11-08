@@ -3,7 +3,7 @@
 # macOS, no Xcode needed) and prints a results table. Builds LAMMPS first if
 # build-host.sh has not been run.
 #   src/shared/lammps/check-examples.sh [--steps N] [--timeout S] [--filter TEXT] [--jobs N]
-#                                       [--examples DIR] [--keep]
+#                                       [--examples DIR] [--threads T] [--continue] [--keep]
 # Defaults: 100 steps after the first run starts, 120 s per example, all
 # examples in src/macos/AtomifyMac/Examples, one at a time. Exits 1 if any
 # example failed or timed out. See tools/check_examples.py.

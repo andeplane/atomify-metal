@@ -9,3 +9,4 @@ xcuserdata/
 /build/
 src/ios/*.xcodeproj/
 src/ios/Config/Local.xcconfig
+__pycache__/

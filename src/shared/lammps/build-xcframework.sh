@@ -36,7 +36,11 @@ build_slice() {
     local flags="-Xclang -fopenmp -I$omp/install/include"
     openmp=(-D "OpenMP_C_FLAGS=$flags" -D "OpenMP_CXX_FLAGS=$flags"
             -D OpenMP_C_LIB_NAMES=omp -D OpenMP_CXX_LIB_NAMES=omp
-            -D "OpenMP_omp_LIBRARY=$omp/install/lib/libomp.a")
+            -D "OpenMP_omp_LIBRARY=$omp/install/lib/libomp.a"
+            # LAMMPS' omp.h check passes the OpenMP flags as link options,
+            # which reach ar in these static-library try-compiles and fail.
+            # omp.h is in the include path above, so answer the check.
+            -D _have_omp_h=TRUE)
     runtime=("$omp/install/lib/libomp.a")
   fi
   cmake -S "$source_dir/cmake" -B "$build/$name" -C "$here/atomify-preset.cmake" \

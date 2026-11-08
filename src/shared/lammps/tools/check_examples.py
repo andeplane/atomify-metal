@@ -4,7 +4,7 @@ bridge and prints a results table (the Linux counterpart of
 `swift run atomify-check-examples`).
 
 Usage: check_examples.py --binary example_check [--examples DIR] [--steps N]
-                         [--timeout S] [--filter TEXT] [--jobs N] [--threads T] [--keep]
+                         [--timeout S] [--filter TEXT] [--jobs N] [--threads T] [--continue] [--keep]
 
 Each example runs in a fresh working copy (its files under their fileName,
 `suffix kk` lines commented out, as AtomifyKit's ExampleCatalog does) and in
@@ -133,6 +133,8 @@ def main():
     parser.add_argument("--filter", default="", help="only ids containing this text")
     parser.add_argument("--jobs", type=int, default=1, help="examples run at the same time")
     parser.add_argument("--threads", type=int, default=1, help="OpenMP threads per example")
+    parser.add_argument("--continue", dest="continue_after", action="store_true",
+                        help="keep running after the input completes, as the apps do")
     parser.add_argument("--keep", action="store_true", help="keep working copies of passing examples too")
     args = parser.parse_args()
 
