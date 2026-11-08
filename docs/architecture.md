@@ -6,7 +6,7 @@ The libraries hold everything the apps have in common, so an app is mostly UI.
 ```
              ┌───────────────────────── apps (UI only) ─────────────────────────┐
              │  src/macos  (examples browser, graphics playground)              │
-             │  src/ios    (later)   src/avp (later, port of vision-atomify)    │
+             │  src/ios    (iPhone, iPad)   src/avp (later, vision-atomify)     │
              │  tvOS / a LAMMPS editor app (later)                              │
              └───────────────┬──────────────────────────────────────────────────┘
                              │
@@ -71,7 +71,7 @@ Glue shared by every app: converts snapshots to render input, coloring modes (by
 ## Apps
 
 1. **macOS examples app** (now): pick an example, run it, orbit around, switch fast/high quality, color by type or quantity, click an atom to inspect it, see live plots of thermo and computes. This is where we iterate on the graphics.
-2. **iOS / iPadOS** (next): same as macOS with touch UI.
+2. **iOS / iPadOS** (in progress, `src/ios`): same as macOS with touch UI; an XcodeGen project on the shared packages.
 3. **Vision Pro**: port `vision-atomify` onto the shared libraries (CompositorServices or RealityKit `LowLevelMesh` path).
 4. **Editor app** (later): script editor, LAMMPS console, file handling, like the original Qt app.
 

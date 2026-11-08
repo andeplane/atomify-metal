@@ -1,0 +1,3 @@
+// Copy to Local.xcconfig (git-ignored) and fill in. Read by Signing.xcconfig.
+DEVELOPMENT_TEAM = ABCDE12345
+ATOMIFY_BUNDLE_ID = no.uio.atomify.dev

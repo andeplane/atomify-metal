@@ -6,3 +6,6 @@ DerivedData/
 xcuserdata/
 .DS_Store
 .build-bench/
+/build/
+src/ios/*.xcodeproj/
+src/ios/Config/Local.xcconfig
