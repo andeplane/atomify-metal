@@ -206,9 +206,16 @@ void atomify_before_init(LAMMPS *lmp)
   Comm *comm = lmp->comm;
   shared->threads = comm->nthreads;
   if (!shared->choosing_threads) return;
-  shared->choosing_threads = false;
-  // A system that starts empty (atoms poured in later) keeps every thread.
+  // A system that starts empty (fix pour, fix deposit) chooses at the first
+  // initialization with atoms, and runs again from the start only if that
+  // costs few steps.
   if (lmp->atom->natoms == 0) {
+    shared->release_output(true);
+    return;
+  }
+  shared->choosing_threads = false;
+  constexpr bigint kMaxStepsToRepeat = 2000;
+  if (lmp->update->ntimestep > kMaxStepsToRepeat) {
     shared->release_output(true);
     return;
   }

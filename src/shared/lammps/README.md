@@ -82,8 +82,9 @@ pairwise potentials, per 250 for ReaxFF and per 100 with long range Coulomb
 or manybody potentials, at least 1 and at most n. LAMMPS cannot change the
 count once `/omp` styles exist, so when the system wants fewer, the bridge
 starts a new instance on that many and runs the script and commands so far
-again; the output says so, and shows the setup twice. Systems that start
-without atoms keep n. `atomify_sim_threads` reports the count in use.
+again; the output says so. A system that starts without atoms (`fix pour`,
+`fix deposit`) chooses at the first initialization with atoms, and keeps n
+if running again would repeat more than 2000 steps. `atomify_sim_threads` reports the count in use.
 AtomifyEngine's `Simulation` defaults n to the performance core count, at
 most 8.
 

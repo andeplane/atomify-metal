@@ -996,6 +996,20 @@ void test_threads()
   atomify_sim_destroy(small);
   std::remove(path.c_str());
 
+  // A system that starts empty chooses once atoms exist, running the input
+  // again while that repeats few steps.
+  atomify_sim *empty = atomify_sim_create_threaded(0, threads);
+  atomify_sim_set_publish_interval(empty, 0);
+  CHECK(run(empty, {"units lj", "atom_style atomic", "lattice fcc 0.8442", "region box block 0 4 0 4 0 4",
+                    "create_box 1 box", "mass * 1.0", "pair_style lj/cut 2.5", "pair_coeff * * 1.0 1.0 2.5",
+                    "fix 1 all nve", "run 10"}));
+  CHECK(atomify_sim_threads(empty) == threads);
+  CHECK(run(empty, {"create_atoms 1 box", "velocity all create 1.0 87287", "run 5"}));
+  CHECK(atomify_sim_threads(empty) == 1);
+  CHECK(copy(empty).timestep == 15);
+  CHECK(copy(empty).tags.size() == 256);
+  atomify_sim_destroy(empty);
+
   // An input error before the choice is reported as usual.
   atomify_sim *broken = atomify_sim_create_threaded(0, threads);
   CHECK(atomify_sim_command(broken, "pair_style nonsense") == ATOMIFY_ERROR);
