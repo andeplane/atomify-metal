@@ -11,26 +11,44 @@ import UIKit
 /// SwiftUI view hosting an MTKView with an OrbitCamera: drag rotates,
 /// right/two-finger drag pans, scroll/pinch zooms, click/tap picks.
 /// Option- or shift-drag also pans on macOS.
+///
+/// With `pacing`, the view draws only as often as the pacing allows and
+/// stops while nothing changes; without it, it draws continuously at up to
+/// 120 frames per second. `contentScaleLimit` caps the pixels per point
+/// (iOS), for very large systems. `onDoubleTap` (iOS) receives one-finger
+/// double taps; a single-tap pick then waits until it is not a double tap.
 public struct ParticleView: View {
     private let scene: SceneData?
     @Binding private var camera: OrbitCamera
     private let settings: RenderSettings
+    private let options: ParticleViewOptions
     private let onPick: ((Int?) -> Void)?
     private let onStats: ((RenderStats) -> Void)?
+    private let onDoubleTap: (() -> Void)?
 
     public init(scene: SceneData?, camera: Binding<OrbitCamera>, settings: RenderSettings,
-                onPick: ((Int?) -> Void)? = nil, onStats: ((RenderStats) -> Void)? = nil) {
+                pacing: FramePacing? = nil, contentScaleLimit: Double? = nil,
+                onPick: ((Int?) -> Void)? = nil, onStats: ((RenderStats) -> Void)? = nil,
+                onDoubleTap: (() -> Void)? = nil) {
         self.scene = scene
         _camera = camera
         self.settings = settings
+        self.options = ParticleViewOptions(pacing: pacing, contentScaleLimit: contentScaleLimit)
         self.onPick = onPick
         self.onStats = onStats
+        self.onDoubleTap = onDoubleTap
     }
 
     public var body: some View {
-        ParticleViewRepresentable(scene: scene, camera: $camera, settings: settings, onPick: onPick,
-                                  onStats: onStats)
+        ParticleViewRepresentable(scene: scene, camera: $camera, settings: settings, options: options,
+                                  onPick: onPick, onStats: onStats, onDoubleTap: onDoubleTap)
     }
+}
+
+/// The drawing options of a `ParticleView` that are not the scene.
+struct ParticleViewOptions: Equatable {
+    var pacing: FramePacing?
+    var contentScaleLimit: Double?
 }
 
 /// Owns the renderer and turns input into camera changes. Lives on the
@@ -40,8 +58,10 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
     var scene: SceneData?
     var camera: Binding<OrbitCamera>
     var settings: RenderSettings
+    var options = ParticleViewOptions()
     var onPick: ((Int?) -> Void)?
     var onStats: ((RenderStats) -> Void)?
+    var onDoubleTap: (() -> Void)?
     weak var view: MTKView?
 
     private static let logger = Logger(subsystem: "AtomifyRender", category: "ParticleView")
@@ -49,6 +69,10 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
     private var commandQueue: (any MTLCommandQueue)?
     private var uploadedScene: SceneData?
     private var lastStatsTime: Double = 0
+    private var lastInteraction = -Double.infinity
+    private var lastChange = -Double.infinity
+    private var drawnCamera: OrbitCamera?
+    private var scaleLimited = false
 
     init(camera: Binding<OrbitCamera>, settings: RenderSettings) {
         self.camera = camera
@@ -71,6 +95,7 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
         let b = settings.background
         view.clearColor = MTLClearColor(red: Double(b.x), green: Double(b.y), blue: Double(b.z), alpha: Double(b.w))
         view.delegate = self
+        lastChange = CACurrentMediaTime()
         commandQueue = device.makeCommandQueue()
         do {
             renderer = try ParticleRenderer(device: device, colorFormat: view.colorPixelFormat,
@@ -81,7 +106,90 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
         }
     }
 
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        applyContentScale()
+        noteChange()
+    }
+
+    /// Takes new inputs from SwiftUI and wakes the view if any changed.
+    func update(scene: SceneData?, camera: Binding<OrbitCamera>, settings: RenderSettings,
+                options: ParticleViewOptions, onPick: ((Int?) -> Void)?, onStats: ((RenderStats) -> Void)?,
+                onDoubleTap: (() -> Void)?) {
+        let sceneChanged = !Self.same(self.scene, scene)
+        let changed = sceneChanged || settings != self.settings || options != self.options
+            || camera.wrappedValue != drawnCamera
+        let scaleChanged = options.contentScaleLimit != self.options.contentScaleLimit
+        self.scene = scene
+        self.camera = camera
+        self.settings = settings
+        self.options = options
+        self.onPick = onPick
+        self.onStats = onStats
+        self.onDoubleTap = onDoubleTap
+        if scaleChanged { applyContentScale() }
+        if changed { noteChange() }
+    }
+
+    private static func same(_ a: SceneData?, _ b: SceneData?) -> Bool {
+        switch (a, b) {
+        case (nil, nil): true
+        case let (a?, b?): a.sharesStorage(with: b)
+        default: false
+        }
+    }
+
+    // MARK: Pacing
+
+    /// Something to draw changed: the scene, camera, settings or size.
+    func noteChange() {
+        lastChange = CACurrentMediaTime()
+        updatePacing()
+    }
+
+    /// The user touched the view.
+    func noteInteraction() {
+        lastInteraction = CACurrentMediaTime()
+        updatePacing()
+    }
+
+    /// Starts, slows or stops the draw loop as `options.pacing` says.
+    func updatePacing() {
+        guard let view else { return }
+        guard let pacing = options.pacing else {
+            if view.preferredFramesPerSecond != 120 { view.preferredFramesPerSecond = 120 }
+            if view.isPaused { view.isPaused = false }
+            return
+        }
+        let now = CACurrentMediaTime()
+        let rate = pacing.framesPerSecond(sinceInteraction: now - lastInteraction, sinceChange: now - lastChange,
+                                          constrained: Self.isConstrained)
+        if rate == 0 {
+            if !view.isPaused { view.isPaused = true }
+        } else {
+            if view.preferredFramesPerSecond != rate { view.preferredFramesPerSecond = rate }
+            if view.isPaused { view.isPaused = false }
+        }
+    }
+
+    /// Low Power Mode or thermal pressure.
+    static var isConstrained: Bool {
+        let info = ProcessInfo.processInfo
+        return info.isLowPowerModeEnabled || info.thermalState == .serious || info.thermalState == .critical
+    }
+
+    /// Caps the drawable's pixels per point (iOS); macOS follows the window.
+    /// Waits until the view is in a window, where the display scale is known,
+    /// and leaves the scale alone when no limit was ever set.
+    func applyContentScale() {
+        #if os(iOS)
+        guard let view, let window = view.window else { return }
+        guard options.contentScaleLimit != nil || scaleLimited else { return }
+        let native = window.traitCollection.displayScale > 0 ? window.traitCollection.displayScale : view.contentScaleFactor
+        let scale = options.contentScaleLimit.map { min(native, CGFloat(max($0, 1))) } ?? native
+        scaleLimited = options.contentScaleLimit != nil
+        if view.contentScaleFactor != scale { view.contentScaleFactor = scale }
+        #endif
+    }
 
     func draw(in view: MTKView) {
         guard let renderer, let commandQueue, let target = view.currentRenderPassDescriptor,
@@ -97,6 +205,7 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
             renderer.update(.empty)
             uploadedScene = nil
         }
+        drawnCamera = camera.wrappedValue
         let renderView = ParticleViewMath.renderView(camera: camera.wrappedValue, drawableSize: drawableSize(view),
                                                      boundsSize: boundsSize(view))
         renderer.encodeFrame(commandBuffer: commandBuffer, target: target, view: renderView)
@@ -108,23 +217,27 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
             lastStatsTime = now
             onStats(renderer.lastFrameStats)
         }
+        if options.pacing != nil { updatePacing() }
     }
 
     // MARK: Input (pointer deltas in points, x right, y down)
 
     func rotate(pointerDelta: SIMD2<Float>) {
+        noteInteraction()
         var camera = self.camera.wrappedValue
         camera.rotate(by: camera.rotationDelta(forPointerMove: pointerDelta, viewHeight: boundsSize(view).y))
         self.camera.wrappedValue = camera
     }
 
     func pan(pointerDelta: SIMD2<Float>) {
+        noteInteraction()
         var camera = self.camera.wrappedValue
         camera.pan(by: camera.panDelta(forPointerMove: pointerDelta, viewHeight: boundsSize(view).y))
         self.camera.wrappedValue = camera
     }
 
     func zoom(by factor: Float) {
+        noteInteraction()
         var camera = self.camera.wrappedValue
         camera.zoom(by: factor)
         self.camera.wrappedValue = camera
@@ -213,8 +326,10 @@ struct ParticleViewRepresentable: NSViewRepresentable {
     let scene: SceneData?
     @Binding var camera: OrbitCamera
     let settings: RenderSettings
+    let options: ParticleViewOptions
     let onPick: ((Int?) -> Void)?
     let onStats: ((RenderStats) -> Void)?
+    let onDoubleTap: (() -> Void)?
 
     func makeCoordinator() -> ParticleViewCoordinator {
         ParticleViewCoordinator(camera: $camera, settings: settings)
@@ -237,11 +352,8 @@ struct ParticleViewRepresentable: NSViewRepresentable {
     }
 
     private func apply(to coordinator: ParticleViewCoordinator) {
-        coordinator.scene = scene
-        coordinator.camera = $camera
-        coordinator.settings = settings
-        coordinator.onPick = onPick
-        coordinator.onStats = onStats
+        coordinator.update(scene: scene, camera: $camera, settings: settings, options: options, onPick: onPick,
+                           onStats: onStats, onDoubleTap: onDoubleTap)
     }
 }
 #endif
@@ -270,6 +382,11 @@ extension ParticleViewCoordinator: UIGestureRecognizerDelegate {
         pick(atPoint: SIMD2(Float(p.x), Float(p.y)))
     }
 
+    @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        noteInteraction()
+        onDoubleTap?()
+    }
+
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         true
@@ -280,8 +397,10 @@ struct ParticleViewRepresentable: UIViewRepresentable {
     let scene: SceneData?
     @Binding var camera: OrbitCamera
     let settings: RenderSettings
+    let options: ParticleViewOptions
     let onPick: ((Int?) -> Void)?
     let onStats: ((RenderStats) -> Void)?
+    let onDoubleTap: (() -> Void)?
 
     func makeCoordinator() -> ParticleViewCoordinator {
         ParticleViewCoordinator(camera: $camera, settings: settings)
@@ -299,7 +418,15 @@ struct ParticleViewRepresentable: UIViewRepresentable {
         pan.minimumNumberOfTouches = 2
         let pinch = UIPinchGestureRecognizer(target: coordinator, action: #selector(ParticleViewCoordinator.handlePinch(_:)))
         let tap = UITapGestureRecognizer(target: coordinator, action: #selector(ParticleViewCoordinator.handleTap(_:)))
-        for gesture in [rotate, pan, pinch, tap] as [UIGestureRecognizer] {
+        var gestures: [UIGestureRecognizer] = [rotate, pan, pinch, tap]
+        if onDoubleTap != nil {
+            let doubleTap = UITapGestureRecognizer(target: coordinator,
+                                                   action: #selector(ParticleViewCoordinator.handleDoubleTap(_:)))
+            doubleTap.numberOfTapsRequired = 2
+            tap.require(toFail: doubleTap)
+            gestures.append(doubleTap)
+        }
+        for gesture in gestures {
             gesture.delegate = coordinator
             view.addGestureRecognizer(gesture)
         }
@@ -311,11 +438,8 @@ struct ParticleViewRepresentable: UIViewRepresentable {
     }
 
     private func apply(to coordinator: ParticleViewCoordinator) {
-        coordinator.scene = scene
-        coordinator.camera = $camera
-        coordinator.settings = settings
-        coordinator.onPick = onPick
-        coordinator.onStats = onStats
+        coordinator.update(scene: scene, camera: $camera, settings: settings, options: options, onPick: onPick,
+                           onStats: onStats, onDoubleTap: onDoubleTap)
     }
 }
 #endif

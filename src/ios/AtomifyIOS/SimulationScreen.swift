@@ -1,4 +1,5 @@
 import AtomifyKit
+import Combine
 import Foundation
 import SwiftUI
 
@@ -11,7 +12,7 @@ struct SimulationScreen: View {
     var body: some View {
         let session = model.session
         ZStack {
-            SimulationCanvas(session: session)
+            SimulationCanvas(model: model, session: session)
                 .ignoresSafeArea()
 
             VStack(spacing: 12) {
@@ -46,20 +47,34 @@ struct SimulationScreen: View {
     }
 }
 
-/// The renderer, wired to the session.
+/// The particle view, paced and scaled for the phone. Reads the atom count,
+/// so it lives apart from the chrome that does not need to redraw with it.
 struct SimulationCanvas: View {
+    let model: AppModel
     @Bindable var session: SimulationSession
 
     var body: some View {
         // The callbacks capture the session, not this view.
         let target = session
         ParticleView(scene: session.scene, camera: $session.camera, settings: session.renderSettings,
+                     pacing: model.framePacing, contentScaleLimit: model.contentScaleLimit,
                      onPick: { index in
                          performOnMain { target.selectParticle(index) }
                      },
                      onStats: { stats in
                          performOnMain { target.recordRenderStats(stats) }
                      })
+            .onChange(of: session.stats.atoms, initial: true) { model.applyQuality() }
+            // Both notifications are posted on arbitrary threads; deliver them on
+            // the main thread, where this view's closures run.
+            .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)
+                .receive(on: DispatchQueue.main)) { _ in
+                model.applyQuality()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)
+                .receive(on: DispatchQueue.main)) { _ in
+                model.applyQuality()
+            }
     }
 }
 
