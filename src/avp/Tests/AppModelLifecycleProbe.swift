@@ -1,4 +1,5 @@
-import AtomifyKit
+import AtomifyEngine
+import AtomifyVision
 import Foundation
 
 // Exercises the production AppModel against the real host engine, without

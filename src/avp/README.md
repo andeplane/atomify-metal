@@ -6,31 +6,40 @@ Status: focused release candidate. Five experiences open from a carousel into a 
 
 ## Build
 
+The app uses the shared libraries from the root package (`../..`): `AtomifyEngine` runs LAMMPS, and
+the visionOS-only logic (pinches, grabbing, placement and comfort, the demo catalog, whole molecules)
+is in the local package `Packages/AtomifyVision`.
+
 ```sh
-cd vision-atomify
-LAMMPS/build-xcframework.sh      # once, and after changing LAMMPS/; takes a while
-open Atomify.xcodeproj
+src/shared/lammps/build-xcframework.sh   # once, from the repository root; takes a while
+open src/avp/Atomify.xcodeproj
 ```
 
-`build-xcframework.sh` clones the pinned LAMMPS release into `LAMMPS/build/`, adds the bridge, and writes `Packages/AtomifyKit/Frameworks/CLammps.xcframework` (visionOS, visionOS Simulator and macOS slices). Neither is committed. It needs Xcode with the visionOS platform and CMake 3.28 or newer.
+`build-xcframework.sh` writes `src/shared/lammps/Frameworks/CLammps.xcframework` (macOS, iOS, visionOS and
+their simulators). It is not committed.
+
+```sh
+xcodebuild -project src/avp/Atomify.xcodeproj -scheme Atomify -destination 'generic/platform=visionOS Simulator' build
+```
+
+Debug builds accept `-AtomifyAutostart <demo id>` (for example `water`) to open an experience at launch,
+`-AtomifyPanelAhead` to put the controls straight ahead and `-AtomifyHidePanel` to leave them closed.
 
 ## Layout
 
 | Path | What |
 | --- | --- |
-| `LAMMPS/bridge/` | C interface (`atomify_lammps.h`) and `fix atomify`, compiled into the LAMMPS library |
-| `LAMMPS/prepare_lammps.py` | Pinned LAMMPS version and the two small source edits |
-| `Packages/AtomifyKit/` | Swift wrapper: simulation thread, snapshots, script `#/atom` and `#/bond` lines, instance transforms |
+| `Packages/AtomifyVision/` | visionOS-only logic on top of `AtomifyEngine`, with its tests |
 | `Atomify/` | visionOS app: experience carousel (`Library/`), controls panel (`Controls/`), immersive lab with instanced rendering and gestures (`Lab/`, `Interaction/`) |
 | `Demos/` | Bundled simulations and `demos.json` |
+| `validation/` | Real-engine checks of the demos (C++ probes against the shared bridge) |
 
 ## Checks
 
-- `LAMMPS/build-host.sh` builds LAMMPS with the bridge for the current machine (Linux or macOS) and runs the bridge tests.
-- `swift test` in `Packages/AtomifyKit` runs the Swift tests against the real engine. On a Mac with only Command Line Tools, run `python3 LAMMPS/package-host-library.py` after the host build to package a macOS-only test framework. Use the full Xcode build script for device distribution.
-- `python3 LAMMPS/validate-release.py` checks the five featured trajectories and three controlled carbon–hydrogen pull/return trials against the real engine.
+- `swift test` in `Packages/AtomifyVision` runs the Swift tests against the real engine (macOS slice of CLammps).
+  `ATOMIFY_ROOM_SOAK=1` adds the room soak test.
 - `scripts/check-app-lifecycle.sh` runs the production `AppModel` against the host engine on macOS (load, replace, restart, pause, background, stop and cleanup).
-- CI (`.github/workflows/atomify.yml`) runs both and builds the app for the visionOS Simulator and device.
+- `validation/` holds the demo validations; see its README.
 
 Compiling does not show how it looks or performs on the headset; that needs a device run.
 

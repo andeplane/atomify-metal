@@ -1,4 +1,4 @@
-import AtomifyKit
+import AtomifyVision
 import SwiftUI
 
 /// The compact panel beside the lab: what is running, its temperature, the

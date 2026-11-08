@@ -1,4 +1,5 @@
-import AtomifyKit
+import AtomifyEngine
+import AtomifyVision
 import CoreGraphics
 import Foundation
 import RealityKit

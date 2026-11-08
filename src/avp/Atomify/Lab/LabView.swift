@@ -1,5 +1,5 @@
 import ARKit
-import AtomifyKit
+import AtomifyVision
 import RealityKit
 import SwiftUI
 

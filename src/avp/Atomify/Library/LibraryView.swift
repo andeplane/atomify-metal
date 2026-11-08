@@ -1,4 +1,4 @@
-import AtomifyKit
+import AtomifyVision
 import SwiftUI
 
 /// The launch window: one experiment at a time in a swipeable row. The next

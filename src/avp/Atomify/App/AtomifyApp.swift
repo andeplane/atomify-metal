@@ -1,4 +1,4 @@
-import AtomifyKit
+import AtomifyVision
 import SwiftUI
 
 @main
