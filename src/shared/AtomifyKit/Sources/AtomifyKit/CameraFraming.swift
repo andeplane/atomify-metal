@@ -22,6 +22,18 @@ public enum CameraFraming {
         return (distance, yaw, pitch)
     }
 
+    /// Whether two cameras show the same view: target, distance, yaw and
+    /// pitch equal within `tolerance` (relative to the distance for the
+    /// target and the distance itself; radians for the angles).
+    public static func isSameView(_ a: OrbitCamera, _ b: OrbitCamera, tolerance: Float = 1e-4) -> Bool {
+        let scale = max(abs(a.distance), abs(b.distance), 1)
+        return simd_length(a.target - b.target) <= tolerance * scale
+            && abs(a.distance - b.distance) <= tolerance * scale
+            && abs(a.yaw - b.yaw) <= tolerance
+            && abs(a.pitch - b.pitch) <= tolerance
+            && a.fieldOfView == b.fieldOfView
+    }
+
     /// The eye position for orbit parameters (the inverse of `orbit`).
     public static func eye(target: SIMD3<Float>, distance: Float, yaw: Float, pitch: Float) -> SIMD3<Float> {
         target + distance * SIMD3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw))

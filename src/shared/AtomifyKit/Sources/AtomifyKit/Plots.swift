@@ -116,6 +116,34 @@ public enum PlotCatalog {
         }
     }
 
+    /// The mean of each point and the `window - 1` before it (fewer at the
+    /// start), at the same times: an average line to draw over a noisy
+    /// series. Non-finite values are left out of the means; a window of 1 or
+    /// less returns the points unchanged.
+    public static func runningAverage(_ points: [SIMD2<Double>], window: Int) -> [SIMD2<Double>] {
+        guard window > 1 else { return points }
+        var result: [SIMD2<Double>] = []
+        result.reserveCapacity(points.count)
+        var sum = 0.0
+        var count = 0
+        for i in points.indices {
+            let value = points[i].y
+            if value.isFinite {
+                sum += value
+                count += 1
+            }
+            if i >= window {
+                let old = points[i - window].y
+                if old.isFinite {
+                    sum -= old
+                    count -= 1
+                }
+            }
+            result.append(SIMD2(points[i].x, count > 0 ? sum / Double(count) : .nan))
+        }
+        return result
+    }
+
     /// At most `maxPoints` evenly strided points, always keeping the last one,
     /// so a long history stays cheap to draw.
     public static func downsample<Point>(_ points: [Point], maxPoints: Int) -> [Point] {
