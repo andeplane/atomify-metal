@@ -75,7 +75,7 @@ struct SidePanelView: View {
         case .dashboard:
             PanelScroll { DashboardTab(session: model.session) }
         case .view:
-            ViewOptionsSheet(model: model, session: model.session)
+            ViewPanel(model: model, session: model.session)
                 .panelFade()
         }
     }

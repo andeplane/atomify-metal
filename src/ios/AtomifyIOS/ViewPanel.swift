@@ -1,13 +1,12 @@
 import AtomifyKit
 import SwiftUI
 
-/// How the atoms look: size and color, what else is drawn, render quality
-/// and the camera.
-struct ViewOptionsSheet: View {
+/// The side panel's View tab: how the atoms look (size and color), what
+/// else is drawn, render quality and the camera. Changes show at once
+/// beside the panel, which stays open.
+struct ViewPanel: View {
     @Bindable var model: AppModel
     @Bindable var session: SimulationSession
-    @AppStorage(SettingsKey.showPerformance) private var showPerformance = false
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Form {
@@ -16,12 +15,17 @@ struct ViewOptionsSheet: View {
             Section("Show") {
                 Toggle("Bonds", isOn: $session.showBonds)
                 Toggle("Simulation box", isOn: $session.showBox)
-                Toggle("Performance overlay", isOn: $showPerformance)
             }
             rendering
             camera
         }
+        .formStyle(.grouped)
         .scrollContentBackground(.hidden)
+        .listSectionSpacing(.compact)
+        .environment(\.defaultMinListRowHeight, 42)
+        .contentMargins(.horizontal, 14, for: .scrollContent)
+        .contentMargins(.top, 0, for: .scrollContent)
+        .contentMargins(.bottom, 20, for: .scrollContent)
     }
 
     private var atoms: some View {
@@ -76,9 +80,9 @@ struct ViewOptionsSheet: View {
             Text("Color")
         } footer: {
             if session.colorQuantity == nil, session.example?.atomifyMetal?.colorRamp != nil {
-                Text("This example shades its atoms by position, as Atomify 2 did.")
+                Text("Shaded by position, as in Atomify 2.")
             } else if session.colorQuantity != nil {
-                Text("The range grows to cover every value seen in this run.")
+                Text("The range grows with every value seen.")
             }
         }
     }
@@ -107,8 +111,7 @@ struct ViewOptionsSheet: View {
         } header: {
             Text("Rendering")
         } footer: {
-            Text("Automatic draws shadows and outlines below 50,000 atoms, and saves battery above. "
-                 + "Ambient occlusion darkens atoms in crowded places.")
+            Text("Automatic adds shadows and outlines below 50,000 atoms.")
         }
     }
 
@@ -116,14 +119,12 @@ struct ViewOptionsSheet: View {
         Section("Camera") {
             Button {
                 session.resetCamera()
-                dismiss()
             } label: {
                 Label("Reset View", systemImage: "viewfinder")
             }
             .disabled(session.scene == nil || session.isCameraFramed)
             Button {
                 model.centerOnSelectedAtom()
-                dismiss()
             } label: {
                 Label("Center on Selected Atom", systemImage: "scope")
             }
