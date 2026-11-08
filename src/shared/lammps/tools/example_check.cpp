@@ -13,7 +13,8 @@
 //
 // Output: {"status":"ok|failed|timeout","reason":"completed|steps|...",
 //          "atoms":N,"steps":N,"seconds":S,"error":"...","line":"...",
-//          "threads":T,"steps_per_second":R}
+//          "threads":T,"used_threads":U,"steps_per_second":R}
+// U is the thread count the last run chose for its system.
 // R is the rate from the first observed run until the end (0 if unknown).
 
 #include "atomify_lammps.h"
@@ -160,11 +161,12 @@ int main(int argc, char **argv)
   const double elapsed = seconds();
   const long long run_steps = first_step >= 0 && run_start >= 0 ? run_start + steps - first_step : 0;
   const double rate = run_steps > 0 && elapsed > first_seconds ? run_steps / (elapsed - first_seconds) : 0;
+  const int used_threads = atomify_sim_threads(sim);
   atomify_sim_destroy(sim);
 
   std::printf("{\"status\":%s,\"reason\":%s,\"atoms\":%lld,\"steps\":%lld,\"seconds\":%.2f,\"error\":%s,\"line\":%s,"
-              "\"threads\":%d,\"steps_per_second\":%.2f}\n",
+              "\"threads\":%d,\"used_threads\":%d,\"steps_per_second\":%.2f}\n",
               json(result).c_str(), json(reason).c_str(), atoms, steps, elapsed, json(error).c_str(),
-              json(line).c_str(), threads, rate);
+              json(line).c_str(), threads, used_threads, rate);
   return result == "ok" ? 0 : 1;
 }

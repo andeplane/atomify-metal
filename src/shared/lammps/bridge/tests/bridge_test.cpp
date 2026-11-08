@@ -930,27 +930,57 @@ void test_threads()
   atomify_sim *serial = atomify_sim_create(0);
   atomify_sim *threaded = atomify_sim_create_threaded(0, threads);
   CHECK(threaded != nullptr);
+  CHECK(atomify_sim_threads(threaded) == threads);
   for (atomify_sim *sim : {serial, threaded}) {
     atomify_sim_set_publish_interval(sim, 0);
     CHECK(run(sim, lj_melt));
     CHECK(run(sim, {"run 50"}));
   }
+  // 256 atoms with a pairwise potential are faster on one thread: the first
+  // run started a new instance on one thread and ran the commands again.
+  CHECK(atomify_sim_threads(threaded) == 1);
+  CHECK(atomify_sim_threads(serial) == 1);
   const std::string output = read_all_output(threaded);
-  // With OpenMP the /omp pair style runs; without, the plain one.
-  CHECK(contains(output, threads > 1 ? "lj/cut/omp" : "lj/cut"));
+  CHECK(contains(output, "lj/cut"));
+  CHECK(contains(output, "running the input again") == (threads > 1));
   CHECK(!contains(read_all_output(serial), "/omp"));
-  // Same trajectory up to rounding.
+  // Same trajectory up to rounding, after exactly 50 steps.
   const Snapshot a = copy(serial), b = copy(threaded);
+  CHECK(b.timestep == 50);
   CHECK(a.positions.size() == b.positions.size());
   for (size_t n = 0; n < a.positions.size() && n < b.positions.size(); n++)
     CHECK(std::fabs(a.positions[n] - b.positions[n]) < 1e-3);
-  // The threads stay after clear, which builds a new LAMMPS instance.
-  CHECK(run(threaded, {"clear"}));
-  CHECK(run(threaded, lj_melt));
-  CHECK(run(threaded, {"run 1"}));
-  if (threads > 1) CHECK(contains(read_all_output(threaded), "lj/cut/omp"));
+  // The choice is made once.
+  CHECK(run(threaded, {"run 5"}));
+  CHECK(!contains(read_all_output(threaded), "running the input again"));
   atomify_sim_destroy(serial);
   atomify_sim_destroy(threaded);
+
+  // A bigger system keeps every thread, from a file too, also after clear.
+  const std::string path = "atomify-threads-test.in";
+  {
+    std::ofstream file(path);
+    for (const auto &line : lj_melt)
+      file << (line == "region box block 0 4 0 4 0 4" ? "region box block 0 10 0 10 0 10" : line) << "\n";    // 4000 atoms
+    file << "run 5\n";
+  }
+  atomify_sim *big = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_run_file(big, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(big) == threads);
+  const std::string big_output = read_all_output(big);
+  CHECK(!contains(big_output, "running the input again"));
+  if (threads > 1) CHECK(contains(big_output, "lj/cut/omp"));
+  CHECK(run(big, {"clear"}));
+  CHECK(atomify_sim_run_file(big, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(big) == threads);
+  atomify_sim_destroy(big);
+  std::remove(path.c_str());
+
+  // An input error before the choice is reported as usual.
+  atomify_sim *broken = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_command(broken, "pair_style nonsense") == ATOMIFY_ERROR);
+  atomify_sim_destroy(broken);
+
   // Asking for more threads than there are processors is capped, not an error.
   atomify_sim *many = atomify_sim_create_threaded(0, 1 << 20);
   CHECK(many != nullptr && run(many, single_atom));

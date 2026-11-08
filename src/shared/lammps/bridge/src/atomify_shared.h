@@ -163,6 +163,13 @@ struct AtomifyShared {
   std::string output;
   bool echo = false;
 
+  // OpenMP threads (see atomify_before_init): the count the instance runs
+  // on, whether the first initialization with atoms is still to choose it,
+  // and the count it chose that needs a new instance (simulation thread).
+  std::atomic<int> threads{1};
+  bool choosing_threads = false;
+  int restart_threads = 0;
+
   // Wall clock bookkeeping for publishing and the measured step rate.
   std::chrono::steady_clock::time_point last_publish{};
   std::chrono::steady_clock::time_point rate_window_start{};
@@ -188,6 +195,16 @@ std::string atomify_command_rejection(const std::string &command, bool in_run);
 // runs the integrator and, whenever fix atomify ended it early for queued
 // commands, executes them, re-initializes and continues the remaining steps.
 void atomify_integrate(LAMMPS *lmp, int nsteps);
+
+// Called by the patched LAMMPS::init before anything initializes. The first
+// time a simulation created with several threads initializes with atoms, it
+// picks the thread count for the system (atomify_threads_for). LAMMPS cannot
+// change the count once /omp styles exist, so a smaller count ends the
+// command with an error and sets restart_threads; the bridge then builds a
+// new instance on that many threads and runs the input again.
+void atomify_before_init(LAMMPS *lmp);
+
+int atomify_threads_for(int64_t atoms, int atoms_per_thread, int max_threads);
 
 }    // namespace LAMMPS_NS
 

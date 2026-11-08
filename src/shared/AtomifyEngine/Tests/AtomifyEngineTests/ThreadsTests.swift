@@ -9,7 +9,7 @@ struct ThreadsTests {
 
     @Test func defaultIsCapped() {
         #expect(SimulationThreads.recommended(performanceCores: 12, available: 16) == SimulationThreads.defaultLimit)
-        #expect(SimulationThreads.recommended(performanceCores: 12, available: 16, limit: 8) == 8)
+        #expect(SimulationThreads.recommended(performanceCores: 12, available: 16, limit: 4) == 4)
         #expect(SimulationThreads.recommended(performanceCores: 4, available: 1) == 1)
     }
 

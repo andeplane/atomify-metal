@@ -188,6 +188,14 @@ public final class Simulation: @unchecked Sendable {
         withHandle { atomify_sim_set_observable_interval($0, seconds) }
     }
 
+    /// OpenMP threads LAMMPS runs on: the maximum given at creation until the
+    /// first run (or minimization) picks as many as the system gains from.
+    /// When that is fewer, the script runs again from the start on them, and
+    /// the output shows its setup twice.
+    public var threads: Int {
+        withHandle { Int(atomify_sim_threads($0)) } ?? 1
+    }
+
     /// Per-atom quantity to publish with each snapshot, for coloring:
     /// "vx", "vy", "vz", "fx", "fy", "fz", "speed", "q", "mass", "type",
     /// "c_ID", "c_ID[2]", "f_ID", "f_ID[2]", "v_name" (atom-style), or nil.

@@ -7,8 +7,8 @@ Usage: bench_threads.py --binary example_check [--examples DIR] [--filter TEXT]
 Runs each example of an examples.json catalog once per thread count, one at a
 time, through example_check (built by check-examples.sh), for N steps after
 its first run starts (scripts that end keep integrating, as in the apps),
-and prints steps per second of that run and the speedup
-over the first thread count. Started by bench-threads.sh.
+and prints steps per second of that run, the speedup over the first thread
+count, and how many threads the bridge chose for the system (in brackets). Started by bench-threads.sh.
 """
 import argparse
 import json
@@ -41,7 +41,7 @@ def main():
     headers = ["id", "atoms"] + [f"{n} thr steps/s" for n in counts] + [f"x{n}" for n in counts[1:]]
     rows = []
     for example in examples:
-        rates, atoms, problem = [], 0, ""
+        rates, used, atoms, problem = [], [], 0, ""
         for n in counts:
             result = run(args.binary.resolve(), catalog, example,
                          SimpleNamespace(steps=args.steps, timeout=args.timeout, threads=n, keep=False,
@@ -51,12 +51,13 @@ def main():
                 break
             atoms = result.get("atoms", 0)
             rates.append(result.get("steps_per_second", 0.0))
+            used.append(result.get("used_threads", n))
             print(f"  {example['id']}: {n} threads, {rates[-1]:.1f} steps/s", file=sys.stderr, flush=True)
         if problem:
             rows.append([example["id"], atoms, problem] + [""] * (len(headers) - 3))
             continue
         speedups = [f"{rate / rates[0]:.2f}" if rates[0] else "" for rate in rates[1:]]
-        rows.append([example["id"], atoms] + [f"{rate:.1f}" for rate in rates] + speedups)
+        rows.append([example["id"], atoms] + [f"{rate:.1f} [{u}]" for rate, u in zip(rates, used)] + speedups)
     print(table_with(headers, rows))
 
 

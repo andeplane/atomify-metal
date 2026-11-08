@@ -112,6 +112,16 @@ import Testing
         #expect(terminated)
     }
 
+    @Test func smallSystemRunsOnOneThread() async throws {
+        let directory = try fixtures()
+        let simulation = try Simulation(threads: 2)
+        #expect(simulation.threads == min(2, SimulationThreads.available))
+        let outcome = await start(simulation, "lj.in", in: directory).value
+        #expect(outcome == .finished)
+        // 256 Lennard-Jones atoms gain nothing from more threads.
+        #expect(simulation.threads == 1)
+    }
+
     @Test func brokenScriptReportsTheFailingLine() async throws {
         let directory = try fixtures()
         let simulation = try Simulation()

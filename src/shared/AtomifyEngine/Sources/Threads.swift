@@ -1,12 +1,15 @@
 import CLammps
 import Foundation
 
-/// How many OpenMP threads LAMMPS runs on.
+/// How many OpenMP threads LAMMPS may run on.
 ///
-/// LAMMPS splits each step evenly between its threads and waits for the
-/// slowest one, so threads on efficiency cores hold back those on
-/// performance cores. The default is therefore the number of performance
-/// cores, capped, and the serial engine where that is unknown.
+/// A simulation gets a maximum; its first run then picks how many of those
+/// the system gains from (small systems with cheap potentials run on one,
+/// see `Simulation.threads`). LAMMPS splits each step evenly between its
+/// threads and waits for the slowest one, so threads on efficiency cores
+/// hold back those on performance cores. The default maximum is therefore
+/// the number of performance cores, capped, and the serial engine where
+/// that is unknown.
 public enum SimulationThreads {
     /// Most threads this build can use: the processor count, or 1 when
     /// LAMMPS was built without OpenMP.
@@ -16,9 +19,8 @@ public enum SimulationThreads {
     public static let `default` = recommended(performanceCores: sysctlInteger("hw.perflevel0.physicalcpu"),
                                               available: available)
 
-    /// Upper limit on the default; more threads than this gain little for the
-    /// system sizes Atomify runs.
-    public static let defaultLimit = 4
+    /// Upper limit on the default; beyond it even 100,000 atoms gain little.
+    public static let defaultLimit = 8
 
     /// The default for a device with `performanceCores` performance cores
     /// (nil when unknown) and a build that can use `available` threads.
