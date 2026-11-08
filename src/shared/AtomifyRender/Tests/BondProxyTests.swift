@@ -76,9 +76,32 @@ final class BondProxyTests: XCTestCase {
     func testQuadIsTightForABondAcrossTheView() throws {
         let quad = try XCTUnwrap(BondProxy.quad(start: SIMD3(-1, 0, -10), end: SIMD3(1, 0, -10), radius: 0.1))
         XCTAssertEqual(quad.depth, 9.9, accuracy: 1e-5)
-        // About as wide as the cylinder: projected onto the nearer plane it shrinks a little.
-        XCTAssertEqual(quad.acrossRange.upperBound - quad.acrossRange.lowerBound, 0.2 * 9.9 / 9.9, accuracy: 0.01)
-        XCTAssertEqual(quad.alongRange.upperBound - quad.alongRange.lowerBound, 2 * 9.9 / 9.9, accuracy: 0.03)
+        // The cylinder projects onto that plane about 1.98 long and 0.2 wide;
+        // the rectangle is within about 15% of that.
+        let width = quad.acrossRange.upperBound - quad.acrossRange.lowerBound
+        let length = quad.alongRange.upperBound - quad.alongRange.lowerBound
+        XCTAssertGreaterThanOrEqual(width, 0.198)
+        XCTAssertLessThan(width, 0.23)
+        XCTAssertGreaterThanOrEqual(length, 1.98)
+        XCTAssertLessThan(length, 2.25)
+    }
+
+    func testProjectedReachBoundsTheSphere() {
+        var random = SystemRandomNumberGenerator()
+        for _ in 0..<500 {
+            let center = SIMD3(Float.random(in: -4...4, using: &random), Float.random(in: -4...4, using: &random),
+                               -Float.random(in: 1...8, using: &random))
+            let radius = Float.random(in: 0.01...0.5, using: &random) * (-center.z) * 0.5
+            let plane = (-center.z - radius) * Float.random(in: 0.1...1, using: &random)
+            let reach = BondProxy.projectedReach(of: center, radius: radius, planeDepth: plane)
+            let projectedCenter = center * (plane / -center.z)
+            let direction = simd_normalize(SIMD3(Float.random(in: -1...1, using: &random),
+                                                 Float.random(in: -1...1, using: &random),
+                                                 Float.random(in: -1...1, using: &random)))
+            let point = center + direction * radius
+            let projected = point * (plane / -point.z)
+            XCTAssertLessThanOrEqual(simd_distance(projected, projectedCenter), reach * (1 + 1e-4) + 1e-6)
+        }
     }
 
     func testInPlaneDirectionFallsBackForAnEndOnBond() {

@@ -8,7 +8,8 @@ import simd
 /// the proxy that the fragment shader ray-casts is one rectangle (4 vertices,
 /// 2 triangles) rather than a box (14 vertices, 12 triangles). The rectangle
 /// lies in a plane of constant view depth in front of the whole cylinder and
-/// covers its projection, so every pixel is shaded once and the depth each
+/// covers its projection (bounded analytically from the two ends, which is
+/// cheaper in the vertex shader than projecting a box's corners), so every pixel is shaded once and the depth each
 /// fragment writes is never nearer than the rectangle's own (the conservative
 /// depth the shader declares).
 ///
@@ -61,34 +62,39 @@ public enum BondProxy {
     }
 
     /// The rectangle covering a cylinder of `radius` from `start` to `end`.
-    /// Both ends must be at least `radius` in front of the eye beyond any
-    /// positive depth (see `clipToDepth`). nil for a degenerate segment.
+    /// The capsule of that radius around the segment contains the cylinder;
+    /// the rectangle lies in the plane of the capsule's nearest depth and
+    /// covers, around each end's projection, a circle that bounds the
+    /// projection of the sphere at that end. Both ends must be more than
+    /// `radius` in front of the eye (see `clipToDepth`). nil otherwise, or
+    /// for a degenerate segment.
     public static func quad(start: SIMD3<Float>, end: SIMD3<Float>, radius: Float) -> Quad? {
-        let axisVector = end - start
-        let axisLength = simd_length(axisVector)
-        guard axisLength > 1e-6, radius > 0 else { return nil }
-        let axis = axisVector / axisLength
-        let (side, other) = perpendiculars(to: axis)
-        // The box around the cylinder: its 8 corners.
-        var corners: [SIMD3<Float>] = []
-        corners.reserveCapacity(8)
-        for end in [start, end] {
-            for s in [-radius, radius] {
-                for o in [-radius, radius] {
-                    corners.append(end + side * s + other * o)
-                }
-            }
-        }
-        let depth = corners.map { -$0.z }.min()!
+        guard simd_length(end - start) > 1e-6, radius > 0 else { return nil }
+        let depthStart = -start.z, depthEnd = -end.z
+        let depth = min(depthStart, depthEnd) - radius
         guard depth > 0 else { return nil }
-        // Project each corner from the eye onto the plane z = −depth.
-        let projected = corners.map { $0 * (depth / -$0.z) }
-        let along = inPlaneDirection(start * (depth / -start.z), end * (depth / -end.z))
+        let projectedStart = start * (depth / depthStart), projectedEnd = end * (depth / depthEnd)
+        let along = inPlaneDirection(projectedStart, projectedEnd)
         let across = SIMD3<Float>(-along.y, along.x, 0)
-        let alongs = projected.map { simd_dot($0, along) }
-        let acrosses = projected.map { simd_dot($0, across) }
+        let reachStart = projectedReach(of: start, radius: radius, planeDepth: depth)
+        let reachEnd = projectedReach(of: end, radius: radius, planeDepth: depth)
+        let alongStart = simd_dot(projectedStart, along), alongEnd = simd_dot(projectedEnd, along)
+        let acrossStart = simd_dot(projectedStart, across), acrossEnd = simd_dot(projectedEnd, across)
         return Quad(depth: depth, along: along, across: across,
-                    alongRange: alongs.min()!...alongs.max()!, acrossRange: acrosses.min()!...acrosses.max()!)
+                    alongRange: min(alongStart - reachStart, alongEnd - reachEnd)...max(alongStart + reachStart,
+                                                                                         alongEnd + reachEnd),
+                    acrossRange: min(acrossStart - reachStart, acrossEnd - reachEnd)...max(acrossStart + reachStart,
+                                                                                            acrossEnd + reachEnd))
+    }
+
+    /// How far from `center`'s projection onto the plane at `planeDepth` any
+    /// point within `radius` of `center` can project: with c = center + e,
+    /// |e| ≤ r and z the center's depth, the projections differ by
+    /// D |z e_xy + center_xy e_z| / (z (z − e_z)) ≤ D r (1 + |center_xy| / z) / (z − r).
+    static func projectedReach(of center: SIMD3<Float>, radius: Float, planeDepth: Float) -> Float {
+        let depth = -center.z
+        let lateral = simd_length(SIMD2(center.x, center.y))
+        return planeDepth * radius * (1 + lateral / depth) / (depth - radius)
     }
 
     /// Two unit vectors perpendicular to `axis` and to each other.

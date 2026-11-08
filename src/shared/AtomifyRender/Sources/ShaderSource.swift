@@ -428,32 +428,25 @@ enum ShaderSource {
             float splitDistance = ra + 0.5 * (axisLength - ra - rb);
             out.split = saturate((splitDistance - start) / segmentLength);
 
-            // Project the box's 8 corners from the eye onto the plane of the
-            // nearest corner, and cover them with a rectangle aligned with
-            // the projected axis.
-            float3 helper = abs(axis.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
-            float3 side = normalize(cross(helper, axis)) * margin;
-            float3 other = cross(axis, normalize(cross(helper, axis))) * margin;
-            float3 corners[8] = {
-                p0 - side - other, p0 + side - other, p0 - side + other, p0 + side + other,
-                p1 - side - other, p1 + side - other, p1 - side + other, p1 + side + other };
-            float planeDepth = -corners[0].z;
-            for (uint i = 1; i < 8; i++) {
-                planeDepth = min(planeDepth, -corners[i].z);
-            }
-            float2 q0 = p0.xy * (planeDepth / -p0.z);
-            float2 q1 = p1.xy * (planeDepth / -p1.z);
+            // The capsule of radius `margin` around the segment contains the
+            // cylinder. Cover it with a rectangle in the plane of its nearest
+            // depth, aligned with the projected axis: around each end's
+            // projection, a circle bounds where that end's sphere projects.
+            depth0 = -p0.z;
+            depth1 = -p1.z;
+            float planeDepth = min(depth0, depth1) - margin;
+            float2 q0 = p0.xy * (planeDepth / depth0);
+            float2 q1 = p1.xy * (planeDepth / depth1);
+            float reach0 = planeDepth * margin * (1.0 + length(p0.xy) / depth0) / (depth0 - margin);
+            float reach1 = planeDepth * margin * (1.0 + length(p1.xy) / depth1) / (depth1 - margin);
             float2 alongAxis = q1 - q0;
             float alongLength = length(alongAxis);
             float2 along = alongLength > 1e-9 ? alongAxis / alongLength : float2(1.0, 0.0);
             float2 across = float2(-along.y, along.x);
-            float2 low = float2(INFINITY), high = float2(-INFINITY);
-            for (uint i = 0; i < 8; i++) {
-                float2 q = corners[i].xy * (planeDepth / -corners[i].z);
-                float2 uv = float2(dot(q, along), dot(q, across));
-                low = min(low, uv);
-                high = max(high, uv);
-            }
+            float2 uv0 = float2(dot(q0, along), dot(q0, across));
+            float2 uv1 = float2(dot(q1, along), dot(q1, across));
+            float2 low = min(uv0 - reach0, uv1 - reach1);
+            float2 high = max(uv0 + reach0, uv1 + reach1);
             float u = (vertexID & 1u) != 0u ? high.x : low.x;
             float v = (vertexID & 2u) != 0u ? high.y : low.y;
             float3 p = float3(along * u + across * v, -planeDepth);
