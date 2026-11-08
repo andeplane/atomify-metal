@@ -27,10 +27,10 @@ trap 'rm -rf "$probe_dir"' EXIT
 # Modules and per-target build folders.
 if [[ -d "$bin_dir/AtomifyVision.swiftmodule" && -f "$bin_dir/libAtomifyVision.a" ]]; then
     module_dir="$bin_dir"
-    package_objects=("$bin_dir/libAtomifyVision.a" "$bin_dir/AtomifyEngine.o")
+    package_objects=("$bin_dir/libAtomifyVision.a" "$bin_dir/AtomifyEngine.o" "$bin_dir/AtomifyKit.o" "$bin_dir/AtomifyRender.o")
 else
     module_dir="$bin_dir/Modules"
-    package_objects=("$bin_dir"/AtomifyVision.build/*.swift.o "$bin_dir"/AtomifyEngine.build/*.swift.o)
+    package_objects=("$bin_dir"/Atomify{Vision,Engine,Kit,Render}.build/*.swift.o)
 fi
 swiftc -swift-version 6 -parse-as-library -target "$(uname -m)-apple-macosx15.5" \
     -I "$module_dir" -I "$headers_dir" \

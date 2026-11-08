@@ -15,9 +15,11 @@ let package = Package(
     targets: [
         .target(name: "AtomifyVision", dependencies: [
             .product(name: "AtomifyEngine", package: "AtomifyMetal"),
+            .product(name: "AtomifyKit", package: "AtomifyMetal"),
         ]),
         .testTarget(name: "AtomifyVisionTests", dependencies: [
             "AtomifyVision", .product(name: "AtomifyEngine", package: "AtomifyMetal"),
+            .product(name: "AtomifyKit", package: "AtomifyMetal"),
         ], resources: [.copy("Fixtures")]),
     ]
 )

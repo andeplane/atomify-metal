@@ -21,12 +21,31 @@ struct ControlsView: View {
             }
             controls
             status
+            tip
+        }
+        .padding(32)
+        .frame(width: Self.width, alignment: .leading)
+        .animation(.default, value: model.tips.current)
+        // The Digital Crown recenters the experiment as well as the panel.
+        .onWorldRecenter { phase in if phase == .ended { model.requestRecenter() } }
+    }
+
+    /// The in-context tip while there is one to learn, then the short
+    /// reminder of what hands do.
+    @ViewBuilder private var tip: some View {
+        if let tip = model.tips.current {
+            Label(tip.text, systemImage: tip.systemImage)
+                .font(.title3.weight(.medium))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.thinMaterial, in: .capsule)
+                .transition(.opacity)
+                .id(tip.text)
+        } else {
             Text("One hand: pinch an atom to pull it. Two hands: pinch to move, turn and resize.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
-        .padding(32)
-        .frame(width: Self.width, alignment: .leading)
     }
 
     private var heading: some View {
