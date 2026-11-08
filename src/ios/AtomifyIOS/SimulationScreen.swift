@@ -89,12 +89,15 @@ struct SimulationCanvas: View {
                          performOnMain { target.session.resetCamera() }
                      })
             .onChange(of: session.stats.atoms, initial: true) { model.applyQuality() }
-            .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)) { [model] _ in
-                performOnMain { model.applyQuality() }
+            // Both notifications are posted on arbitrary threads; deliver them on
+            // the main thread, where this view's closures run.
+            .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)
+                .receive(on: DispatchQueue.main)) { _ in
+                model.applyQuality()
             }
-            .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)) {
-                [model] _ in
-                performOnMain { model.applyQuality() }
+            .onReceive(NotificationCenter.default.publisher(for: ProcessInfo.thermalStateDidChangeNotification)
+                .receive(on: DispatchQueue.main)) { _ in
+                model.applyQuality()
             }
             .accessibilityLabel(session.title.map { "Simulation of \($0)" } ?? "Simulation")
             .accessibilityHint("Drag to rotate, pinch to zoom, tap an atom to inspect it.")

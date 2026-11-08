@@ -29,6 +29,25 @@ import simd
         #expect(ScriptPreparation.prepare("units lj\nrun 10") == "units lj\nrun 10")
     }
 
+    @Test func preparationSplitsWindowsLineEndings() {
+        // "\r\n" is one Character: a leading directive must not swallow the script.
+        let script = "#/label Start\r\nunits lj\r\n#/speed 2\r\nrun 10\r\n"
+        #expect(ScriptPreparation.prepare(script)
+            == "print \"@atomify label Start\"\nunits lj\nprint \"@atomify speed 2\"\nrun 10\n")
+        #expect(ScriptPreparation.prepare("suffix kk\r\nunits lj")
+            == "# suffix kk  (KOKKOS is not in this build)\nunits lj")
+    }
+
+    @Test func filterCanEchoDirectivesForAConsole() {
+        var filter = ScriptEventFilter(echoesEvents: true)
+        let out = filter.filter("print \"@atomify label Hi\"\n@atomify label Hi\n@atomify speed 10\n  100 1.5\n")
+        #expect(out.text == "#/label Hi\n#/speed 10\n  100 1.5\n")
+        #expect(out.events == [.label("Hi"), .speed(10)])
+        _ = filter.filter("@atomify speed 2.5")
+        #expect(filter.flush().text == "#/speed 2.5")
+        #expect(ScriptEvent.speed(4).directive == "#/speed 4")
+    }
+
     @Test func filterTakesMarkersOutOfTheOutput() {
         var filter = ScriptEventFilter()
         let first = filter.filter("Step Temp\n@atomify spe")
