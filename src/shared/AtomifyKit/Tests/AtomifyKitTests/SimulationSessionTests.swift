@@ -1,0 +1,149 @@
+import Foundation
+import Testing
+import simd
+@testable import AtomifyKit
+
+/// Waits on the main actor (letting the session's tick run) until `condition` holds.
+@MainActor
+func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: () -> Bool) async throws {
+    let deadline = ContinuousClock.now + timeout
+    while !condition() {
+        guard ContinuousClock.now < deadline else {
+            Issue.record("Timed out waiting for \(what)")
+            throw CancellationError()
+        }
+        try await Task.sleep(for: .milliseconds(20))
+    }
+}
+
+/// Runs the real engine (needs CLammps.xcframework), so it is one test per
+/// behavior chain rather than many small ones.
+@MainActor @Suite(.serialized) struct SimulationSessionTests {
+    @Test(.timeLimit(.minutes(2))) func runsAnExampleEndToEnd() async throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let example = try #require(catalog.example(id: "lj"))
+        let session = SimulationSession()
+        session.continueAfterScript = true
+        session.load(example, from: catalog)
+        #expect(session.status == .running)
+        #expect(session.example == example)
+        #expect(session.title == "Lennard-Jones liquid")
+
+        try await waitUntil("first scene") { session.scene != nil }
+        let scene = try #require(session.scene)
+        #expect(scene.particles.count == 256)
+        #expect(scene.lines.count == 1)                       // the box
+        #expect(isClose(scene.particles.styles[1].color, SIMD4(1, 0, 0, 1)))   // #/atom 1 ... #ff0000
+        #expect(isClose(scene.particles.styles[2].color, SIMD4(0, 0, 1, 1)))
+        #expect(isClose(session.camera.target, SIMD3(3, 4, 3), 1e-3))           // #/camera target
+
+        try await waitUntil("stats") { session.stats.atoms == 256 }
+        #expect(session.stats.units == "lj")
+
+        // Bonds from the #/bond rule (fcc neighbors are about 1.12 apart).
+        try await waitUntil("bonds") { (session.scene?.bonds?.pairs.count ?? 0) > 0 }
+        session.showBonds = false
+        #expect(session.scene?.bonds == nil)
+        session.showBonds = true
+        session.showBox = false
+        #expect(session.scene?.lines.isEmpty == true)
+        session.showBox = true
+
+        // Picking and selection.
+        session.selectParticle(5)
+        let picked = try #require(session.selectedAtom)
+        #expect(picked.index == 5)
+        #expect(session.scene?.particles.flags?[5] == SceneBuilder.selectedFlag)
+        session.selectParticle(5)                              // again: deselects
+        #expect(session.selectedAtom == nil)
+        session.selectAtom(tag: picked.tag)
+        #expect(session.selectedAtom?.tag == picked.tag)
+        session.selectParticle(nil)
+        #expect(session.selectedAtom == nil)
+
+        // Color by a per-atom quantity, from the compute in the script and built-ins.
+        try await waitUntil("per-atom quantities") { session.availableQuantities.contains("c_ke") }
+        #expect(session.availableQuantities.suffix(3) == ["vx", "vy", "vz"])
+        session.colorQuantity = "vx"
+        session.colormap = .coolwarm
+        try await waitUntil("vx colors") { session.scene?.particles.colors != nil }
+        #expect(session.colorRange != nil)
+        #expect(session.colorMode.quantity == "vx")
+        session.customColorRange = -1...1
+        #expect(session.colorRange == -1...1)
+        session.customColorRange = nil
+        session.resetColorRange()
+        session.colorQuantity = nil
+        #expect(session.scene?.particles.colors == nil)
+        #expect(session.colorMode == .type)
+
+        // Plots default to temperature and energies.
+        try await waitUntil("plots") { !(session.plotData.values.first?.isEmpty ?? true) }
+        let temperature = try #require(session.plotOptions.first { $0.title == "Temperature" })
+        #expect(session.plottedSeries.contains(temperature.key))
+        let extra = try #require(session.plotOptions.last)
+        session.addPlot(extra.key)
+        #expect(session.plottedSeries.last == extra.key)
+        #expect(session.title(of: extra.key) == extra.title)
+        session.removePlot(extra.key)
+        #expect(!session.plottedSeries.contains(extra.key))
+
+        // Console, pause and commands.
+        try await waitUntil("thermo output") { session.console.text.contains("Step") }
+        session.pause()
+        #expect(session.status == .paused)
+        session.resume()
+        #expect(session.status == .running)
+        session.togglePause()
+        #expect(session.status == .paused)
+        session.togglePause()
+        session.enqueue("print \"hello from the console\"")
+        try await waitUntil("command output") { session.console.text.contains("hello from the console") }
+        #expect(session.console.text.contains("> print"))
+        session.clearConsole()
+
+        session.recordFrame(particlesDrawn: 256, gpuTimeMs: 1)
+        session.recordFrame(particlesDrawn: 256, gpuTimeMs: 1)
+        session.resetCamera()
+
+        // Restart runs the original files again.
+        session.restart()
+        #expect(session.status == .running)
+        try await waitUntil("scene after restart") { session.scene != nil }
+
+        session.stop()
+        #expect(session.status == .idle)
+        #expect(session.scene != nil)      // the last picture stays
+        session.enqueue("print ignored")
+    }
+
+    @Test(.timeLimit(.minutes(1))) func scriptErrorsAreSurfaced() async throws {
+        let scratch = try scratchDirectory()
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        let script = scratch.appendingPathComponent("broken.in")
+        try "units lj\nthis_is_not_a_command 1 2 3\n".write(to: script, atomically: true, encoding: .utf8)
+
+        let session = SimulationSession()
+        session.load(script: script)
+        #expect(session.title == "broken.in")
+        #expect(session.example == nil)
+        try await waitUntil("failure") { if case .failed = session.status { true } else { false } }
+        #expect(session.errorMessage?.isEmpty == false)
+    }
+
+    @Test func missingFilesFailBeforeStarting() throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let session = SimulationSession()
+        session.load(try #require(catalog.example(id: "missing-file")), from: catalog)
+        #expect(session.status == .failed(ExampleCatalogError.missingFile("nowhere/gone.in").localizedDescription))
+        #expect(session.errorMessage != nil)
+        session.restart()
+        #expect(session.errorMessage != nil)
+        session.stop()
+        session.pause()
+        session.resume()
+        session.resetCamera()
+        session.selectParticle(0)
+        #expect(session.selectedAtom == nil)
+    }
+}
