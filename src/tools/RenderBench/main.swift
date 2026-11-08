@@ -117,7 +117,11 @@ func loadScenes(_ names: [String]) async throws -> [BenchScene] {
         case "water": scene = try await capture(example: "nanotube_water", script: nil, minimumStep: 200)
         case "sic": scene = try await capture(example: "sic_nanoparticle", script: nil, minimumStep: 100)
         case "lj": scene = try await capture(example: "3D-lj-fluid", script: nil, minimumStep: 500)
-        case "sic1m": scene = try await capture(example: nil, script: siliconCarbideScript, minimumStep: 0)
+        case "sic1m":
+            scene = try await capture(example: nil, script: siliconCarbideScript, minimumStep: 0)
+            // Turned so three faces show.
+            scene.camera.yaw += 0.6
+            scene.camera.pitch = 0.45
         case "sic1m-zoom":
             // The same crystal seen from close by: most of it is out of view.
             if let full = scenes.first(where: { $0.name == "sic1m" }) {

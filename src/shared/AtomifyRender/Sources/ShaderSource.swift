@@ -177,15 +177,22 @@ enum ShaderSource {
         return info;
     }
 
-    /// A warm key light, a cool sky and dim ground for ambient (all darkened
-    /// by `ambient`, the particle's crowding), a Fresnel weighted highlight
-    /// and a faint rim so silhouettes separate in dense material.
+    /// A warm key light, a cool sky and dim ground for ambient, a Fresnel
+    /// weighted highlight and a faint rim so silhouettes separate in dense
+    /// material. `ambient` (the particle's crowding) takes away most of the
+    /// sky and ground light but only a little of the key light, so crowded
+    /// regions read as deeper without turning dark and murky.
     static float3 shade(float3 hit, float3 normal, float3 base, float ambient, constant ViewUniforms &view) {
         float3 l = normalize(view.lightDirection.xyz);
         float3 v = -normalize(hit);
         float ndl = dot(normal, l);
         float diffuse = saturate((ndl + 0.15) / 1.15);
-        float occlusion = mix(0.1, 1.0, smoothstep(0.45, 1.0, ambient));
+        // Crowding mostly takes away ambient (sky and ground) light; the key
+        // light still reaches what the eye sees, dimmed a little so crowded
+        // regions read as deeper without turning murky.
+        float crowding = smoothstep(0.45, 1.0, ambient);
+        float fillOcclusion = mix(0.2, 1.0, crowding);
+        float keyOcclusion = mix(0.75, 1.0, crowding);
         float3 key = float3(1.0, 0.96, 0.9) * diffuse;
         float sky = 0.5 + 0.5 * normal.y;
         float3 fill = mix(float3(0.10, 0.09, 0.085), float3(0.30, 0.33, 0.38), sky);
@@ -194,7 +201,8 @@ enum ShaderSource {
         float fresnel = 0.04 + 0.96 * pow(1.0 - nv, 5.0);
         float specular = pow(saturate(dot(normal, h)), 64.0) * (0.35 + 0.65 * fresnel);
         float rim = pow(1.0 - nv, 3.0) * 0.08;
-        float3 color = (base * (key * 0.95 + fill) + specular + rim) * occlusion;
+        float3 color = base * (key * (0.95 * keyOcclusion) + fill * fillOcclusion)
+                       + (specular + rim) * keyOcclusion;
         return color / (1.0 + 0.18 * color);
     }
 
