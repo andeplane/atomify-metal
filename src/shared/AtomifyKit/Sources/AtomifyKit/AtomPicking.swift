@@ -11,6 +11,10 @@ public struct AtomInfo: Sendable, Equatable {
     public var typeName: String?
     public var position: SIMD3<Float>
     public var radius: Float?
+    /// The type's sRGB color (0...1), for a swatch next to the name.
+    public var color: SIMD3<Float>?
+    /// The element's English name ("Oxygen") when the type is an element.
+    public var elementName: String?
     /// The per-atom quantity the frame carries, and its value for this atom.
     public var quantity: String?
     public var value: Float?
@@ -44,6 +48,10 @@ public enum AtomPicking {
         let type = Int(frame.types[index])
         var info = AtomInfo(index: index, tag: frame.tags[index], type: type,
                             typeName: styles?.style(forType: type).name, position: frame.positions[index])
+        if let style = styles?.style(forType: type) {
+            info.color = SIMD3(Float(style.color.red), Float(style.color.green), Float(style.color.blue))
+            info.elementName = Element.named(style.name).map { $0.name.prefix(1).uppercased() + $0.name.dropFirst() }
+        }
         if let radii = frame.radii, index < radii.count {
             info.radius = radii[index]
         } else if let styles {

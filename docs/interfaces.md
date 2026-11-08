@@ -346,7 +346,8 @@ public enum SceneBuilder {
 }
 
 /// Picked particle index → atom; keep the selection by tag across frames.
-public struct AtomInfo: Sendable, Equatable { index, tag, type, typeName?, position, radius?, quantity?, value? }
+public struct AtomInfo: Sendable, Equatable { index, tag, type, typeName?, position, radius?, quantity?, value?
+    color: SIMD3<Float>? (sRGB), elementName: String? ("Oxygen") — both from the style table }
 public enum AtomPicking {
     static func atom(atParticle: Int?, in: AtomFrame, styles: AtomStyleTable? = nil) -> AtomInfo?
     static func atom(withTag: Int64, in: AtomFrame, styles: AtomStyleTable? = nil) -> AtomInfo?

@@ -80,6 +80,21 @@ import Testing
         #expect(info.value == 2.5)
         #expect(info.radius == nil)
         #expect(info.typeName == nil)
+        #expect(info.color == nil)
+        #expect(info.elementName == nil)
+    }
+
+    @Test func elementNameAndColor() throws {
+        let table = AtomStyleTable(directives: ScriptDirectives.parse("#/atom 1 oxygen\n#/atom 2 2.0 #00ff00"),
+                                   typeCount: 2, units: "real")
+        let oxygen = try #require(AtomPicking.atom(atParticle: 0, in: sampleFrame(), styles: table))
+        #expect(oxygen.elementName == "Oxygen")
+        let oxygenColor = try #require(oxygen.color)
+        #expect(abs(oxygenColor.x - Float(0xAA) / 255) < 1e-6)
+        #expect(oxygenColor.y == 0 && oxygenColor.z == 0)
+        let custom = try #require(AtomPicking.atom(atParticle: 1, in: sampleFrame(), styles: table))
+        #expect(custom.elementName == nil)
+        #expect(custom.color == SIMD3(0, 1, 0))
     }
 
     @Test func outOfRangeOrNilPicksNothing() {

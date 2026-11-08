@@ -1,7 +1,8 @@
 # Atomify for iPhone and iPad
 
 A SwiftUI app that runs the bundled Atomify examples with the shared engine and draws them with the Metal renderer.
-It opens straight into a running simulation (Single water molecule): drag to rotate, two fingers to pan, pinch to zoom, tap an atom to select it.
+It opens straight into a running simulation (Single water molecule): drag to rotate, two fingers to pan, pinch to zoom, tap an atom to inspect it, double tap to frame the system again, and tap empty space to hide the controls.
+A glass toolbar opens the examples, restarts, plays or pauses, and opens the view options and the dashboard as sheets.
 
 The app is a thin shell.
 The engine, renderer, catalog and run lifecycle are the shared packages in the root `Package.swift` (AtomifyKit with AtomifyEngine and AtomifyRender), the same ones the Mac app uses.
