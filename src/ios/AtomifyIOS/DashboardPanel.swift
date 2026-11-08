@@ -2,10 +2,10 @@ import AtomifyKit
 import Charts
 import SwiftUI
 
-/// The example's dashboard, as Atomify 2 showed it: a card per controller
-/// (summary, charts of temperature, pressure, angles and more, and the
-/// thermostat and force controls), in the example's order.
-struct DashboardSheet: View {
+/// The side panel's Dashboard tab, as Atomify 2 showed it: a card per
+/// controller (summary, charts of temperature, pressure, angles and more,
+/// and the thermostat and force controls), in the example's order.
+struct DashboardTab: View {
     let session: SimulationSession
 
     var body: some View {
@@ -40,50 +40,99 @@ private struct DashboardPanelView: View {
     }
 }
 
-/// A titled rounded card.
-private struct DashboardCard<Content: View>: View {
+/// A titled card, with an optional control (a switch) at the trailing end
+/// of its header.
+private struct DashboardCard<Accessory: View, Content: View>: View {
     let title: String
-    var systemImage: String?
-    @ViewBuilder var content: Content
+    let systemImage: String
+    let accessory: Accessory
+    let content: Content
+
+    init(title: String, systemImage: String, @ViewBuilder accessory: () -> Accessory,
+         @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.systemImage = systemImage
+        self.accessory = accessory()
+        self.content = content()
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label {
-                Text(title)
-            } icon: {
-                if let systemImage { Image(systemName: systemImage).foregroundStyle(.tint) }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Label {
+                    Text(title)
+                } icon: {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 15))
+                        .foregroundStyle(.tint)
+                }
+                .font(.subheadline.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
+                accessory
             }
-            .font(.headline)
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
-/// Atomify 2's summary: size, atoms, types, steps and speed.
+extension DashboardCard where Accessory == EmptyView {
+    init(title: String, systemImage: String, @ViewBuilder content: () -> Content) {
+        self.init(title: title, systemImage: systemImage, accessory: { EmptyView() }, content: content)
+    }
+}
+
+/// Atomify 2's summary as a compact grid: atoms, temperature and timestep,
+/// size, speed and units, with the rest under More.
 private struct SummaryCard: View {
     let session: SimulationSession
 
     var body: some View {
         let stats = session.stats
         DashboardCard(title: "Summary", systemImage: "info.circle") {
-            VStack(spacing: 6) {
-                row("Status", session.status.label)
-                row("System size", sizeText(stats))
-                row(stats.dimension == 2 ? "Area" : "Volume", Format.number(stats.volume))
-                row("Atoms", stats.atoms.formatted())
-                if stats.bonds > 0 { row("Bonds", stats.bonds.formatted()) }
-                row("Atom types", stats.typeCount.formatted())
-                row("Timesteps", stats.timestep.formatted())
-                row("Temperature", Format.temperature(stats.temperature, units: stats.units))
-                row("Performance", "\(Format.count(stats.stepsPerSecond)) steps/s")
-                if !stats.units.isEmpty { row("Units", stats.units) }
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                GridRow {
+                    cell("Atoms", stats.atoms.formatted())
+                    cell("Temperature", Format.temperature(stats.temperature, units: stats.units))
+                    cell("Timestep", stats.timestep.formatted())
+                }
+                GridRow {
+                    cell("Size", Self.size(stats))
+                    cell("Steps/s", Format.count(stats.stepsPerSecond))
+                    cell("Units", stats.units.isEmpty ? "–" : stats.units)
+                }
             }
-            .font(.callout)
-            .monospacedDigit()
+            DisclosureGroup("More") {
+                VStack(spacing: 4) {
+                    row("Status", session.status.label)
+                    row(stats.dimension == 2 ? "Area" : "Volume", Format.number(stats.volume))
+                    if stats.bonds > 0 { row("Bonds", stats.bonds.formatted()) }
+                    row("Atom types", stats.typeCount.formatted())
+                }
+                .font(.footnote)
+                .monospacedDigit()
+                .padding(.top, 4)
+            }
+            .font(.footnote)
         }
+    }
+
+    private func cell(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 
     private func row(_ title: String, _ value: String) -> some View {
@@ -94,10 +143,16 @@ private struct SummaryCard: View {
         }
     }
 
-    private func sizeText(_ stats: SessionStats) -> String {
+    /// "200³" for a cube, else "40 × 16 × 50" ("40²" and "40 × 16" in 2D).
+    static func size(_ stats: SessionStats) -> String {
         let size = stats.boxSize
-        let parts = (stats.dimension == 2 ? [size.x, size.y] : [size.x, size.y, size.z]).map { Format.number($0) }
-        return "(" + parts.joined(separator: ", ") + ")"
+        let sides = stats.dimension == 2 ? [size.x, size.y] : [size.x, size.y, size.z]
+        guard sides.allSatisfy({ $0.isFinite && $0 > 0 }) else { return "–" }
+        let text = sides.map { $0.formatted(.number.precision(.significantDigits(1...3)).grouping(.never)) }
+        if Set(text).count == 1 {
+            return text[0] + (sides.count == 2 ? "²" : "³")
+        }
+        return text.joined(separator: " × ")
     }
 }
 
@@ -113,14 +168,18 @@ private struct ChartCard: View {
         let y: Double
     }
 
+    @Environment(\.layoutMetrics) private var metrics
+
     var body: some View {
         let series = chart.lines.map { (line: $0, points: chart.displayed(data[$0.source] ?? [])) }
         let points = Self.points(series)
-        DashboardCard(title: chart.title, systemImage: "chart.xyaxis.line") {
+        let height: CGFloat = metrics.isWide ? 150 : 118
+        DashboardCard(title: Self.title(chart), systemImage: "chart.xyaxis.line") {
             if points.isEmpty {
                 Text("Waiting for data…")
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 150)
+                    .frame(maxWidth: .infinity, minHeight: height)
             } else {
                 HStack(spacing: 14) {
                     ForEach(Array(series.enumerated()), id: \.offset) { index, entry in
@@ -144,9 +203,22 @@ private struct ChartCard: View {
                 .chartLegend(.hidden)
                 .chartXScale(domain: Self.domain(points.map(\.x), fixed: nil))
                 .chartYScale(domain: Self.domain(points.map(\.y), fixed: chart.yDomain))
+                .chartXAxis {
+                    AxisMarks { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel().font(.caption2)
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { _ in
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel().font(.caption2)
+                    }
+                }
                 .chartXAxisLabel(chart.xLabel)
-                .chartYAxisLabel(chart.yLabel)
-                .frame(height: 180)
+                .frame(height: height)
             }
             if let note = chart.note {
                 Text(note)
@@ -154,6 +226,15 @@ private struct ChartCard: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// The chart's title with the unit of its y axis, which has no label
+    /// of its own: "Pressure (bar)".
+    static func title(_ chart: DashboardChart) -> String {
+        guard let open = chart.yLabel.lastIndex(of: "["), let close = chart.yLabel.lastIndex(of: "]"),
+              open < close else { return chart.title }
+        let unit = chart.yLabel[chart.yLabel.index(after: open)..<close].trimmingCharacters(in: .whitespaces)
+        return unit.isEmpty ? chart.title : "\(chart.title) (\(unit))"
     }
 
     private func color(_ index: Int) -> Color {
@@ -202,11 +283,13 @@ private struct ThermostatCard: View {
         let range = session.thermostatRange
         let units = session.stats.units
         DashboardCard(title: "Thermostat", systemImage: "thermometer.medium") {
-            Toggle("Enabled", isOn: Binding(
+            Toggle("Thermostat", isOn: Binding(
                 get: { session.thermostat.isEnabled },
                 set: { session.thermostat.isEnabled = $0 }
             ))
+            .labelsHidden()
             .disabled(!session.status.isActive)
+        } content: {
             HStack {
                 Text("Target")
                 Spacer()
@@ -214,6 +297,7 @@ private struct ThermostatCard: View {
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
+            .font(.footnote)
             Slider(value: Binding(
                 get: { draft ?? session.thermostat.target },
                 set: { draft = $0 }
@@ -247,7 +331,7 @@ private struct GravityCard: View {
     var body: some View {
         if let gravity = session.gravity {
             DashboardCard(title: "Force", systemImage: "arrow.up.circle") {
-                Toggle("Enabled", isOn: Binding(
+                Toggle("Force", isOn: Binding(
                     get: { session.gravity?.isEnabled ?? false },
                     set: { enabled in
                         if var gravity = session.gravity {
@@ -256,7 +340,9 @@ private struct GravityCard: View {
                         }
                     }
                 ))
+                .labelsHidden()
                 .disabled(!session.status.isActive)
+            } content: {
                 HStack {
                     Text("Magnitude")
                     Spacer()
@@ -264,6 +350,7 @@ private struct GravityCard: View {
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
+                .font(.footnote)
                 Slider(value: Binding(
                     get: { draft ?? session.gravity?.magnitude ?? 0 },
                     set: { draft = $0 }
@@ -278,7 +365,7 @@ private struct GravityCard: View {
                     draft = nil
                 }
                 Text("Pushes the atoms along +z; negative values pull them back.")
-                    .font(.footnote)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
