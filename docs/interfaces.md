@@ -137,11 +137,21 @@ public struct OrbitCamera: Sendable, Equatable {
 import SwiftUI
 /// SwiftUI view hosting an MTKView with an OrbitCamera: drag rotates,
 /// right/two-finger drag pans, scroll/pinch zooms, click/tap picks.
+/// With `pacing` the view draws only as often as it allows and pauses when
+/// idle; `contentScaleLimit` caps pixels per point (iOS); `onDoubleTap` (iOS).
 public struct ParticleView: View {
     public init(scene: SceneData?, camera: Binding<OrbitCamera>, settings: RenderSettings,
-                onPick: ((Int?) -> Void)? = nil, onStats: ((RenderStats) -> Void)? = nil)
+                pacing: FramePacing? = nil, contentScaleLimit: Double? = nil,
+                onPick: ((Int?) -> Void)? = nil, onStats: ((RenderStats) -> Void)? = nil,
+                onDoubleTap: (() -> Void)? = nil)
 }
 #endif
+
+/// Draw rate: `interactive` within `linger` s of a touch, `changing` within
+/// `linger` s of a scene/camera/settings/size change, else 0 (paused);
+/// capped at `constrained` in Low Power Mode or under thermal pressure.
+public struct FramePacing: Sendable, Equatable { interactive = 120, changing = 60, constrained = 30, linger = 0.5
+    func framesPerSecond(sinceInteraction: Double, sinceChange: Double, constrained: Bool) -> Int }
 
 // Pure helpers (unit tested):
 public enum Colormap: String, CaseIterable, Sendable { case viridis, plasma, coolwarm, jet, grayscale
@@ -362,6 +372,11 @@ public enum CameraFraming { static func camera(hint: CameraHint?, boxLow:boxHigh
 public struct Thermostat: Sendable, Equatable { isEnabled, target, dampingSteps, seed; var addCommand: String
     static let fixID, removeCommand; static func commands(from:to:) -> [String]
     static func defaultTarget(units:), presets(units:), targetRange(units:), clampedTarget(_:units:) }
+
+/// Render quality by system size: `automatic` is high below 50,000 atoms
+/// (fast when constrained); 2 pixels per point from 300,000 atoms.
+public struct QualityPolicy: Sendable, Equatable { mode: Mode (.automatic, .fast, .high; title)
+    func quality(atomCount:constrained: = false) -> RenderQuality; func contentScaleLimit(atomCount:) -> Double? }
 
 /// Gallery rows: curated sections of example ids; unlisted examples go to a last "More" section.
 public struct ExampleSection: Sendable, Equatable, Identifiable { id, title, examples: [Example] }

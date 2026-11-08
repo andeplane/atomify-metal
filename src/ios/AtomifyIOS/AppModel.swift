@@ -13,6 +13,15 @@ final class AppModel {
     let catalogError: String?
     let session = SimulationSession()
 
+    /// Render quality for the system size; the view options change its mode.
+    var qualityPolicy = QualityPolicy() {
+        didSet { applyQuality() }
+    }
+
+    /// How often the particle view draws: fast while touched, at the
+    /// simulation's pace while it runs, not at all while nothing changes.
+    let framePacing = FramePacing()
+
     /// Set when the app paused a running simulation on its way to the background.
     @ObservationIgnored private var pausedForBackground = false
 
@@ -43,6 +52,26 @@ final class AppModel {
     func open(_ id: Example.ID) {
         guard let example = catalog.example(id: id) else { return }
         session.load(example, from: catalog)
+    }
+
+    /// The most pixels per point to draw the current system at.
+    var contentScaleLimit: Double? {
+        qualityPolicy.contentScaleLimit(atomCount: session.stats.atoms)
+    }
+
+    /// Low Power Mode or thermal pressure.
+    var isConstrained: Bool {
+        let info = ProcessInfo.processInfo
+        return info.isLowPowerModeEnabled || info.thermalState == .serious || info.thermalState == .critical
+    }
+
+    /// Sets the session's render quality from the policy, the atom count
+    /// and the power state. Called when any of them changes.
+    func applyQuality() {
+        let quality = qualityPolicy.quality(atomCount: session.stats.atoms, constrained: isConstrained)
+        if session.renderSettings.quality != quality {
+            session.renderSettings.quality = quality
+        }
     }
 
     /// iOS stops GPU work in the background; pause the run too, and resume
