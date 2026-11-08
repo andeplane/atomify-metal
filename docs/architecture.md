@@ -59,7 +59,7 @@ Owns script semantics (`#/atom`, `#/bond`, `#/camera` directives), elements, and
 
 Metal renderer for large numbers of spheres and cylinders. Agnostic: inputs are positions, radii, colors, bonds as index pairs, and line segments.
 
-- **Fast mode**: ray-cast billboard impostors (4 vertices per sphere, real depth), instanced cylinders for bonds, spatial blocks with frustum culling and front-to-back order. Targets 1M+ particles.
+- **Fast mode**: ray-cast billboard impostors (4 vertices per sphere, real depth), ray-cast cylinders for bonds (one 4-vertex rectangle each, trimmed to the part between the spheres), spatial blocks with frustum culling (particles and bonds) and front-to-back order. Targets 1M+ particles; see docs/renderer/performance.md.
 - **High quality mode**: the same impostors plus screen-space ambient occlusion, soft shadows and outlines, for smaller systems.
 - **Picking**: an ID buffer pass, so clicking returns the particle under the cursor.
 - Draws into any `MTLRenderCommandEncoder`, with one or two views (stereo with vertex amplification on Vision Pro), reverse Z optional. A ready-made SwiftUI `MetalView` with an orbit camera covers macOS and iOS.
