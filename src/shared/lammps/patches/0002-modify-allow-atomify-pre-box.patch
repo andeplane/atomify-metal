@@ -1,0 +1,16 @@
+diff --git a/src/modify.cpp b/src/modify.cpp
+index d09f4ab..70b854a 100644
+--- a/src/modify.cpp
++++ b/src/modify.cpp
+@@ -817,7 +817,10 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
+   // clang-format off
+   const char *exceptions[] =
+     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx", "deprecated", "STORE/KIM",
+-     "amoeba/pitorsion", "amoeba/bitorsion", "DUMMY", nullptr};
++     "amoeba/pitorsion", "amoeba/bitorsion", "DUMMY",
++     // Atomify: fix atomify only reads atoms in its step callbacks, so the app
++     // can install it before any script creates the box.
++     "atomify", nullptr};
+   // clang-format on
+ 
+   if (domain->box_exist == 0) {
