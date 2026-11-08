@@ -73,8 +73,8 @@ struct DrawUniforms {
 /// Screen-space ambient occlusion pass (96 bytes).
 struct SSAOUniforms {
     var projection: simd_float4x4
-    /// x: radius (view units), y: strength (exponent), z: bias (fraction of
-    /// depth), w: sample count.
+    /// x: radius (view units), y: exponent on the result, z: depth falloff
+    /// (view units), w: sample count.
     var params: SIMD4<Float>
     /// xy: full-resolution size, zw: occlusion target size (pixels).
     var screen: SIMD4<Float>

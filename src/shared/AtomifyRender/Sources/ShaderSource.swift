@@ -694,7 +694,11 @@ enum ShaderSource {
                       -depth);
     }
 
-    /// Normal-oriented hemisphere occlusion. Writes (ambient light, view depth).
+    /// Normal-oriented hemisphere occlusion in the style of N8AO (Atomify's
+    /// web renderer): a world-space radius, and a sample counts as occluded
+    /// when the visible surface is in front of it by less than about the
+    /// falloff, so far-away foreground does not darken what is behind it.
+    /// Writes (ambient light, view depth).
     fragment float4 ambientOcclusionFragment(FullscreenVaryings in [[stage_in]],
                                              texture2d<float> normalDepth [[texture(0)]],
                                              constant SSAOUniforms &u [[buffer(0)]],
@@ -722,10 +726,18 @@ enum ShaderSource {
         }
         tangent = normalize(tangent);
         float3 bitangent = cross(n, tangent);
-        float radius = u.params.x;
-        float bias = u.params.z * depth + 0.025 * radius;
+        // At most a tenth of the view height on screen: close up, a radius
+        // of many atoms spreads 16 samples over hundreds of pixels and
+        // turns into blotches (N8AO wants 16 to 64 pixels).
+        float pixels = u.params.x * u.projection[1][1] / depth * 0.5 * u.screen.y;
+        float shrink = min(1.0, 0.1 * u.screen.y / max(pixels, 1e-6));
+        float radius = u.params.x * shrink;
+        float falloff = u.params.z * shrink;
+        // Small: the samples start off the surface along the normal.
+        float bias = 0.001 * depth + 0.02 * falloff;
         int count = int(u.params.w);
         float occlusion = 0.0;
+        float weight = 0.0;
         for (int i = 0; i < count; i++) {
             float3 k = hemisphere[i].xyz;
             float3 s = p + (tangent * k.x + bitangent * k.y + n * k.z) * radius;
@@ -734,15 +746,20 @@ enum ShaderSource {
                 continue;
             }
             float2 suv = float2(clip.x / clip.w * 0.5 + 0.5, 0.5 - clip.y / clip.w * 0.5);
+            if (any(suv <= 0.0) || any(suv >= 1.0)) {
+                continue;
+            }
+            weight += 1.0;
             float sampledInverse = normalDepth.sample(nearestSampler, suv).w;
             if (sampledInverse <= 0.0) {
                 continue;
             }
             float sceneDepth = 1.0 / sampledInverse;
-            float range = smoothstep(0.0, 1.0, radius / max(abs(depth - sceneDepth), 1e-6));
-            occlusion += (sceneDepth <= -s.z - bias ? 1.0 : 0.0) * range;
+            float sampleDepth = -s.z;
+            float range = smoothstep(0.0, 1.0, falloff / max(abs(sampleDepth - sceneDepth), 1e-6));
+            occlusion += (sceneDepth < sampleDepth - bias ? 1.0 : 0.0) * range;
         }
-        float ao = 1.0 - occlusion / float(max(count, 1));
+        float ao = weight > 0.0 ? 1.0 - occlusion / weight : 1.0;
         return float4(pow(saturate(ao), u.params.y), depth, 0.0, 0.0);
     }
 
