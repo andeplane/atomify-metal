@@ -137,6 +137,39 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         session.enqueue("print ignored")
     }
 
+    @Test(.timeLimit(.minutes(1))) func thermostatCoolsTheLiquid() async throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let example = try #require(catalog.example(id: "lj"))
+        let session = SimulationSession()
+        session.continueAfterScript = true
+        session.thermostat.isEnabled = true             // nothing running: stays off
+        #expect(!session.thermostat.isEnabled)
+
+        session.load(example, from: catalog)
+        try await waitUntil("stats") { session.stats.atoms == 256 }
+        #expect(session.thermostat.target == 1)         // the lj default
+        #expect(!session.thermostat.isEnabled)
+
+        session.thermostat = Thermostat(isEnabled: true, target: 0.1)
+        #expect(session.thermostat.isEnabled)
+        #expect(session.console.text.contains("> fix atomify_thermostat all langevin 0.1 0.1"))
+        try await waitUntil("cooling", timeout: .seconds(40)) { session.stats.temperature < 0.5 }
+
+        session.thermostat.target = 0.2                  // replaces the fix
+        #expect(session.console.text.contains("langevin 0.2 0.2"))
+        session.thermostat.isEnabled = false
+        #expect(session.console.text.contains("> unfix atomify_thermostat"))
+        try await waitUntil("commands run") { session.console.text.contains("Step") }
+        try await Task.sleep(for: .milliseconds(500))
+        #expect(!session.console.text.contains("ERROR"), "LAMMPS rejected a thermostat command")
+
+        session.thermostat.isEnabled = true
+        session.restart()                                // a new run starts without it
+        #expect(!session.thermostat.isEnabled)
+        #expect(session.thermostat.target == 0.2)        // same units: target kept
+        session.stop()
+    }
+
     @Test(.timeLimit(.minutes(1))) func scriptErrorsAreSurfaced() async throws {
         let scratch = try scratchDirectory()
         defer { try? FileManager.default.removeItem(at: scratch) }
