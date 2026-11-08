@@ -32,7 +32,7 @@ struct SimulationScreen: View {
             }
 
             if model.showsWelcome {
-                WelcomeOverlay { model.showsWelcome = false }
+                WelcomeCard { model.showsWelcome = false }
                     .transition(.opacity)
             }
         }

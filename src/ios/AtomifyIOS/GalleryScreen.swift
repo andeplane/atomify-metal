@@ -265,61 +265,6 @@ enum ExampleText {
     }
 }
 
-/// Atomify 2's welcome, over the running simulation on every launch (and
-/// from Settings). The close button or a tap anywhere dismisses it.
-struct WelcomeOverlay: View {
-    let onClose: () -> Void
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.35)
-                .ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .center, spacing: 14) {
-                    Image(systemName: "atom")
-                        .font(.system(size: 34))
-                        .foregroundStyle(.tint)
-                        .accessibilityHidden(true)
-                    Text("Welcome to Atomify")
-                        .font(.title2.weight(.bold))
-                    Spacer(minLength: 8)
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.body.weight(.semibold))
-                            .frame(width: 36, height: 36)
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .glass(in: Circle())
-                    .accessibilityLabel("Close")
-                }
-                Text("""
-                    We simulate how atoms and molecules behave with a physical model called molecular \
-                    dynamics. It uses Newton's laws to move atoms around following the laws of physics. \
-                    You can study gases, liquids and solids to see different properties and effects. \
-                    Atomify is open source and uses LAMMPS as physics engine.
-                    """)
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Anders Hafreager and Svenn-Arne Dragly")
-                        .font(.footnote.weight(.semibold))
-                    Text("University of Oslo")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(22)
-            .frame(maxWidth: 560)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .padding(24)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture(perform: onClose)
-        .accessibilityAddTraits(.isModal)
-    }
-}
-
 /// An example's picture from its `imageUrl`, or an atom symbol.
 struct ExampleThumbnail: View {
     let url: URL?
