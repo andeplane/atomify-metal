@@ -25,7 +25,8 @@ struct ViewPanel: View {
         .environment(\.defaultMinListRowHeight, 42)
         .contentMargins(.horizontal, 14, for: .scrollContent)
         .contentMargins(.top, 0, for: .scrollContent)
-        .contentMargins(.bottom, 20, for: .scrollContent)
+        .contentMargins(.bottom, PanelFade.height + 10, for: .scrollContent)
+        .scrollIndicatorsFlash(onAppear: true)
     }
 
     private var atoms: some View {
