@@ -39,5 +39,7 @@ let package = Package(
 
         // Runs every bundled example for a few steps and reports which fail.
         .executableTarget(name: "ExampleCheck", dependencies: ["AtomifyKit"], path: "src/tools/ExampleCheck"),
+        // The same check as a test target: one parameterized test per example (Cmd-U in Xcode).
+        .testTarget(name: "ExampleRunTests", dependencies: ["AtomifyKit"], path: "src/tools/ExampleRunTests"),
     ]
 )
