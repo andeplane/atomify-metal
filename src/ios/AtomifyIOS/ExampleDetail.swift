@@ -37,13 +37,16 @@ struct ExampleDetail: View {
             }
             .frame(width: metrics.detailLeading)
 
+            // The text scrolls on its own, down under the home indicator,
+            // and ends with room above it.
             ScrollView {
                 text
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 20)
             }
-            .frame(maxWidth: metrics.isWide ? 560 : .infinity, alignment: .leading)
-            .scrollBounceBehavior(.basedOnSize)
+            .contentMargins(.bottom, 24, for: .scrollContent)
+            .scrollIndicatorsFlash(onAppear: true)
+            .frame(maxWidth: metrics.isWide ? 560 : .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .ignoresSafeArea(.container, edges: .bottom)
         }
         .padding(.top, 8)
         .safeAreaPadding(.horizontal, metrics.margin)
