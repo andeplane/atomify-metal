@@ -43,7 +43,7 @@ struct LabViewport: NSViewRepresentable {
 /// Owns the renderer, uploads the model's scene, draws, and measures.
 /// Lives on the main actor, where MTKView draws and delivers events.
 @MainActor
-final class LabViewportCoordinator: NSObject, @preconcurrency MTKViewDelegate {
+final class LabViewportCoordinator: NSObject, MTKViewDelegate {
     private let model: LabModel
     private weak var view: MTKView?
     private var renderer: ParticleRenderer?
