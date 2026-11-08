@@ -63,6 +63,33 @@ let sampleObservables = [
     }
 }
 
+@Suite struct RunningAverageTests {
+    @Test func averagesTheLastWindowOfPoints() {
+        let points = [1.0, 3, 5, 7, 9].enumerated().map { SIMD2(Double($0.offset), $0.element) }
+        let average = PlotCatalog.runningAverage(points, window: 2)
+        #expect(average.map(\.x) == [0, 1, 2, 3, 4])
+        #expect(average.map(\.y) == [1, 2, 4, 6, 8])
+        let three = PlotCatalog.runningAverage(points, window: 3)
+        #expect(three.map(\.y) == [1, 2, 3, 5, 7])
+    }
+
+    @Test func smallWindowsAndEmptyInput() {
+        let points = [SIMD2(0.0, 4.0), SIMD2(1.0, 8.0)]
+        #expect(PlotCatalog.runningAverage(points, window: 1) == points)
+        #expect(PlotCatalog.runningAverage(points, window: 0) == points)
+        #expect(PlotCatalog.runningAverage([], window: 5).isEmpty)
+        // A window longer than the series is the mean so far.
+        #expect(PlotCatalog.runningAverage(points, window: 10).map(\.y) == [4, 6])
+    }
+
+    @Test func nonFiniteValuesAreLeftOut() {
+        let points = [SIMD2(0.0, .nan), SIMD2(1.0, 2.0), SIMD2(2.0, .infinity), SIMD2(3.0, 4.0), SIMD2(4.0, 6.0)]
+        let average = PlotCatalog.runningAverage(points, window: 2)
+        #expect(average[0].y.isNaN)                  // nothing finite yet
+        #expect(average.dropFirst().map(\.y) == [2, 2, 4, 5])
+    }
+}
+
 @Suite struct ConsoleLogTests {
     @Test func joinsPartialLines() {
         var log = ConsoleLog()
@@ -158,6 +185,53 @@ let sampleObservables = [
         let unset = CameraFraming.camera(hint: nil, boxLow: SIMD3(repeating: .infinity),
                                          boxHigh: SIMD3(repeating: -.infinity))
         #expect(unset == OrbitCamera())
+    }
+}
+
+@Suite struct CameraViewComparisonTests {
+    @Test func sameViewWithinTolerance() {
+        let camera = OrbitCamera(target: SIMD3(1, 2, 3), distance: 50, yaw: 0.3, pitch: 0.2)
+        #expect(CameraFraming.isSameView(camera, camera))
+        var nudged = camera
+        nudged.target.x += 1e-4                   // relative to a distance of 50
+        nudged.yaw += 1e-5
+        #expect(CameraFraming.isSameView(camera, nudged))
+        var rotated = camera
+        rotated.rotate(by: SIMD2(0.1, 0))
+        #expect(!CameraFraming.isSameView(camera, rotated))
+        var zoomed = camera
+        zoomed.distance = 40
+        #expect(!CameraFraming.isSameView(camera, zoomed))
+        var panned = camera
+        panned.target.y += 1
+        #expect(!CameraFraming.isSameView(camera, panned))
+        var tilted = camera
+        tilted.pitch -= 0.1
+        #expect(!CameraFraming.isSameView(camera, tilted))
+        var wide = camera
+        wide.fieldOfView = .pi / 3
+        #expect(!CameraFraming.isSameView(camera, wide))
+    }
+}
+
+@Suite struct SessionStatsTests {
+    @Test func boxSizeAndVolume() {
+        let size = SessionStats.boxSize(low: SIMD3(-1, 0, 2), high: SIMD3(3, 5, 8))
+        #expect(size == SIMD3(4, 5, 6))
+        #expect(SessionStats.volume(boxSize: size, dimension: 3) == 120)
+        #expect(SessionStats.volume(boxSize: size, dimension: 2) == 20)
+        // A box LAMMPS has not set up yet.
+        #expect(SessionStats.boxSize(low: SIMD3(repeating: .infinity), high: SIMD3(repeating: -.infinity)) == .zero)
+        #expect(SessionStats.boxSize(low: SIMD3(1, 1, 1), high: .zero) == .zero)
+    }
+
+    @Test func speedLimits() {
+        #expect(SimulationSession.speedLimit(nil) == nil)
+        #expect(SimulationSession.speedLimit(0) == nil)
+        #expect(SimulationSession.speedLimit(-5) == nil)
+        #expect(SimulationSession.speedLimit(.infinity) == nil)
+        #expect(SimulationSession.speedLimit(.nan) == nil)
+        #expect(SimulationSession.speedLimit(120) == 120)
     }
 }
 

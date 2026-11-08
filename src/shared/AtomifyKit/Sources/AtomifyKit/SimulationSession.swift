@@ -2,6 +2,7 @@ import AtomifyEngine
 import AtomifyRender
 import Foundation
 import Observation
+import simd
 
 /// Where a run is in its life.
 public enum RunStatus: Equatable, Sendable {
@@ -45,12 +46,35 @@ public struct SessionStats: Equatable, Sendable {
     public var temperature = 0.0
     public var stepsPerSecond = 0.0
     public var minimizing = false
+    /// Edge lengths of the simulation box (for a triclinic box, the lengths
+    /// lx, ly, lz before tilting).
+    public var boxSize: SIMD3<Double> = .zero
+    /// 2 or 3.
+    public var dimension = 3
+    /// Box volume, or its area in 2D.
+    public var volume = 0.0
+    /// Atom types the script declares.
+    public var typeCount = 0
     /// Frames the renderer drew per second (from `recordRenderStats`).
     public var framesPerSecond = 0.0
     public var gpuTimeMs = 0.0
     public var particlesDrawn = 0
 
     public init() {}
+
+    /// Edge lengths from the box corners; zero for a box that is not finite.
+    public static func boxSize(low: SIMD3<Double>, high: SIMD3<Double>) -> SIMD3<Double> {
+        let size = high - low
+        guard size.x.isFinite, size.y.isFinite, size.z.isFinite else { return .zero }
+        return simd_max(size, .zero)
+    }
+
+    /// Volume of a box with these edge lengths, or the xy area in 2D. Tilt
+    /// does not change it: LAMMPS's triclinic edge vectors (lx,0,0),
+    /// (xy,ly,0), (xz,yz,lz) span lx·ly·lz.
+    public static func volume(boxSize: SIMD3<Double>, dimension: Int) -> Double {
+        dimension == 2 ? boxSize.x * boxSize.y : boxSize.x * boxSize.y * boxSize.z
+    }
 }
 
 /// One running simulation for a SwiftUI app: owns the engine `Simulation`,
@@ -122,6 +146,27 @@ public final class SimulationSession {
         set { storedShowBox = newValue; rebuildScene() }
     }
 
+    /// Most timesteps per second, or nil to run as fast as the device can.
+    /// Zero, negative and non-finite limits mean no limit.
+    public var maxStepsPerSecond: Double? {
+        get { storedMaxStepsPerSecond }
+        set {
+            storedMaxStepsPerSecond = Self.speedLimit(newValue)
+            run?.simulation.setMaxStepsPerSecond(storedMaxStepsPerSecond)
+        }
+    }
+
+    /// The camera that frames the run (after the first snapshot, or the
+    /// last reset); nil before the first snapshot.
+    public private(set) var framedCamera: OrbitCamera?
+
+    /// Whether the view is still the framed one, so a "reset view" control
+    /// has nothing to do.
+    public var isCameraFramed: Bool {
+        guard let framedCamera else { return true }
+        return CameraFraming.isSameView(camera, framedCamera)
+    }
+
     /// The color range of the current scene in per-atom mode (for a legend).
     public private(set) var colorRange: ClosedRange<Float>?
     /// Quantities the color picker offers.
@@ -177,6 +222,7 @@ public final class SimulationSession {
     private var storedCustomRange: ClosedRange<Float>?
     private var storedShowBonds = true
     private var storedShowBox = true
+    private var storedMaxStepsPerSecond: Double?
 
     @ObservationIgnored private var run: Run?
     @ObservationIgnored private var launch: Launch?
@@ -256,6 +302,12 @@ public final class SimulationSession {
         if status == .paused { resume() } else { pause() }
     }
 
+    /// A speed limit the engine understands: nil unless positive and finite.
+    nonisolated public static func speedLimit(_ steps: Double?) -> Double? {
+        guard let steps, steps.isFinite, steps > 0 else { return nil }
+        return steps
+    }
+
     /// Queues a LAMMPS command, run between timesteps, and echoes it in the console.
     public func enqueue(_ command: String) {
         let command = command.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -271,6 +323,7 @@ public final class SimulationSession {
         guard let frame else { return }
         camera = CameraFraming.camera(hint: run?.directives.camera, boxLow: frame.boxLow, boxHigh: frame.boxHigh,
                                       tilt: frame.tilt, base: camera)
+        framedCamera = camera
     }
 
     /// Forgets the color range seen so far.
@@ -307,6 +360,7 @@ public final class SimulationSession {
             self.run = run
             applyBondSettings()
             simulation.setPublishInterval(publishInterval)
+            simulation.setMaxStepsPerSecond(storedMaxStepsPerSecond)
             simulation.setPerAtomQuantity(storedColorQuantity)
             status = .running
             let id = run.id
@@ -347,6 +401,7 @@ public final class SimulationSession {
         rangeTracker.reset()
         colorRange = nil
         cameraFramed = false
+        framedCamera = nil
         observableKey = []
         observables = []
         plotOptions = []
@@ -418,6 +473,10 @@ public final class SimulationSession {
         pendingStats.temperature = snapshot.temperature
         pendingStats.stepsPerSecond = snapshot.stepsPerSecond
         pendingStats.minimizing = snapshot.minimizing
+        pendingStats.boxSize = SessionStats.boxSize(low: snapshot.boxLow, high: snapshot.boxHigh)
+        pendingStats.dimension = snapshot.dimension
+        pendingStats.volume = SessionStats.volume(boxSize: pendingStats.boxSize, dimension: snapshot.dimension)
+        pendingStats.typeCount = snapshot.typeCount
 
         let key = StyleKey(typeCount: frame.highestType, units: snapshot.units)
         if key != styleKey {
@@ -451,6 +510,7 @@ public final class SimulationSession {
             cameraFramed = true
             camera = CameraFraming.camera(hint: run.directives.camera, boxLow: snapshot.boxLow,
                                           boxHigh: snapshot.boxHigh, tilt: snapshot.tilt, base: camera)
+            framedCamera = camera
         }
         rebuildScene()
     }

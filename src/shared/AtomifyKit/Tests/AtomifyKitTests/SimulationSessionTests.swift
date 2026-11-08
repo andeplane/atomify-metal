@@ -24,6 +24,8 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         let example = try #require(catalog.example(id: "lj"))
         let session = SimulationSession()
         session.continueAfterScript = true
+        #expect(session.isCameraFramed && session.framedCamera == nil)
+        session.maxStepsPerSecond = 5000            // applied when the run starts
         session.load(example, from: catalog)
         #expect(session.status == .running)
         #expect(session.example == example)
@@ -39,6 +41,24 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
 
         try await waitUntil("stats") { session.stats.atoms == 256 }
         #expect(session.stats.units == "lj")
+        #expect(session.stats.dimension == 3)
+        #expect(session.stats.typeCount >= 2)
+        #expect(session.stats.boxSize.x > 0 && session.stats.boxSize.y > 0 && session.stats.boxSize.z > 0)
+        #expect(abs(session.stats.volume - session.stats.boxSize.x * session.stats.boxSize.y
+            * session.stats.boxSize.z) < 1e-9)
+
+        // The reset-view control has something to do only after the camera moved.
+        #expect(session.framedCamera != nil)
+        #expect(session.isCameraFramed)
+        session.camera.rotate(by: SIMD2(0.4, 0.1))
+        #expect(!session.isCameraFramed)
+        session.resetCamera()
+        #expect(session.isCameraFramed)
+
+        // Speed limit: set while running, and cleared by a non-positive value.
+        #expect(session.maxStepsPerSecond == 5000)
+        session.maxStepsPerSecond = 0
+        #expect(session.maxStepsPerSecond == nil)
 
         // Bonds from the #/bond rule (fcc neighbors are about 1.12 apart).
         try await waitUntil("bonds") { (session.scene?.bonds?.pairs.count ?? 0) > 0 }

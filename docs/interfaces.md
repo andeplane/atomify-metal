@@ -348,17 +348,26 @@ public struct PlotSeriesKey: Hashable, Comparable { observableID: String; compon
 public struct ObservableInfo { id, kind, name, style?, labels, valueCount; init(_ observable: AtomifyEngine.Observable) }
 public struct PlotOption: Identifiable { key, title, group }
 public enum PlotCatalog { static func options(from: [ObservableInfo]) -> [PlotOption]
-    static func defaultSelection(from:) -> [PlotSeriesKey]; static func downsample(_:maxPoints:) }
+    static func defaultSelection(from:) -> [PlotSeriesKey]; static func downsample(_:maxPoints:)
+    static func runningAverage(_: [SIMD2<Double>], window: Int) -> [SIMD2<Double>] }   // mean of the last `window` points
 public struct ConsoleLog { lines, pending, revision; mutating func append(_: String); mutating func clear(); var text }
 public struct RateMeter { mutating func tick(at seconds: Double); var rate: Double }
 
 /// `#/camera` hint → OrbitCamera (eye = target + distance·(cos p sin y, sin p, cos p cos y)); no hint frames the box.
 public enum CameraFraming { static func camera(hint: CameraHint?, boxLow:boxHigh:tilt:base:) -> OrbitCamera
-    static func orbit(position:target:) -> (distance, yaw, pitch); static func eye(target:distance:yaw:pitch:) }
+    static func orbit(position:target:) -> (distance, yaw, pitch); static func eye(target:distance:yaw:pitch:)
+    static func isSameView(_: OrbitCamera, _: OrbitCamera, tolerance: Float = 1e-4) -> Bool }
+
+/// Gallery rows: curated sections of example ids; unlisted examples go to a last "More" section.
+public struct ExampleSection: Sendable, Equatable, Identifiable { id, title, examples: [Example] }
+public enum ExampleSections { struct Definition { id, title, exampleIDs }; static let curated: [Definition]
+    static let featuredIDs: [String]; static func sections(for: [Example], definitions: = curated) -> [ExampleSection]
+    static func featured(in: [Example], candidates: = featuredIDs) -> Example? }
 
 public enum RunStatus: Equatable, Sendable { case idle, running, paused, finished, failed(String) }
 public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, units, temperature, stepsPerSecond,
-    minimizing, framesPerSecond, gpuTimeMs, particlesDrawn }
+    minimizing, boxSize: SIMD3<Double>, dimension, volume, typeCount, framesPerSecond, gpuTimeMs, particlesDrawn
+    static func boxSize(low:high:) -> SIMD3<Double>; static func volume(boxSize:dimension:) -> Double }   // area in 2D
 
 /// Owns a Simulation, polls takeNewSnapshot/takeOutput every ~16 ms on the main actor, keeps
 /// ObservableHistory, applies directives (styles, bond rules, camera), surfaces errors.
@@ -370,10 +379,12 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     func load(_ example: Example, from catalog: ExampleCatalog)   // working copy, removed when the run ends
     func load(script: URL, workingDirectory: URL? = nil)
     func restart(); func stop(); func pause(); func resume(); func togglePause(); func enqueue(_ command: String)
+    maxStepsPerSecond: Double?   // nil, zero or negative: no limit (static func speedLimit(_:))
     // view
     scene: SceneData?, camera: OrbitCamera, renderSettings: RenderSettings,
     colorQuantity: String?, colormap: Colormap, customColorRange, colorRange, availableQuantities, colorMode,
     showBonds, showBox; func resetCamera(); func resetColorRange()
+    framedCamera: OrbitCamera?, isCameraFramed: Bool   // the view after framing or the last reset
     // selection
     selectedAtom: AtomInfo?; func selectParticle(_ index: Int?); func selectAtom(tag:); func clearSelection()
     // plots, console, stats
