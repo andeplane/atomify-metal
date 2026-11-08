@@ -496,7 +496,7 @@ public final class SimulationSession {
     private func finished(_ id: UUID, _ outcome: Simulation.Outcome) {
         retiring[id] = nil
         guard let run, run.id == id else { return }
-        drain(run, final: true)
+        drain(run, flushing: true)
         publish()
         status = RunStatus.after(outcome)
         storedThermostat.isEnabled = false
@@ -525,10 +525,10 @@ public final class SimulationSession {
         if clock.now - lastRefresh >= refreshInterval { publish() }
     }
 
-    private func drain(_ run: Run, final: Bool = false) {
+    private func drain(_ run: Run, flushing: Bool = false) {
         let output = run.simulation.takeOutput()
         var filtered = eventFilter.filter(output)
-        if final {
+        if flushing {
             let rest = eventFilter.flush()
             filtered.text += rest.text
             filtered.events += rest.events
