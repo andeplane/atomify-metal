@@ -35,7 +35,9 @@ let package = Package(
                           resources: [.copy("Examples")]),
 
         // Renderer test bench: synthetic scenes, no LAMMPS.
-        .executableTarget(name: "RenderLab", dependencies: ["AtomifyRender"], path: "src/macos/RenderLab"),
+        .executableTarget(name: "RenderLab", dependencies: ["AtomifyRender"], path: "src/macos/RenderLab",
+                          exclude: ["README.md"]),
+        .testTarget(name: "RenderLabTests", dependencies: ["RenderLab"], path: "src/macos/RenderLabTests"),
 
         // Runs every bundled example for a few steps and reports which fail.
         .executableTarget(name: "ExampleCheck", dependencies: ["AtomifyKit"], path: "src/tools/ExampleCheck"),
