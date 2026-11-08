@@ -284,7 +284,8 @@ public final class ParticleRenderer {
                       nearFade: SIMD4(settings.nearFade.x, settings.nearFade.y,
                                       ParticlePacking.highlightRadiusScale,
                                       min(max(settings.ambientOcclusionStrength, 0), 1)),
-                      bond: SIMD4(slot.bondRadius, slot.bondMaxLength, 0, 0),
+                      bond: SIMD4(slot.bondRadius, slot.bondMaxLength,
+                                  settings.selectionRing ? 1 - 1 / ParticlePacking.highlightRadiusScale : 0, 0),
                       options: SIMD4(slot.hasRadii ? 1 : 0, slot.hasColors ? 1 : 0, slot.hasBondColors ? 1 : 0,
                                      UInt32(max(slot.styleCount, 1))))
     }

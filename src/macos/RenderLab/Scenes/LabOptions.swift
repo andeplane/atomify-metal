@@ -1,3 +1,4 @@
+import AtomifyRender
 import Foundation
 import simd
 
@@ -12,7 +13,7 @@ enum LabBackground: String, CaseIterable, Identifiable, Sendable {
     /// Linear RGBA.
     var color: SIMD4<Float> {
         switch self {
-        case .dark: SIMD4(0.08, 0.08, 0.1, 1)
+        case .dark: RenderSettings.defaultBackground
         case .black: SIMD4(0, 0, 0, 1)
         case .gray: SIMD4(0.22, 0.22, 0.24, 1)
         case .white: SIMD4(1, 1, 1, 1)

@@ -109,7 +109,13 @@ public final class SimulationSession {
     /// What the renderer draws; nil before the first snapshot.
     public private(set) var scene: SceneData?
     public var camera = OrbitCamera()
-    public var renderSettings = RenderSettings()
+    /// The selected atom keeps its color inside a ring, so an inspector's
+    /// swatch matches it.
+    public var renderSettings: RenderSettings = {
+        var settings = RenderSettings()
+        settings.selectionRing = true
+        return settings
+    }()
     /// Bumped whenever a new scene is published.
     public private(set) var sceneRevision = 0
 
@@ -731,15 +737,15 @@ public final class SimulationSession {
             return
         }
         selectedTag = info.tag
-        selectedAtom = info
         rebuildScene()
+        selectedAtom = withDrawnColor(info)
     }
 
     /// Selects an atom by its LAMMPS ID.
     public func selectAtom(tag: Int64) {
         selectedTag = tag
-        refreshSelection()
         rebuildScene()
+        refreshSelection()
     }
 
     public func clearSelection() {
@@ -751,8 +757,24 @@ public final class SimulationSession {
 
     private func refreshSelection() {
         guard let selectedTag, let frame else { return }
-        let info = AtomPicking.atom(withTag: selectedTag, in: frame, styles: styleTable)
+        let info = withDrawnColor(AtomPicking.atom(withTag: selectedTag, in: frame, styles: styleTable))
         if info != selectedAtom { selectedAtom = info }
+    }
+
+    /// `info` with the color its atom is drawn in on screen when that is
+    /// not the type's (a quantity's colormap, an example's color ramp), so
+    /// a swatch next to it matches the atom.
+    private func withDrawnColor(_ info: AtomInfo?) -> AtomInfo? {
+        guard var info, let particles = scene?.particles, let colors = particles.colors,
+              colors.count == particles.count, info.index < colors.count else { return info }
+        let linear = colors[info.index]
+        info.color = SIMD3(Self.srgb(linear.x), Self.srgb(linear.y), Self.srgb(linear.z))
+        return info
+    }
+
+    private static func srgb(_ linear: Float) -> Float {
+        let c = min(max(linear, 0), 1)
+        return c <= 0.0031308 ? 12.92 * c : 1.055 * pow(c, 1 / 2.4) - 0.055
     }
 
     // MARK: Plots
