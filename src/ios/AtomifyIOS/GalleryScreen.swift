@@ -7,6 +7,8 @@ enum ExampleRoute: Hashable {
     case detail(Example)
     case script(Example)
     case files(Example)
+    case settings
+    case acknowledgements
 }
 
 /// The examples by topic, as in Atomify 2: a row of cards per section and
@@ -15,8 +17,6 @@ enum ExampleRoute: Hashable {
 struct GalleryScreen: View {
     @Bindable var model: AppModel
     @State private var query = ""
-    @State private var showsSettings = false
-    @State private var wantsWelcome = false
 
     var body: some View {
         NavigationStack(path: $model.galleryPath) {
@@ -38,9 +38,7 @@ struct GalleryScreen: View {
                         GallerySearchField(text: $query)
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showsSettings = true
-                        } label: {
+                        NavigationLink(value: ExampleRoute.settings) {
                             Image(systemName: "gearshape")
                         }
                         .accessibilityLabel("Settings")
@@ -51,15 +49,6 @@ struct GalleryScreen: View {
                 }
         }
         .readsLayoutMetrics()
-        .sheet(isPresented: $showsSettings, onDismiss: {
-            if wantsWelcome {
-                wantsWelcome = false
-                model.showsWelcome = true
-                model.returnToSimulation()
-            }
-        }) {
-            SettingsSheet(model: model, wantsWelcome: $wantsWelcome)
-        }
     }
 }
 

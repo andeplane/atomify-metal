@@ -11,6 +11,8 @@ struct ExampleRouteView: View {
         case .detail(let example): ExampleDetail(model: model, example: example)
         case .script(let example): ScriptView(model: model, example: example)
         case .files(let example): ExampleFilesView(model: model, example: example)
+        case .settings: SettingsView(model: model)
+        case .acknowledgements: AcknowledgementsView()
         }
     }
 }

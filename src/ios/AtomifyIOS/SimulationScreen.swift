@@ -165,7 +165,7 @@ struct SimulationChrome: View {
             }
         }
         .safeAreaPadding(.horizontal, metrics.margin)
-        .padding(.top, 12)
+        .padding(.top, metrics.margin)
         .padding(.bottom, 8)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
