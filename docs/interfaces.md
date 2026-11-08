@@ -275,20 +275,110 @@ public struct AtomStyleTable: Sendable, Equatable {
 ## AtomifyKit (`src/shared/AtomifyKit`)
 
 Depends on AtomifyEngine and AtomifyRender. Shared by all apps.
+Re-exports AtomifyRender (`@_exported`), so an app imports only AtomifyKit for the view, camera and settings.
+It does not re-export AtomifyEngine, whose `Observable` struct would clash with the Observation macro in SwiftUI files;
+inside AtomifyKit the engine type is always written `AtomifyEngine.Observable` and the session uses `@Observation.Observable`.
 
 ```swift
-/// Example simulations in the web app's examples.json format.
-public struct Example: Codable, Identifiable, Hashable { id, title, description, imageUrl?, inputScript, keywords?, files: [ExampleFile] }
-public struct ExampleCatalog { static func load(from directory: URL) throws -> ExampleCatalog; examples; func workingCopy(of:) throws -> (folder: URL, script: URL) }
+/// Example simulations in the web app's examples.json format (extra keys such as baseUrl are ignored).
+public struct ExampleFile: Codable, Sendable, Hashable { fileName, url }      // url relative to the catalog folder
+public struct Example: Codable, Sendable, Identifiable, Hashable {
+    id, title, description, imageUrl?, inputScript, keywords?, files: [ExampleFile],
+    author?, authorUrl?, analysisDescription?, analysisScript?
+    func matches(query: String) -> Bool; func hasKeyword(_: String?) -> Bool
+}
+public enum ExampleCatalogError: Error, Equatable, LocalizedError { case missingFile(String), unsupportedLocation(String), missingInputScript(String) }
+public struct ExampleCatalog: Sendable, Equatable {
+    var directory: URL; var title: String?; var examples: [Example]
+    static func load(from directory: URL) throws -> ExampleCatalog
+    static func decode(_ data: Data, directory: URL) throws -> ExampleCatalog
+    func example(id:) -> Example?; var keywords: [String]; func filtered(query:keyword:) -> [Example]
+    func imageURL(for:) -> URL?
+    /// Fresh writable folder with every file under its fileName; `suffix kk` lines commented out
+    /// (no KOKKOS in this build). The caller removes the folder.
+    func workingCopy(of: Example, into scratch: URL = temporaryDirectory) throws -> (folder: URL, script: URL)
+}
+public enum ScriptPreparation { static func prepare(_ script: String) -> String }
 
-public enum ColorMode: Hashable { case type, perAtom(quantity: String, colormap: Colormap, range: ClosedRange<Float>?) }
+/// Plain-value view of a snapshot (shares its arrays) so scene logic is testable without the engine.
+public struct AtomFrame: Sendable {
+    tags, types, positions, radii?, bonds, boxLow, boxHigh, tilt, dimension, periodic, typeCount, units,
+    perAtomQuantity?, perAtomValues?
+    init(_ snapshot: SimulationSnapshot); init(tags:types:positions:...)   // memberwise with defaults
+    func index(ofTag:) -> Int?; func values(for quantity: String) -> [Float]?
+}
 
-/// Builds render scene data from a snapshot (pure, unit tested).
+public enum ColorMode: Hashable, Sendable { case type, perAtom(quantity: String, colormap: Colormap, range: ClosedRange<Float>?)
+    var quantity: String? }
+public enum PerAtomQuantities { static let builtIn = ["vx", "vy", "vz"]; static func available(from: [AtomifyEngine.Observable]) -> [String] }
+public struct ColorRangeTracker { var range: ClosedRange<Float>?; mutating func include(_: [Float]); mutating func reset() }  // min/max over a run
+public struct ColorLookup { init(colormap:range:resolution: = 256); func color(for: Float) -> SIMD4<Float>; func colors(for: [Float]) }
+public func finiteRange(of: [Float]) -> ClosedRange<Float>?
+extension RGBColor { var linear: SIMD4<Float> }
+
+/// Builds render scene data from a snapshot (pure, unit tested). One particle per atom, in snapshot
+/// order, so a picked particle index is an atom index. Type styles go in `styles` (index = type,
+/// 0 = fallback); per-atom mode adds `colors` (nil range = the values' min/max); the selected atom gets
+/// flag bit 0; `bondRadius` 0 leaves bonds out; bonds get `maxLength` = half the shortest periodic box
+/// length so pairs wrapped across the box are hidden; `showBox` adds one LineData with the box edges
+/// (triclinic: a = (lx,0,0), b = (xy,ly,0), c = (xz,yz,lz) from boxLow; 2D: the xy rectangle at z = 0).
 public enum SceneBuilder {
     public static func scene(from snapshot: SimulationSnapshot, styles: AtomStyleTable, colorMode: ColorMode,
                              selectedTag: Int64?, showBox: Bool, bondRadius: Float) -> SceneData
+    public static func scene(from frame: AtomFrame, styles: AtomStyleTable, ...) -> SceneData
+    public static func scene(from frame: AtomFrame, typeStyles: [ParticleStyle], ...) -> SceneData
+    static func colorRange(for: AtomFrame, colorMode:) -> ClosedRange<Float>?
+    static func particleStyles(from: AtomStyleTable, typeCount:) -> [ParticleStyle]
+    static func defaultBondRadius(styles:typeCount:) -> Float          // 0.35 × smallest type radius
+    static func maxBondLength(boxLow:boxHigh:periodic:dimension:) -> Float
+    static func boxCorners(low:high:tilt:) -> [SIMD3<Float>]; static func boxEdges(low:high:tilt:dimension:)
+    static func bounds(low:high:tilt:) -> (low: SIMD3<Float>, high: SIMD3<Float>)
 }
 
-/// Owns a Simulation, polls snapshots on a display tick, keeps history, exposes state to SwiftUI.
-@MainActor @Observable public final class SimulationSession { ... }
+/// Picked particle index → atom; keep the selection by tag across frames.
+public struct AtomInfo: Sendable, Equatable { index, tag, type, typeName?, position, radius?, quantity?, value? }
+public enum AtomPicking {
+    static func atom(atParticle: Int?, in: AtomFrame, styles: AtomStyleTable? = nil) -> AtomInfo?
+    static func atom(withTag: Int64, in: AtomFrame, styles: AtomStyleTable? = nil) -> AtomInfo?
+    static func atomHit(in: AtomFrame, rayOrigin:direction:radius:) -> Int?    // CPU ray pick fallback
+}
+
+/// Plots: one series per observable component; defaults are thermo temp, pe, ke, etotal.
+public struct PlotSeriesKey: Hashable, Comparable { observableID: String; component: Int }
+public struct ObservableInfo { id, kind, name, style?, labels, valueCount; init(_ observable: AtomifyEngine.Observable) }
+public struct PlotOption: Identifiable { key, title, group }
+public enum PlotCatalog { static func options(from: [ObservableInfo]) -> [PlotOption]
+    static func defaultSelection(from:) -> [PlotSeriesKey]; static func downsample(_:maxPoints:) }
+public struct ConsoleLog { lines, pending, revision; mutating func append(_: String); mutating func clear(); var text }
+public struct RateMeter { mutating func tick(at seconds: Double); var rate: Double }
+
+/// `#/camera` hint → OrbitCamera (eye = target + distance·(cos p sin y, sin p, cos p cos y)); no hint frames the box.
+public enum CameraFraming { static func camera(hint: CameraHint?, boxLow:boxHigh:tilt:base:) -> OrbitCamera
+    static func orbit(position:target:) -> (distance, yaw, pitch); static func eye(target:distance:yaw:pitch:) }
+
+public enum RunStatus: Equatable, Sendable { case idle, running, paused, finished, failed(String) }
+public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, units, temperature, stepsPerSecond,
+    minimizing, framesPerSecond, gpuTimeMs, particlesDrawn }
+
+/// Owns a Simulation, polls takeNewSnapshot/takeOutput every ~16 ms on the main actor, keeps
+/// ObservableHistory, applies directives (styles, bond rules, camera), surfaces errors.
+/// Scenes update per snapshot; stats, plots, console and selection refresh every 200 ms.
+@MainActor @Observation.Observable public final class SimulationSession {
+    init()
+    // run
+    example, title, status: RunStatus, errorMessage, directiveWarnings, continueAfterScript
+    func load(_ example: Example, from catalog: ExampleCatalog)   // working copy, removed when the run ends
+    func load(script: URL, workingDirectory: URL? = nil)
+    func restart(); func stop(); func pause(); func resume(); func togglePause(); func enqueue(_ command: String)
+    // view
+    scene: SceneData?, camera: OrbitCamera, renderSettings: RenderSettings,
+    colorQuantity: String?, colormap: Colormap, customColorRange, colorRange, availableQuantities, colorMode,
+    showBonds, showBox; func resetCamera(); func resetColorRange()
+    // selection
+    selectedAtom: AtomInfo?; func selectParticle(_ index: Int?); func selectAtom(tag:); func clearSelection()
+    // plots, console, stats
+    plotOptions, plottedSeries, plotData: [PlotSeriesKey: [SIMD2<Double>]]; func addPlot(_:); func removePlot(_:)
+    console: ConsoleLog; func clearConsole(); stats: SessionStats
+    func recordRenderStats(_: RenderStats); func recordFrame(particlesDrawn:gpuTimeMs:)
+}
 ```

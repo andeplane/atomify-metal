@@ -15,8 +15,7 @@ let package = Package(
     targets: [
         .binaryTarget(name: "CLammps", path: "src/shared/lammps/Frameworks/CLammps.xcframework"),
 
-        .target(name: "AtomifyRender", path: "src/shared/AtomifyRender/Sources",
-                resources: [.process("Shaders")]),
+        .target(name: "AtomifyRender", path: "src/shared/AtomifyRender/Sources"),
         .testTarget(name: "AtomifyRenderTests", dependencies: ["AtomifyRender"],
                     path: "src/shared/AtomifyRender/Tests"),
 
@@ -27,7 +26,7 @@ let package = Package(
 
         .target(name: "AtomifyKit", dependencies: ["AtomifyEngine", "AtomifyRender"],
                 path: "src/shared/AtomifyKit/Sources"),
-        .testTarget(name: "AtomifyKitTests", dependencies: ["AtomifyKit"],
+        .testTarget(name: "AtomifyKitTests", dependencies: ["AtomifyKit", "AtomifyEngine", "AtomifyRender"],
                     path: "src/shared/AtomifyKit/Tests", resources: [.copy("Fixtures")]),
 
         .executableTarget(name: "AtomifyMac", dependencies: ["AtomifyKit"], path: "src/macos/AtomifyMac",
