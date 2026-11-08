@@ -456,7 +456,9 @@ public final class ParticleRenderer {
             if let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: occlusionPass) {
                 encoder.label = "AtomifyRender.ambientOcclusion"
                 var uniforms = SSAOUniforms(projection: view.projectionMatrix,
-                                            params: SIMD4(radius, 1.5 * strength, 0.002, Float(occlusionSamples.count)),
+                                            params: SIMD4(radius, AmbientOcclusionKernel.exponent(strength: strength),
+                                                          AmbientOcclusionKernel.falloff(radius: radius),
+                                                          Float(occlusionSamples.count)),
                                             screen: SIMD4(lowHalf: fullSize, highHalf: occlusionSize))
                 encoder.setRenderPipelineState(ssao)
                 encoder.setFragmentTexture(targets.normalDepth, index: 0)
@@ -472,7 +474,8 @@ public final class ParticleRenderer {
         // 3. Composite into the target.
         guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: target) else { return true }
         encoder.label = "AtomifyRender.composite"
-        var uniforms = CompositeUniforms(params: SIMD4(max(settings.outlineWidth, 0), 0.3 * radius, 0.85,
+        let outlineDepth = AmbientOcclusionKernel.outlineDepth(styles: slot.styleTable) * scale
+        var uniforms = CompositeUniforms(params: SIMD4(max(settings.outlineWidth, 0), outlineDepth, 0.85,
                                                        strength > 0 ? 1 : 0),
                                          sizes: SIMD4(lowHalf: fullSize, highHalf: occlusionSize),
                                          outlineColor: SIMD4(0, 0, 0, 1))

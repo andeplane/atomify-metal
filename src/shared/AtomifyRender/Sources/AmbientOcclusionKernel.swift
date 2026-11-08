@@ -28,12 +28,34 @@ enum AmbientOcclusionKernel {
     }
 
     /// Screen-space occlusion radius in scene units: `requested` when
-    /// positive, otherwise four times the largest style radius (about two
-    /// particle diameters).
+    /// positive, otherwise 25 times the largest style radius. Atomify's web
+    /// app (N8AO) uses 10 Å; atoms here are drawn at a quarter of their van
+    /// der Waals radius, so water's oxygen (0.38 Å) gets 9.5 Å, and the
+    /// radius still follows the atoms in reduced units.
     static func radius(requested: Float, styles: [ParticleStyle]) -> Float {
         if requested > 0, requested.isFinite { return requested }
-        let largest = styles.map(\.radius).filter { $0.isFinite }.max() ?? 0
-        return largest > 0 ? 4 * largest : 1
+        let largest = largestRadius(styles)
+        return largest > 0 ? 25 * largest : 1
+    }
+
+    /// Depth range around a sample point inside which geometry occludes it
+    /// fully; occluders farther in front fade out. N8AO's distance falloff
+    /// (1 on the web) times a fifth of the radius.
+    static func falloff(radius: Float) -> Float { 0.2 * radius }
+
+    /// Depth step that draws an outline in high quality: 1.2 times the
+    /// largest style radius (about two thirds of a particle diameter).
+    static func outlineDepth(styles: [ParticleStyle]) -> Float {
+        let largest = largestRadius(styles)
+        return largest > 0 ? 1.2 * largest : 0.3
+    }
+
+    /// The exponent applied to the occlusion term: the web's intensity 5 at
+    /// strength 1.
+    static func exponent(strength: Float) -> Float { 5 * max(strength, 0) }
+
+    static func largestRadius(_ styles: [ParticleStyle]) -> Float {
+        styles.map(\.radius).filter { $0.isFinite }.max() ?? 0
     }
 }
 

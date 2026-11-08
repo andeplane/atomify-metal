@@ -102,9 +102,22 @@ final class KernelAndGrowthTests: XCTestCase {
     func testOcclusionRadius() {
         let styles = [ParticleStyle(radius: 0.5, color: .one), ParticleStyle(radius: 2, color: .one)]
         XCTAssertEqual(AmbientOcclusionKernel.radius(requested: 3, styles: styles), 3)
-        XCTAssertEqual(AmbientOcclusionKernel.radius(requested: 0, styles: styles), 8)
-        XCTAssertEqual(AmbientOcclusionKernel.radius(requested: .nan, styles: styles), 8)
+        XCTAssertEqual(AmbientOcclusionKernel.radius(requested: 0, styles: styles), 50)
+        XCTAssertEqual(AmbientOcclusionKernel.radius(requested: .nan, styles: styles), 50)
         XCTAssertEqual(AmbientOcclusionKernel.radius(requested: 0, styles: []), 1)
+        // Water's oxygen at a quarter of 1.52 Å gets about the web app's 10 Å.
+        let oxygen = [ParticleStyle(radius: 0.25 * 1.52, color: .one)]
+        XCTAssertEqual(AmbientOcclusionKernel.radius(requested: 0, styles: oxygen), 9.5, accuracy: 1e-4)
+    }
+
+    func testOcclusionFalloffExponentAndOutlineDepth() {
+        XCTAssertEqual(AmbientOcclusionKernel.falloff(radius: 10), 2, accuracy: 1e-6)
+        XCTAssertEqual(AmbientOcclusionKernel.exponent(strength: 1), 5)
+        XCTAssertEqual(AmbientOcclusionKernel.exponent(strength: 0.5), 2.5)
+        XCTAssertEqual(AmbientOcclusionKernel.exponent(strength: -1), 0)
+        let styles = [ParticleStyle(radius: 0.5, color: .one), ParticleStyle(radius: .infinity, color: .one)]
+        XCTAssertEqual(AmbientOcclusionKernel.outlineDepth(styles: styles), 0.6, accuracy: 1e-6)
+        XCTAssertEqual(AmbientOcclusionKernel.outlineDepth(styles: []), 0.3)
     }
 
     func testBufferGrowth() {
