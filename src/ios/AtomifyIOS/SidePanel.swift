@@ -73,7 +73,7 @@ struct SidePanelView: View {
         case .info:
             PanelScroll { InfoPanel(model: model, session: model.session) }
         case .dashboard:
-            PanelScroll { DashboardSheet(session: model.session) }
+            PanelScroll { DashboardTab(session: model.session) }
         case .view:
             ViewOptionsSheet(model: model, session: model.session)
                 .panelFade()
