@@ -8,7 +8,11 @@ struct InspectorView: View {
 
     var body: some View {
         VSplitView {
-            ScrollView {
+            // A List, not a ScrollView: on macOS 27 buttons inside a
+            // ScrollView in the inspector column get no clicks (Deselect did
+            // nothing, while the same button in a List, or with no scroll
+            // view, works). The List scrolls the same and looks the same.
+            List {
                 VStack(alignment: .leading, spacing: 18) {
                     SelectedAtomSection(session: session)
                     Divider()
@@ -16,7 +20,12 @@ struct InspectorView: View {
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .frame(minHeight: 200, idealHeight: 480)
 
             ConsoleSection(session: session)
