@@ -437,6 +437,7 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     func load(script: URL, workingDirectory: URL? = nil)
     func restart(); func stop(); func pause(); func resume(); func togglePause(); func enqueue(_ command: String)
     maxStepsPerSecond: Double?   // nil, zero or negative: no limit (static func speedLimit(_:))
+    appliesScriptSpeed: Bool = false   // iOS sets it: follow stepsPerFrame and #/speed; off, the console shows the lines
     stepsPerFrame: Double? (example, then #/speed), speedFactor: Double (∞: unlimited), scriptLabel: String?
     effectiveMaxStepsPerSecond: Double?   // min(stepsPerFrame × 60 × speedFactor, maxStepsPerSecond)
     thermostat: Thermostat      // setting it enqueues fix/unfix; off when a run ends or starts
