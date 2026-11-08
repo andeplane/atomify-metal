@@ -322,6 +322,12 @@ func main() async throws {
     }
     print("\(device.name), \(options.width)×\(options.height), MSAA \(options.msaa)×, "
           + "\(options.frames) frames per orbit, \(options.inFlight) in flight")
+    // Let the GPU clock ramp up before the first measurement.
+    if let first = scenes.first {
+        var warmUp = options
+        warmUp.frames = 240
+        _ = try time(first, quality: .high, offscreen: offscreen, options: warmUp)
+    }
     print("| scene | quality | atoms | bonds drawn | frame mean ms | frame p95 ms | GPU mean ms | GPU p95 ms | fps | CPU encode ms |")
     print("| --- | --- | --: | --: | --: | --: | --: | --: | --: | --: |")
     for scene in scenes {
