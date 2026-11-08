@@ -15,10 +15,11 @@ struct SettingsView: View {
                 AboutColumn()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 8)
-                    .padding(.bottom, 20)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .contentMargins(.bottom, 24, for: .scrollContent)
             .frame(width: metrics.detailLeading)
+            .frame(maxHeight: .infinity)
+            .ignoresSafeArea(.container, edges: .bottom)
 
             Form {
                 Section {
@@ -49,8 +50,13 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
             .listSectionSpacing(.compact)
+            .environment(\.defaultMinListRowHeight, 42)
             .contentMargins(.top, 8, for: .scrollContent)
-            .frame(maxWidth: 420)
+            .contentMargins(.bottom, 24, for: .scrollContent)
+            .scrollIndicatorsFlash(onAppear: true)
+            .frame(maxWidth: 420, maxHeight: .infinity)
+            // Rows scroll under the home indicator and end above it.
+            .ignoresSafeArea(.container, edges: .bottom)
         }
         .safeAreaPadding(.horizontal, metrics.margin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
