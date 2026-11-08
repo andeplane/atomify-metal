@@ -348,6 +348,17 @@ enum ShaderSource {
             return sphereRadius > bondRadius ? sqrt(sphereRadius * sphereRadius - bondRadius * bondRadius) : 0.0;
         }
 
+        /// Where a sphere projects onto the plane at `planeDepth`, along and
+        /// across the in-plane directions: exact (BondProxy.projectedExtent).
+        static void projectedExtents(float3 center, float depth, float radius, float2 along, float2 across,
+                                     float planeDepth, thread float2 &low, thread float2 &high) {
+            float2 a = float2(dot(center.xy, along), dot(center.xy, across));
+            float2 s = sqrt(max(a * a + depth * depth - radius * radius, 0.0));
+            float scale = planeDepth / (depth * depth - radius * radius);
+            low = (a * depth - radius * s) * scale;
+            high = (a * depth + radius * s) * scale;
+        }
+
         vertex BondVaryings bondVertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
                                        const device Particle *particles [[buffer(0)]],
                                        const device Style *styles [[buffer(1)]],
@@ -429,24 +440,23 @@ enum ShaderSource {
             out.split = saturate((splitDistance - start) / segmentLength);
 
             // The capsule of radius `margin` around the segment contains the
-            // cylinder. Cover it with a rectangle in the plane of its nearest
-            // depth, aligned with the projected axis: around each end's
-            // projection, a circle bounds where that end's sphere projects.
+            // cylinder, and projects within the hull of its two end spheres'
+            // projections. Cover them with a rectangle in the plane of the
+            // capsule's nearest depth, aligned with the projected axis,
+            // spanning each sphere's exact extent along and across it.
             depth0 = -p0.z;
             depth1 = -p1.z;
             float planeDepth = min(depth0, depth1) - margin;
-            float2 q0 = p0.xy * (planeDepth / depth0);
-            float2 q1 = p1.xy * (planeDepth / depth1);
-            float reach0 = planeDepth * margin * (1.0 + length(p0.xy) / depth0) / (depth0 - margin);
-            float reach1 = planeDepth * margin * (1.0 + length(p1.xy) / depth1) / (depth1 - margin);
-            float2 alongAxis = q1 - q0;
+            float2 alongAxis = p1.xy / depth1 - p0.xy / depth0;
             float alongLength = length(alongAxis);
             float2 along = alongLength > 1e-9 ? alongAxis / alongLength : float2(1.0, 0.0);
             float2 across = float2(-along.y, along.x);
-            float2 uv0 = float2(dot(q0, along), dot(q0, across));
-            float2 uv1 = float2(dot(q1, along), dot(q1, across));
-            float2 low = min(uv0 - reach0, uv1 - reach1);
-            float2 high = max(uv0 + reach0, uv1 + reach1);
+            float2 low, high;
+            projectedExtents(p0, depth0, margin, along, across, planeDepth, low, high);
+            float2 low1, high1;
+            projectedExtents(p1, depth1, margin, along, across, planeDepth, low1, high1);
+            low = min(low, low1);
+            high = max(high, high1);
             float u = (vertexID & 1u) != 0u ? high.x : low.x;
             float v = (vertexID & 2u) != 0u ? high.y : low.y;
             float3 p = float3(along * u + across * v, -planeDepth);

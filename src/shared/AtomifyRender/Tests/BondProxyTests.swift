@@ -36,6 +36,7 @@ final class BondProxyTests: XCTestCase {
         XCTAssertNil(BondProxy.quad(start: SIMD3(0, 0, -5), end: SIMD3(0, 0, -5), radius: 0.1))
         XCTAssertNil(BondProxy.quad(start: SIMD3(0, 0, -5), end: SIMD3(1, 0, -5), radius: 0))
         XCTAssertNil(BondProxy.quad(start: SIMD3(0, 0, 0), end: SIMD3(1, 0, 0), radius: 0.1), "at the eye")
+        XCTAssertNil(BondProxy.quad(start: SIMD3(0, 0, -0.05), end: SIMD3(1, 0, -5), radius: 0.1), "too close")
     }
 
     func testQuadCornersLieInItsPlane() throws {
@@ -86,22 +87,48 @@ final class BondProxyTests: XCTestCase {
         XCTAssertLessThan(length, 2.25)
     }
 
-    func testProjectedReachBoundsTheSphere() {
+    func testProjectedExtentIsExact() {
         var random = SystemRandomNumberGenerator()
-        for _ in 0..<500 {
-            let center = SIMD3(Float.random(in: -4...4, using: &random), Float.random(in: -4...4, using: &random),
-                               -Float.random(in: 1...8, using: &random))
-            let radius = Float.random(in: 0.01...0.5, using: &random) * (-center.z) * 0.5
+        for _ in 0..<300 {
+            let center = SIMD3(Float.random(in: -6...6, using: &random), Float.random(in: -6...6, using: &random),
+                               -Float.random(in: 0.5...8, using: &random))
+            let radius = Float.random(in: 0.01...0.9, using: &random) * (-center.z)
             let plane = (-center.z - radius) * Float.random(in: 0.1...1, using: &random)
-            let reach = BondProxy.projectedReach(of: center, radius: radius, planeDepth: plane)
-            let projectedCenter = center * (plane / -center.z)
-            let direction = simd_normalize(SIMD3(Float.random(in: -1...1, using: &random),
-                                                 Float.random(in: -1...1, using: &random),
-                                                 Float.random(in: -1...1, using: &random)))
-            let point = center + direction * radius
-            let projected = point * (plane / -point.z)
-            XCTAssertLessThanOrEqual(simd_distance(projected, projectedCenter), reach * (1 + 1e-4) + 1e-6)
+            let angle = Float.random(in: 0..<(2 * .pi), using: &random)
+            let direction = SIMD3(cos(angle), sin(angle), 0)
+            let extent = BondProxy.projectedExtent(of: center, radius: radius, direction: direction, planeDepth: plane)
+            var seen: ClosedRange<Float>?
+            for _ in 0..<400 {
+                let d = simd_normalize(SIMD3(Float.random(in: -1...1, using: &random),
+                                             Float.random(in: -1...1, using: &random),
+                                             Float.random(in: -1...1, using: &random)))
+                let point = center + d * radius
+                let u = simd_dot(point * (plane / -point.z), direction)
+                let tolerance = 1e-4 * max(abs(extent.lowerBound), abs(extent.upperBound), 1)
+                XCTAssertGreaterThanOrEqual(u, extent.lowerBound - tolerance)
+                XCTAssertLessThanOrEqual(u, extent.upperBound + tolerance)
+                seen = seen.map { min($0.lowerBound, u)...max($0.upperBound, u) } ?? u...u
+            }
+            // The extremes lie on the circle in the plane of `direction` and
+            // the view axis: sampled densely there, the extent is reached.
+            for step in 0..<4000 {
+                let t = Float(step) / 4000 * 2 * .pi
+                let point = center + (direction * cos(t) + SIMD3(0, 0, sin(t))) * radius
+                let u = simd_dot(point * (plane / -point.z), direction)
+                seen = seen.map { min($0.lowerBound, u)...max($0.upperBound, u) } ?? u...u
+            }
+            let width = extent.upperBound - extent.lowerBound
+            XCTAssertLessThan(seen!.lowerBound - extent.lowerBound, 0.01 * width)
+            XCTAssertLessThan(extent.upperBound - seen!.upperBound, 0.01 * width)
         }
+    }
+
+    func testQuadStaysSmallForABondFarOffAxis() throws {
+        // Far to the side of the view and close to the eye: the old circle
+        // bound grew with the lateral distance; the exact extent does not.
+        let quad = try XCTUnwrap(BondProxy.quad(start: SIMD3(40, 0, -1), end: SIMD3(41, 0, -1), radius: 0.1))
+        let width = quad.acrossRange.upperBound - quad.acrossRange.lowerBound
+        XCTAssertLessThan(width, 0.25)
     }
 
     func testInPlaneDirectionFallsBackForAnEndOnBond() {
