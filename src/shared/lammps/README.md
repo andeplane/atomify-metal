@@ -18,11 +18,14 @@ corresponding source with every binary.
 | `bridge/tests/bridge_test.cpp` | Host tests of the C interface, run by `build-host.sh`. |
 | `patches/` | Small edits to LAMMPS sources, applied by `prepare_lammps.py`. |
 | `extra_src/` | Extra styles compiled into LAMMPS (from lammps.js). |
-| `atomify-preset.cmake` | The LAMMPS configuration: serial, static, no optional libraries, and the packages Atomify needs. |
+| `atomify-preset.cmake` | The LAMMPS configuration: no MPI, OpenMP threads, static, no optional libraries, and the packages Atomify needs. |
+| `build-libomp.sh` | Builds LLVM's OpenMP runtime (libomp) for one Apple slice or the macOS host. |
+| `host-openmp.sh` | OpenMP settings for the host build (compiler runtime on Linux, libomp on macOS). |
 | `prepare_lammps.py` | Fetches LAMMPS, applies the patches, copies bridge and extra styles into `src/`. |
 | `build-host.sh` | Builds for this machine (Linux or macOS) and runs the bridge tests. |
 | `build-xcframework.sh` | Builds `Frameworks/CLammps.xcframework` for macOS, iOS, iOS Simulator, visionOS and visionOS Simulator. |
 | `check-examples.sh`, `tools/` | Runs every bundled example with the host build (see below). |
+| `bench-threads.sh` | Measures steps per second of the examples with 1, 2, 4, ... threads. |
 | `package-host-library.py` | Wraps a macOS host build as a one-slice xcframework (quick local testing). |
 
 `build/` and `Frameworks/` are generated and ignored by git.
@@ -60,6 +63,38 @@ atomify-check-examples` and the ExampleRunTests target do the same through
 AtomifyKit's `ExampleRunner`. An example marked
 `"atomifyMetal": {"skip": "reason"}` in examples.json is skipped by all three.
 
+## Threads
+
+LAMMPS runs on OpenMP threads through its OPENMP package. Apple ships no
+OpenMP runtime, so `build-libomp.sh` builds LLVM's libomp (Apache 2.0 with
+LLVM exceptions) for each slice and it is folded into `libCLammps.a`.
+`ATOMIFY_OPENMP=OFF` in the environment builds the serial engine instead.
+
+`atomify_sim_create_threaded(echo, n)` starts LAMMPS with `-suffix omp
+-package omp n`, so every style with an `/omp` variant uses it, also after
+`clear`. Threads cost microseconds per parallel region each step, which
+small systems with cheap potentials cannot repay: on an M4 Pro a 400 atom
+Lennard-Jones liquid runs 2-3x slower on 4 threads and a 100 atom ReaxFF
+system 5-8x slower, while 4000 atoms and more gain 2-4x. So the first
+initialization with atoms (`run` or `minimize`) picks the count for the
+system (`atomify_before_init`, patch 0005): one thread per 1000 atoms for
+pairwise potentials, per 250 for ReaxFF and per 100 with long range Coulomb
+or manybody potentials, at least 1 and at most n. LAMMPS cannot change the
+count once `/omp` styles exist, so when the system wants fewer, the bridge
+starts a new instance on that many and runs the script and commands so far
+again; the output says so. A system that starts without atoms (`fix pour`,
+`fix deposit`) chooses at the first initialization with atoms, and keeps n
+if running again would repeat more than 2000 steps. `atomify_sim_threads` reports the count in use.
+AtomifyEngine's `Simulation` defaults n to the performance core count, at
+most 8.
+
+```sh
+src/shared/lammps/bench-threads.sh --examples src/ios/Examples --threads 1,2,4 --steps 2000
+```
+
+prints steps per second for each example and thread count, with the count
+the bridge chose in brackets.
+
 ## Patches
 
 Like lammps.js (`cpp/patches`, `LAMMPS-patches.md`), changes to LAMMPS
@@ -73,6 +108,7 @@ applied either, preparing stops, so a build never silently lacks a patch.
 | `0002-modify-allow-atomify-pre-box` | Lets `fix atomify` exist before the box, so the bridge installs it before any script runs (as lammps.js does for `js/async`). |
 | `0003-input-no-system` | `shell` commands call `system()`, which the iOS and visionOS SDKs mark unavailable; they now report failure. |
 | `0004-run-atomify-integrate` | `run` integrates through `atomify_integrate`, which lets fix atomify end the integrator between two steps, execute commands the app queued and continue the same run (like `run N every M "command"`). |
+| `0005-init-atomify-threads` | `LAMMPS::init` first calls `atomify_before_init`, which picks the OpenMP thread count for the system at the first initialization with atoms (see Threads). |
 
 To change a patch, edit the files in `build/lammps` and regenerate it with
 `git -C build/lammps diff src/<file> > patches/<name>.patch`.

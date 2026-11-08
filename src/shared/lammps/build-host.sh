@@ -4,6 +4,9 @@
 #   src/shared/lammps/build-host.sh [build-dir]
 # Needs git, CMake >= 3.20, a C++17 compiler and python3. Uses Ninja if
 # installed, else Make. JOBS overrides the parallel job count.
+# LAMMPS gets OpenMP threads (see atomify-preset.cmake): the compiler's
+# runtime on Linux, LLVM's libomp from build-libomp.sh on macOS.
+# ATOMIFY_OPENMP=OFF builds it serial.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 build="${1:-$here/build/host}"
@@ -16,11 +19,13 @@ generator=()
 if [ ! -f "$build/CMakeCache.txt" ]; then
   if command -v ninja >/dev/null 2>&1; then generator=(-G Ninja); else generator=(-G "Unix Makefiles"); fi
 fi
-cmake -S "$source_dir/cmake" -B "$build" "${generator[@]}" -C "$here/atomify-preset.cmake" \
-  -D CMAKE_BUILD_TYPE=Release
+source "$here/host-openmp.sh"
+host_openmp "$build"
+cmake -S "$source_dir/cmake" -B "$build" ${generator[@]+"${generator[@]}"} -C "$here/atomify-preset.cmake" \
+  -D CMAKE_BUILD_TYPE=Release ${openmp_cmake[@]+"${openmp_cmake[@]}"}
 cmake --build "$build" --target lammps -j "$jobs"
 
 cxx="${CXX:-c++}"
 "$cxx" -std=c++17 -O1 -g -Wall -Wextra -I"$here/bridge/include" "$here/bridge/tests/bridge_test.cpp" \
-  "$build/liblammps.a" -lpthread -o "$build/bridge_test"
+  "$build/liblammps.a" ${openmp_link[@]+"${openmp_link[@]}"} -lpthread -o "$build/bridge_test"
 cd "$build" && ./bridge_test

@@ -147,6 +147,20 @@ typedef struct {
 
 // Lifecycle. echo != 0 also copies LAMMPS output to stdout (debugging).
 atomify_sim *atomify_sim_create(int echo);
+// Same, with LAMMPS running on up to `threads` OpenMP threads: the OPENMP
+// package's /omp styles where they exist, the plain style elsewhere. Capped
+// at atomify_max_threads(); below 2 it is the serial engine. The first
+// initialization with atoms (run, minimize) picks how many of them the
+// system gains from: small systems with cheap potentials are slower on
+// threads. When that is fewer, the bridge starts a new LAMMPS instance on
+// that many and runs everything executed so far again (its output says so).
+atomify_sim *atomify_sim_create_threaded(int echo, int threads);
+// Most threads a simulation can use: the processor count, or 1 when the
+// library was built without OpenMP.
+int atomify_max_threads(void);
+// Threads the simulation runs on now: the count asked for at creation until
+// the system chose its own.
+int atomify_sim_threads(atomify_sim *sim);
 void atomify_sim_destroy(atomify_sim *sim);
 
 // Blocking script execution. Relative paths in the script resolve against

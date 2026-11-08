@@ -158,10 +158,22 @@ struct AtomifyShared {
   AtomifySnapshotData back;
   uint64_t next_sequence = 1;
 
-  // Captured screen output (output_mutex).
+  // Captured screen output (output_mutex). While the thread count is being
+  // chosen, output goes to `held` instead: a restart on fewer threads runs
+  // the input again, so the first pass's output is dropped rather than shown
+  // twice (with the internal error that ends it).
   std::mutex output_mutex;
   std::string output;
+  std::string held;
+  bool holding = false;
   bool echo = false;
+
+  // OpenMP threads (see atomify_before_init): the count the instance runs
+  // on, whether the first initialization with atoms is still to choose it,
+  // and the count it chose that needs a new instance (simulation thread).
+  std::atomic<int> threads{1};
+  bool choosing_threads = false;
+  int restart_threads = 0;
 
   // Wall clock bookkeeping for publishing and the measured step rate.
   std::chrono::steady_clock::time_point last_publish{};
@@ -171,6 +183,9 @@ struct AtomifyShared {
   std::chrono::steady_clock::time_point last_step{};
 
   void append_output(const char *data, size_t size);
+  void hold_output();
+  // Moves held output to `output` (keep) or drops it, and stops holding.
+  void release_output(bool keep);
   void mark_progress();
 };
 
@@ -188,6 +203,16 @@ std::string atomify_command_rejection(const std::string &command, bool in_run);
 // runs the integrator and, whenever fix atomify ended it early for queued
 // commands, executes them, re-initializes and continues the remaining steps.
 void atomify_integrate(LAMMPS *lmp, int nsteps);
+
+// Called by the patched LAMMPS::init before anything initializes. The first
+// time a simulation created with several threads initializes with atoms, it
+// picks the thread count for the system (atomify_threads_for). LAMMPS cannot
+// change the count once /omp styles exist, so a smaller count ends the
+// command with an error and sets restart_threads; the bridge then builds a
+// new instance on that many threads and runs the input again.
+void atomify_before_init(LAMMPS *lmp);
+
+int atomify_threads_for(int64_t atoms, int atoms_per_thread, int max_threads);
 
 }    // namespace LAMMPS_NS
 

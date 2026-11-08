@@ -52,8 +52,9 @@ public final class Simulation: @unchecked Sendable {
 
     /// Creates the engine. Throws if LAMMPS could not start.
     /// With `echo`, LAMMPS output is also written to standard output.
-    public init(echo: Bool = false) throws {
-        guard let handle = atomify_sim_create(echo ? 1 : 0) else {
+    /// LAMMPS runs on up to `threads` OpenMP threads (1 is serial).
+    public init(echo: Bool = false, threads: Int = SimulationThreads.default) throws {
+        guard let handle = atomify_sim_create_threaded(echo ? 1 : 0, Int32(clamping: threads)) else {
             throw SimulationError.engineUnavailable
         }
         let message = String(cString: atomify_sim_last_error(handle))
@@ -185,6 +186,14 @@ public final class Simulation: @unchecked Sendable {
     /// every step.
     public func setObservableInterval(_ seconds: Double) {
         withHandle { atomify_sim_set_observable_interval($0, seconds) }
+    }
+
+    /// OpenMP threads LAMMPS runs on: the maximum given at creation until the
+    /// first run (or minimization) picks as many as the system gains from.
+    /// When that is fewer, the script runs again from the start on them, and
+    /// the output shows its setup twice.
+    public var threads: Int {
+        withHandle { Int(atomify_sim_threads($0)) } ?? 1
     }
 
     /// Per-atom quantity to publish with each snapshot, for coloring:

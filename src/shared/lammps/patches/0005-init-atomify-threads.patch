@@ -1,0 +1,22 @@
+diff --git a/src/lammps.cpp b/src/lammps.cpp
+index cab9221..ae08ca3 100644
+--- a/src/lammps.cpp
++++ b/src/lammps.cpp
+@@ -42,6 +42,9 @@
+ #include "variable.h"
+ #include "version.h"
+ 
++// Atomify: atomify_before_init picks the OpenMP thread count per system.
++#include "atomify_shared.h"
++
+ #if defined(LMP_PLUGIN)
+ #include "plugin.h"
+ #endif
+@@ -983,6 +986,7 @@ void LAMMPS::post_create()
+ 
+ void LAMMPS::init()
+ {
++  atomify_before_init(this);    // Atomify: OpenMP threads for this system
+   update->init();
+   force->init();         // pair must come after update due to minimizer
+   domain->init();

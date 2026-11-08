@@ -3,15 +3,21 @@
 #include "atomify_shared.h"
 #include "fix_atomify.h"
 
+#include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "exceptions.h"
+#include "fix.h"
+#include "force.h"
 #include "input.h"
 #include "integrate.h"
 #include "lammps.h"
 #include "library.h"
 #include "modify.h"
+#include "pair.h"
 #include "timer.h"
 #include "update.h"
+#include "utils.h"
 #include "variable.h"
 
 #include <algorithm>
@@ -22,6 +28,11 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -67,12 +78,34 @@ void AtomifyShared::append_output(const char *data, size_t size)
 {
   if (!data || size == 0) return;
   std::lock_guard<std::mutex> lock(output_mutex);
+  if (holding) {
+    held.append(data, size);
+    return;
+  }
   output.append(data, size);
   if (output.size() > kMaxOutput) output.erase(0, output.size() - kKeptOutput);
   if (echo) {
     std::fwrite(data, 1, size, stdout);
     std::fflush(stdout);
   }
+}
+
+void AtomifyShared::hold_output()
+{
+  std::lock_guard<std::mutex> lock(output_mutex);
+  holding = true;
+}
+
+void AtomifyShared::release_output(bool keep)
+{
+  std::string text;
+  {
+    std::lock_guard<std::mutex> lock(output_mutex);
+    if (!holding) return;
+    holding = false;
+    text.swap(held);
+  }
+  if (keep) append_output(text.data(), text.size());
 }
 
 void AtomifyShared::mark_progress()
@@ -160,6 +193,50 @@ bool wait_while_paused(AtomifyShared *shared)
 
 }    // namespace
 
+int atomify_threads_for(int64_t atoms, int atoms_per_thread, int max_threads)
+{
+  const int64_t threads = atoms / std::max(1, atoms_per_thread);
+  return static_cast<int>(std::clamp<int64_t>(threads, 1, std::max(1, max_threads)));
+}
+
+void atomify_before_init(LAMMPS *lmp)
+{
+  AtomifyShared *shared = atomify_find_shared(lmp);
+  if (!shared) return;
+  Comm *comm = lmp->comm;
+  shared->threads = comm->nthreads;
+  if (!shared->choosing_threads) return;
+  // A system that starts empty (fix pour, fix deposit) chooses at the first
+  // initialization with atoms, and runs again from the start only if that
+  // costs few steps.
+  if (lmp->atom->natoms == 0) {
+    shared->release_output(true);
+    return;
+  }
+  shared->choosing_threads = false;
+  constexpr bigint kMaxStepsToRepeat = 2000;
+  if (lmp->update->ntimestep > kMaxStepsToRepeat) {
+    shared->release_output(true);
+    return;
+  }
+  // Measured on Apple silicon with the bundled examples: pairwise potentials
+  // gain from about 1500 atoms, ReaxFF from a few hundred, long range
+  // Coulomb and manybody potentials from 200-300.
+  int atoms_per_thread = 1000;
+  Pair *pair = lmp->force->pair;
+  if (pair && utils::strmatch(lmp->force->pair_style, "reaxff"))
+    atoms_per_thread = 250;
+  else if (lmp->force->kspace || (pair && pair->manybody_flag))
+    atoms_per_thread = 100;
+  const int threads = atomify_threads_for(lmp->atom->natoms, atoms_per_thread, comm->nthreads);
+  if (threads == comm->nthreads) {
+    shared->release_output(true);    // the run goes on: show its output
+    return;
+  }
+  shared->restart_threads = threads;
+  lmp->error->all(FLERR, "Atomify restarts on {} OpenMP thread(s)", threads);
+}
+
 void atomify_integrate(LAMMPS *lmp, int nsteps)
 {
   AtomifyShared *shared = atomify_find_shared(lmp);
@@ -244,6 +321,9 @@ struct atomify_sim {
   void *lmp = nullptr;
   std::string last_error;
   std::string last_error_line;
+  // What ran before the thread count was chosen (true: a file), to run
+  // again on a new instance.
+  std::vector<std::pair<bool, std::string>> journal;
 };
 
 namespace {
@@ -313,30 +393,132 @@ FILE *open_output(AtomifyShared *shared)
 }
 #endif
 
-}    // namespace
-
-/* ---------------------------------------------------------------------- */
-
-extern "C" {
-
-atomify_sim *atomify_sim_create(int echo)
+// OpenMP keeps the thread count per calling thread, and LAMMPS sets it on
+// the thread that created the instance. Scripts run on another thread, where
+// the runtime default (every processor) would otherwise apply, overrunning
+// the per-thread storage fix OMP sized for comm->nthreads.
+void use_threads_on_this_thread(atomify_sim *sim)
 {
-  auto *sim = new atomify_sim();
-  sim->shared->mark_progress();
-  sim->shared->echo = echo != 0;
-  const char *argv[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
-  sim->lmp = lammps_open_no_mpi(6, const_cast<char **>(argv), nullptr);
-  if (!sim->lmp) {
-    delete sim;
-    return nullptr;
+#ifdef _OPENMP
+  omp_set_num_threads(static_cast<LAMMPS *>(sim->lmp)->comm->nthreads);
+#else
+  (void) sim;
+#endif
+}
+
+// A LAMMPS instance on `threads` threads, with its output captured.
+bool open_instance(atomify_sim *sim, int threads)
+{
+  std::vector<std::string> args = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
+  if (threads > 1) {
+    // Command line settings survive "clear": LAMMPS applies them again to
+    // each new instance. Styles without an /omp variant stay serial.
+    for (const char *arg : {"-suffix", "omp", "-package", "omp"}) args.emplace_back(arg);
+    args.push_back(std::to_string(threads));
   }
+  std::vector<char *> argv;
+  for (auto &arg : args) argv.push_back(arg.data());
+  sim->lmp = lammps_open_no_mpi(static_cast<int>(argv.size()), argv.data(), nullptr);
+  if (!sim->lmp) return false;
   auto *lmp = static_cast<LAMMPS *>(sim->lmp);
   // LAMMPS writes its screen output here; it closes the stream on exit.
   if (FILE *screen = open_output(sim->shared.get())) {
     std::setvbuf(screen, nullptr, _IONBF, 0);
     lmp->screen = screen;
   }
+  sim->shared->threads = lmp->comm->nthreads;
   atomify_register_shared(lmp, sim->shared.get());
+  return true;
+}
+
+void close_instance(atomify_sim *sim)
+{
+  if (!sim->lmp) return;
+  use_threads_on_this_thread(sim);    // /omp styles free per-thread data
+  atomify_unregister_shared(static_cast<LAMMPS *>(sim->lmp));
+  lammps_close(sim->lmp);
+  sim->lmp = nullptr;
+}
+
+void execute_once(atomify_sim *sim, bool file, const std::string &text)
+{
+  use_threads_on_this_thread(sim);
+  if (file)
+    lammps_file(sim->lmp, text.c_str());
+  else
+    lammps_command(sim->lmp, text.c_str());
+}
+
+// Runs a file or a command. Until the thread count is chosen, it is kept,
+// and when the choice asks for fewer threads everything kept runs again on
+// a new instance with that many (see atomify_before_init).
+void execute(atomify_sim *sim, bool file, const std::string &text)
+{
+  AtomifyShared *shared = sim->shared.get();
+  if (shared->choosing_threads) {
+    sim->journal.emplace_back(file, text);
+    shared->hold_output();
+  }
+  execute_once(sim, file, text);
+  const int threads = shared->restart_threads;
+  if (threads == 0) {
+    if (!shared->choosing_threads) sim->journal.clear();
+    shared->release_output(true);
+    return;
+  }
+  shared->restart_threads = 0;
+  shared->release_output(false);    // the input runs again below
+  std::string ignored;
+  take_error(sim, ignored);
+  shared->error_line.clear();
+  const std::string note = "Atomify: this system runs faster on " + std::to_string(threads) +
+                           " OpenMP thread(s); running the input again with them.\n";
+  shared->append_output(note.data(), note.size());
+  auto journal = std::move(sim->journal);
+  sim->journal.clear();
+  close_instance(sim);
+  if (!open_instance(sim, threads)) {
+    // Should not happen; fall back to the serial engine.
+    if (!open_instance(sim, 1)) std::abort();
+  }
+  if (!install_fix(sim)) return;
+  for (const auto &[is_file, entry] : journal) {
+    execute_once(sim, is_file, entry);
+    if (lammps_has_error(sim->lmp)) break;
+  }
+}
+
+}    // namespace
+
+/* ---------------------------------------------------------------------- */
+
+extern "C" {
+
+int atomify_max_threads(void)
+{
+#ifdef _OPENMP
+  return std::max(1, omp_get_num_procs());
+#else
+  return 1;
+#endif
+}
+
+atomify_sim *atomify_sim_create(int echo)
+{
+  return atomify_sim_create_threaded(echo, 1);
+}
+
+atomify_sim *atomify_sim_create_threaded(int echo, int threads)
+{
+  auto *sim = new atomify_sim();
+  sim->shared->mark_progress();
+  sim->shared->echo = echo != 0;
+  threads = std::clamp(threads, 1, atomify_max_threads());
+  if (!open_instance(sim, threads)) {
+    delete sim;
+    return nullptr;
+  }
+  sim->shared->choosing_threads = threads > 1;
   if (!install_fix(sim)) finish(sim);
   return sim;
 }
@@ -344,25 +526,27 @@ atomify_sim *atomify_sim_create(int echo)
 void atomify_sim_destroy(atomify_sim *sim)
 {
   if (!sim) return;
-  if (sim->lmp) {
-    atomify_unregister_shared(static_cast<LAMMPS *>(sim->lmp));
-    lammps_close(sim->lmp);
-  }
+  close_instance(sim);
   delete sim;
 }
 
 atomify_status atomify_sim_run_file(atomify_sim *sim, const char *path)
 {
   if (!install_fix(sim)) return finish(sim);
-  lammps_file(sim->lmp, path);
+  execute(sim, true, path);
   return finish(sim);
 }
 
 atomify_status atomify_sim_command(atomify_sim *sim, const char *command)
 {
   if (!install_fix(sim)) return finish(sim);
-  lammps_command(sim->lmp, command);
+  execute(sim, false, command);
   return finish(sim);
+}
+
+int atomify_sim_threads(atomify_sim *sim)
+{
+  return sim->shared->threads.load();
 }
 
 const char *atomify_sim_last_error(atomify_sim *sim)
@@ -416,7 +600,7 @@ atomify_status atomify_sim_execute_queued(atomify_sim *sim)
       sim->shared->append_output(("ERROR: " + rejection + "\n").c_str(), rejection.size() + 8);
       continue;
     }
-    lammps_command(sim->lmp, command.c_str());
+    execute(sim, false, command);
     std::string message;
     if (take_error(sim, message)) {
       failure = message;

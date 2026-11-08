@@ -2,6 +2,7 @@
 
 #include "atomify_lammps.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -922,6 +923,105 @@ void test_output_capture()
   atomify_sim_destroy(sim);
 }
 
+void test_threads()
+{
+  CHECK(atomify_max_threads() >= 1);
+  const int threads = std::min(2, atomify_max_threads());
+  atomify_sim *serial = atomify_sim_create(0);
+  atomify_sim *threaded = atomify_sim_create_threaded(0, threads);
+  CHECK(threaded != nullptr);
+  CHECK(atomify_sim_threads(threaded) == threads);
+  for (atomify_sim *sim : {serial, threaded}) {
+    atomify_sim_set_publish_interval(sim, 0);
+    CHECK(run(sim, lj_melt));
+    CHECK(run(sim, {"run 50"}));
+  }
+  // 256 atoms with a pairwise potential are faster on one thread: the first
+  // run started a new instance on one thread and ran the commands again.
+  CHECK(atomify_sim_threads(threaded) == 1);
+  CHECK(atomify_sim_threads(serial) == 1);
+  const std::string output = read_all_output(threaded);
+  CHECK(contains(output, "lj/cut"));
+  CHECK(contains(output, "running the input again") == (threads > 1));
+  // The internal error that ends the first pass is not shown.
+  CHECK(!contains(output, "ERROR"));
+  CHECK(!contains(read_all_output(serial), "/omp"));
+  // Same trajectory up to rounding, after exactly 50 steps.
+  const Snapshot a = copy(serial), b = copy(threaded);
+  CHECK(b.timestep == 50);
+  CHECK(a.positions.size() == b.positions.size());
+  for (size_t n = 0; n < a.positions.size() && n < b.positions.size(); n++)
+    CHECK(std::fabs(a.positions[n] - b.positions[n]) < 1e-3);
+  // The choice is made once.
+  CHECK(run(threaded, {"run 5"}));
+  CHECK(!contains(read_all_output(threaded), "running the input again"));
+  atomify_sim_destroy(serial);
+  atomify_sim_destroy(threaded);
+
+  // A bigger system keeps every thread, from a file too, also after clear.
+  const std::string path = "atomify-threads-test.in";
+  {
+    std::ofstream file(path);
+    for (const auto &line : lj_melt)
+      file << (line == "region box block 0 4 0 4 0 4" ? "region box block 0 10 0 10 0 10" : line) << "\n";    // 4000 atoms
+    file << "run 5\n";
+  }
+  atomify_sim *big = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_run_file(big, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(big) == threads);
+  const std::string big_output = read_all_output(big);
+  CHECK(!contains(big_output, "running the input again"));
+  if (threads > 1) CHECK(contains(big_output, "lj/cut/omp"));
+  CHECK(run(big, {"clear"}));
+  CHECK(atomify_sim_run_file(big, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(big) == threads);
+  atomify_sim_destroy(big);
+
+  // A small system from a file restarts on one thread; its output shows the
+  // input once, without the first pass.
+  {
+    std::ofstream file(path);
+    for (const auto &line : lj_melt) file << line << "\n";
+    file << "run 5\n";
+  }
+  atomify_sim *small = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_run_file(small, path.c_str()) == ATOMIFY_OK);
+  CHECK(atomify_sim_threads(small) == 1);
+  const std::string small_output = read_all_output(small);
+  CHECK(!contains(small_output, "ERROR"));
+  const size_t created = small_output.find("Created 256 atoms");
+  CHECK(created != std::string::npos);
+  CHECK(small_output.find("Created 256 atoms", created + 1) == std::string::npos);
+  CHECK(contains(small_output, "Loop time"));
+  atomify_sim_destroy(small);
+  std::remove(path.c_str());
+
+  // A system that starts empty chooses once atoms exist, running the input
+  // again while that repeats few steps.
+  atomify_sim *empty = atomify_sim_create_threaded(0, threads);
+  atomify_sim_set_publish_interval(empty, 0);
+  CHECK(run(empty, {"units lj", "atom_style atomic", "lattice fcc 0.8442", "region box block 0 4 0 4 0 4",
+                    "create_box 1 box", "mass * 1.0", "pair_style lj/cut 2.5", "pair_coeff * * 1.0 1.0 2.5",
+                    "fix 1 all nve", "run 10"}));
+  CHECK(atomify_sim_threads(empty) == threads);
+  CHECK(run(empty, {"create_atoms 1 box", "velocity all create 1.0 87287", "run 5"}));
+  CHECK(atomify_sim_threads(empty) == 1);
+  CHECK(copy(empty).timestep == 15);
+  CHECK(copy(empty).tags.size() == 256);
+  atomify_sim_destroy(empty);
+
+  // An input error before the choice is reported as usual.
+  atomify_sim *broken = atomify_sim_create_threaded(0, threads);
+  CHECK(atomify_sim_command(broken, "pair_style nonsense") == ATOMIFY_ERROR);
+  CHECK(contains(read_all_output(broken), "ERROR"));
+  atomify_sim_destroy(broken);
+
+  // Asking for more threads than there are processors is capped, not an error.
+  atomify_sim *many = atomify_sim_create_threaded(0, 1 << 20);
+  CHECK(many != nullptr && run(many, single_atom));
+  atomify_sim_destroy(many);
+}
+
 void test_queued_commands_change_a_running_simulation()
 {
   atomify_sim *sim = atomify_sim_create(0);
@@ -1115,6 +1215,7 @@ int main()
   test_queued_commands_run_while_paused();
   test_queued_commands_outside_runs();
   test_clear_reinstalls_the_fix();
+  test_threads();
   if (failures) {
     std::fprintf(stderr, "%d check(s) failed\n", failures);
     return 1;
