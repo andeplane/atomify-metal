@@ -19,8 +19,9 @@ What is copied, and how:
   centered on the origin and used a 25 degree field of view, which spans the
   shorter side of the view since the app was landscape only; see
   CAMERA_FIXES for the cameras moved), periodic images
-  and the dashboard controllers with their settings. Custom color shaders
-  (granular examples) are listed under "notPorted".
+  and the dashboard controllers with their settings. The granular
+  examples' custom color shaders become color ramps (see COLOR_SHADERS);
+  any other shader is listed under "notPorted".
 - LAMMPS has changed since 2017, so a few style names are updated (the
   physics is the same): `reax/c` is now `reaxff`, and the OPT package's
   `lj/cut/opt` is plain `lj/cut` (this build has no OPT package). Each change
@@ -70,6 +71,17 @@ REPLACEMENTS = {
 # showed only part of it), with the reason.
 CAMERA_FIXES = {
     "singlewater": ([0.0, 0.0, 6.0], "camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"),
+}
+# Atomify 2's custom color shaders (GLSL run per atom), as AtomifyKit color
+# ramps: the type color times factors blended from low to high between two
+# coordinates (relative to the box center) along an axis.
+COLOR_SHADERS = {
+    "highp float zScaled = 0.2 + 0.8* (position.z + 7.5) / 5.0; zScaled = clamp(zScaled, 0.0, 1.0); "
+    "customColor *= zScaled;":
+        {"axis": 2, "from": -7.5, "to": -2.5, "low": [0.2, 0.2, 0.2], "high": [1.0, 1.0, 1.0]},
+    "highp float yPosScaled = (position.y + 8.0) / 16.0; customColor.r *= yPosScaled; "
+    "customColor.b *= (1.0 - yPosScaled); customColor.g *= 0.3;":
+        {"axis": 1, "from": -8.0, "to": 8.0, "low": [0.0, 0.3, 1.0], "high": [1.0, 0.3, 0.0]},
 }
 # Spelling mistakes in the original titles.
 TITLE_FIXES = {"Hydrocarbon oxcidation": "Hydrocarbon oxidation"}
@@ -240,7 +252,13 @@ def main():
                        "dashboard": qml_controllers(qml)}
             unsupported = []
             if "customColorShaderCode" in qml:
-                unsupported.append("customColorShaderCode")
+                code = qml_strings(qml, "customColorShaderCode") or ""
+                code = " ".join(line.strip() for line in code.splitlines()
+                                if line.strip() and not line.strip().startswith("//"))
+                if code in COLOR_SHADERS:
+                    options["colorRamp"] = COLOR_SHADERS[code]
+                else:
+                    unsupported.append("customColorShaderCode")
             images = {axis: int(v) for axis, v in re.findall(r"periodicImages([XYZ])\s*:\s*(\d+)", qml)}
             if any(v > 1 for v in images.values()):
                 options["periodicImages"] = [images.get(axis, 1) for axis in "XYZ"]

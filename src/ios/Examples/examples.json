@@ -1388,9 +1388,21 @@
             "kind": "summary"
           }
         ],
-        "notPorted": [
-          "customColorShaderCode"
-        ]
+        "colorRamp": {
+          "axis": 2,
+          "from": -7.5,
+          "to": -2.5,
+          "low": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "high": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
       },
       "imageUrl": "granular/patterns/patterns.png"
     },
@@ -1431,9 +1443,21 @@
             "kind": "summary"
           }
         ],
-        "notPorted": [
-          "customColorShaderCode"
-        ],
+        "colorRamp": {
+          "axis": 2,
+          "from": -7.5,
+          "to": -2.5,
+          "low": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "high": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
         "changes": [
           "patterns_final.bin: restart file regenerated with current LAMMPS by running granular/patterns to its end (the 2017 binary restart format is no longer readable)"
         ]
@@ -1486,9 +1510,21 @@
             }
           }
         ],
-        "notPorted": [
-          "customColorShaderCode"
-        ],
+        "colorRamp": {
+          "axis": 1,
+          "from": -8.0,
+          "to": 8.0,
+          "low": [
+            0.0,
+            0.3,
+            1.0
+          ],
+          "high": [
+            1.0,
+            0.3,
+            0.0
+          ]
+        },
         "changes": [
           "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added"
         ]
