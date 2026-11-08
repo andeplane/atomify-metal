@@ -12,18 +12,19 @@ let package = Package(
         .library(name: "AtomifyKit", targets: ["AtomifyKit"]),
         .executable(name: "AtomifyMac", targets: ["AtomifyMac"]),
         .executable(name: "RenderLab", targets: ["RenderLab"]),
+        .executable(name: "atomify-check-examples", targets: ["ExampleCheck"]),
     ],
     targets: [
         .binaryTarget(name: "CLammps", path: "src/shared/lammps/Frameworks/CLammps.xcframework"),
+
+        .target(name: "AtomifyRender", path: "src/shared/AtomifyRender/Sources"),
+        .testTarget(name: "AtomifyRenderTests", dependencies: ["AtomifyRender"],
+                    path: "src/shared/AtomifyRender/Tests"),
 
         .target(name: "AtomifyEngine", dependencies: ["CLammps"], path: "src/shared/AtomifyEngine/Sources",
                 linkerSettings: [.linkedLibrary("c++")]),
         .testTarget(name: "AtomifyEngineTests", dependencies: ["AtomifyEngine"],
                     path: "src/shared/AtomifyEngine/Tests", resources: [.copy("Fixtures")]),
-
-        .target(name: "AtomifyRender", path: "src/shared/AtomifyRender/Sources"),
-        .testTarget(name: "AtomifyRenderTests", dependencies: ["AtomifyRender"],
-                    path: "src/shared/AtomifyRender/Tests"),
 
         .target(name: "AtomifyKit", dependencies: ["AtomifyEngine", "AtomifyRender"],
                 path: "src/shared/AtomifyKit/Sources"),
@@ -37,5 +38,10 @@ let package = Package(
         .executableTarget(name: "RenderLab", dependencies: ["AtomifyRender"], path: "src/macos/RenderLab",
                           exclude: ["README.md"]),
         .testTarget(name: "RenderLabTests", dependencies: ["RenderLab"], path: "src/macos/RenderLabTests"),
+
+        // Runs every bundled example for a few steps and reports which fail.
+        .executableTarget(name: "ExampleCheck", dependencies: ["AtomifyKit"], path: "src/tools/ExampleCheck"),
+        // The same check as a test target: one parameterized test per example (Cmd-U in Xcode).
+        .testTarget(name: "ExampleRunTests", dependencies: ["AtomifyKit"], path: "src/tools/ExampleRunTests"),
     ]
 )
