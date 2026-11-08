@@ -97,20 +97,26 @@ struct PanelScroll<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollIndicators(.automatic)
-        .scrollBounceBehavior(.basedOnSize)
-        .contentMargins(.bottom, 20, for: .scrollContent)
+        .scrollIndicatorsFlash(onAppear: true)
+        // Room for the last card to scroll clear of the fade.
+        .contentMargins(.bottom, PanelFade.height + 10, for: .scrollContent)
         .panelFade()
     }
 }
 
+enum PanelFade {
+    static let height: CGFloat = 26
+}
+
 extension View {
-    /// Fades the bottom 26 pt of a side panel's body out.
+    /// Fades the bottom 26 pt of a side panel's body out. Scrolling bodies
+    /// end with more room than that, so nothing stays under it.
     func panelFade() -> some View {
         mask {
             VStack(spacing: 0) {
                 Color.black
                 LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 26)
+                    .frame(height: PanelFade.height)
             }
         }
     }
