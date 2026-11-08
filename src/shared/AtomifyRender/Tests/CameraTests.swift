@@ -105,6 +105,21 @@ final class OrbitCameraTests: XCTestCase {
         XCTAssertEqual(unchanged, OrbitCamera())
     }
 
+    func testFramingLimitsZoom() {
+        var camera = OrbitCamera()
+        camera.frame(low: SIMD3(0, 0, 0), high: SIMD3(20, 20, 20))
+        let framed = camera.distance
+        let radius = simd_length(SIMD3<Float>(20, 20, 20)) / 2
+        camera.zoom(by: 1e6)
+        XCTAssertEqual(camera.distance, radius * OrbitCamera.closestZoom, accuracy: 1e-4)
+        camera.zoom(by: 1e-6)
+        XCTAssertEqual(camera.distance, framed * OrbitCamera.farthestZoom, accuracy: 1e-2)
+        // A bigger box allows zooming further out.
+        var big = OrbitCamera()
+        big.frame(low: .zero, high: SIMD3(2000, 2000, 2000))
+        XCTAssertGreaterThan(big.distanceRange.upperBound, camera.distanceRange.upperBound * 50)
+    }
+
     func testProjection() {
         let camera = OrbitCamera()
         let standard = camera.projectionMatrix(aspect: 2, near: 0.5, far: 50, reverseZ: false)
@@ -148,8 +163,8 @@ final class OrbitCameraTests: XCTestCase {
         XCTAssertEqual(pan.y, 50 * unit, accuracy: 1e-6)
         XCTAssertEqual(camera.panDelta(forPointerMove: SIMD2(1, 1), viewHeight: 0), .zero)
         let rotate = camera.rotationDelta(forPointerMove: SIMD2(500, -500), viewHeight: 500)
-        XCTAssertEqual(rotate.x, -.pi, accuracy: 1e-5)
-        XCTAssertEqual(rotate.y, -.pi, accuracy: 1e-5)
+        XCTAssertEqual(rotate.x, -2 * .pi, accuracy: 1e-5)
+        XCTAssertEqual(rotate.y, -2 * .pi, accuracy: 1e-5)
 
         // Panning by a pointer move keeps the target-plane point under the pointer.
         var moved = camera

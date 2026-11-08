@@ -30,10 +30,15 @@ public enum ParticleViewMath {
     }
 
     /// Zoom factor for a scroll of `delta` (positive zooms in). Trackpads
-    /// send many small precise deltas, wheels a few coarse ones.
+    /// send many small precise deltas (points), wheels a few coarse ones
+    /// (lines). A full trackpad swipe of a few hundred points zooms about
+    /// 2x; one wheel notch about 5%. Each event is capped at 1.5x, so
+    /// accelerated flicks stay controllable.
     public static func zoomFactor(scrollDelta delta: Float, precise: Bool) -> Float {
         guard delta.isFinite else { return 1 }
-        return expf(delta * (precise ? 0.01 : 0.1))
+        let exponent = delta * (precise ? 0.0025 : 0.05)
+        let cap = logf(1.5)
+        return expf(min(max(exponent, -cap), cap))
     }
 
     /// Whether a press that moved `distance` points in total is a click.
