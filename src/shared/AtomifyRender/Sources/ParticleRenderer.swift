@@ -432,7 +432,7 @@ public final class ParticleRenderer {
                 encoder.label = "AtomifyRender.ambientOcclusion"
                 var uniforms = SSAOUniforms(projection: view.projectionMatrix,
                                             params: SIMD4(radius, 2 * strength, 0.002, Float(occlusionSamples.count)),
-                                            screen: SIMD4(fullSize, occlusionSize))
+                                            screen: SIMD4(lowHalf: fullSize, highHalf: occlusionSize))
                 encoder.setRenderPipelineState(ssao)
                 encoder.setFragmentTexture(targets.normalDepth, index: 0)
                 encoder.setFragmentBytes(&uniforms, length: MemoryLayout<SSAOUniforms>.stride, index: 0)
@@ -449,7 +449,7 @@ public final class ParticleRenderer {
         encoder.label = "AtomifyRender.composite"
         var uniforms = CompositeUniforms(params: SIMD4(max(settings.outlineWidth, 0), 0.3 * radius, 0.85,
                                                        strength > 0 ? 1 : 0),
-                                         sizes: SIMD4(fullSize, occlusionSize),
+                                         sizes: SIMD4(lowHalf: fullSize, highHalf: occlusionSize),
                                          outlineColor: SIMD4(0, 0, 0, 1))
         encoder.setRenderPipelineState(composite)
         encoder.setDepthStencilState(alwaysDepthState)

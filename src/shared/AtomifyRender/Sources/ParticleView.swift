@@ -36,7 +36,7 @@ public struct ParticleView: View {
 /// Owns the renderer and turns input into camera changes. Lives on the
 /// main actor, where MTKView draws and delivers events.
 @MainActor
-final class ParticleViewCoordinator: NSObject, @preconcurrency MTKViewDelegate {
+final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
     var scene: SceneData?
     var camera: Binding<OrbitCamera>
     var settings: RenderSettings
@@ -147,8 +147,9 @@ final class ParticleViewCoordinator: NSObject, @preconcurrency MTKViewDelegate {
         return SIMD2(Float(view.bounds.width), Float(view.bounds.height))
     }
 
-    private func drawableSize(_ view: MTKView) -> SIMD2<Float> {
-        SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
+    private func drawableSize(_ view: MTKView?) -> SIMD2<Float> {
+        guard let view else { return SIMD2(1, 1) }
+        return SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
     }
 }
 
