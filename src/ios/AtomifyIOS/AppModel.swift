@@ -13,10 +13,13 @@ enum AppSheet: String, Identifiable {
 }
 
 /// App-wide state: the bundled example catalog, the one simulation session
-/// the screen shows, whether it is up over the gallery, and which sheet and
-/// controls are up.
+/// the screen shows, whether the gallery or the welcome is over it, and
+/// which sheet and controls are up.
 @MainActor @Observation.Observable
 final class AppModel {
+    /// What runs when the app starts, as in Atomify 2.
+    static let firstExampleID = "singlewater"
+
     let catalog: ExampleCatalog
     let catalogError: String?
     /// The examples by topic, in the gallery's order.
@@ -32,8 +35,10 @@ final class AppModel {
     /// simulation's pace while it runs, not at all while nothing changes.
     let framePacing = FramePacing()
 
-    /// The simulation screen is up; otherwise the gallery shows.
-    var showsSimulation = false
+    /// The examples gallery is up over the simulation.
+    var showsGallery = false
+    /// Atomify 2's welcome over the running simulation, on every launch.
+    var showsWelcome = true
     /// The sheet shown over the simulation, if any.
     var sheet: AppSheet?
     /// All floating controls hidden, for a clean view of the atoms.
@@ -62,6 +67,13 @@ final class AppModel {
                                             definitions: catalog.sections ?? ExampleSections.curated)
     }
 
+    /// Starts the first example, once: the app opens on a running simulation.
+    func start() {
+        guard session.title == nil,
+              let example = catalog.example(id: Self.firstExampleID) ?? catalog.examples.first else { return }
+        session.load(example, from: catalog)
+    }
+
     /// Runs the example with this id, replacing the current run.
     func open(_ id: Example.ID) {
         guard let example = catalog.example(id: id) else { return }
@@ -75,7 +87,7 @@ final class AppModel {
         pausedForGallery = false
         sheet = nil
         chromeHidden = false
-        showsSimulation = true
+        showsGallery = false
     }
 
     /// Back to the gallery. A running simulation pauses until it is shown again.
@@ -85,14 +97,13 @@ final class AppModel {
             session.pause()
             pausedForGallery = true
         }
-        showsSimulation = false
+        showsGallery = true
     }
 
-    /// Shows the loaded simulation again, resuming it if the gallery paused it.
+    /// Shows the simulation again, resuming it if the gallery paused it.
     func returnToSimulation() {
-        guard session.title != nil else { return }
         chromeHidden = false
-        showsSimulation = true
+        showsGallery = false
         if pausedForGallery {
             pausedForGallery = false
             if session.status == .paused { session.resume() }
@@ -104,7 +115,7 @@ final class AppModel {
         pausedForGallery = false
         session.restart()
         chromeHidden = false
-        showsSimulation = true
+        showsGallery = false
     }
 
     /// A tap on the atoms: an atom selects it (or deselects it when it was
