@@ -60,6 +60,8 @@ final class FrameSlot {
     var bondRadius: Float = 0
     var bondMaxLength: Float = .greatestFiniteMagnitude
     var blocks: [ParticleBlock] = []
+    /// The bonds of each block (see `BondBlocking`); empty draws them all.
+    var bondRanges: [BondRange] = []
     /// Sorted → original particle index, nil when unsorted.
     var order: [UInt32]?
     var images: [SIMD3<Float>] = [.zero]

@@ -9,8 +9,9 @@
 /// Particles are camera-facing squares sized to cover the sphere's
 /// silhouette; the fragment shader casts a ray against the sphere and
 /// writes the hit point's depth, so spheres intersect each other and bonds
-/// correctly. Bonds are boxes around a cylinder, ray-cast the same way,
-/// built in the vertex shader from the two particles' positions. Everything
+/// correctly. Bonds are cylinders trimmed to the part between the two
+/// spheres, ray-cast the same way through one rectangle in front of them
+/// (`BondProxy`), built in the vertex shader from the two particles' positions. Everything
 /// happens in view space with the eye at the origin (perspective only).
 ///
 /// Every proxy lies in front of the surface it stands for, so the depth a
@@ -23,11 +24,6 @@
 /// multisample mask. Without multisampling, fragments under half coverage
 /// are dropped.
 enum ShaderSource {
-    /// Corners of the box around a bond as one 14-vertex triangle strip
-    /// covering all six faces. Corner k is (bit 0, bit 1, bit 2) of k mapped
-    /// to −1/+1 along (axis, side, other). Drawn without culling.
-    static let cubeStrip: [UInt16] = [3, 2, 7, 6, 4, 2, 0, 3, 1, 7, 5, 4, 1, 0]
-
     /// Buffer indices shared with the shader source.
     enum BufferIndex {
         static let particles = 0
@@ -181,15 +177,22 @@ enum ShaderSource {
         return info;
     }
 
-    /// A warm key light, a cool sky and dim ground for ambient (all darkened
-    /// by `ambient`, the particle's crowding), a Fresnel weighted highlight
-    /// and a faint rim so silhouettes separate in dense material.
+    /// A warm key light, a cool sky and dim ground for ambient, a Fresnel
+    /// weighted highlight and a faint rim so silhouettes separate in dense
+    /// material. `ambient` (the particle's crowding) takes away most of the
+    /// sky and ground light but only a little of the key light, so crowded
+    /// regions read as deeper without turning dark and murky.
     static float3 shade(float3 hit, float3 normal, float3 base, float ambient, constant ViewUniforms &view) {
         float3 l = normalize(view.lightDirection.xyz);
         float3 v = -normalize(hit);
         float ndl = dot(normal, l);
         float diffuse = saturate((ndl + 0.15) / 1.15);
-        float occlusion = mix(0.1, 1.0, smoothstep(0.45, 1.0, ambient));
+        // Crowding mostly takes away ambient (sky and ground) light; the key
+        // light still reaches what the eye sees, dimmed a little so crowded
+        // regions read as deeper without turning murky.
+        float crowding = smoothstep(0.45, 1.0, ambient);
+        float fillOcclusion = mix(0.2, 1.0, crowding);
+        float keyOcclusion = mix(0.75, 1.0, crowding);
         float3 key = float3(1.0, 0.96, 0.9) * diffuse;
         float sky = 0.5 + 0.5 * normal.y;
         float3 fill = mix(float3(0.10, 0.09, 0.085), float3(0.30, 0.33, 0.38), sky);
@@ -198,7 +201,8 @@ enum ShaderSource {
         float fresnel = 0.04 + 0.96 * pow(1.0 - nv, 5.0);
         float specular = pow(saturate(dot(normal, h)), 64.0) * (0.35 + 0.65 * fresnel);
         float rim = pow(1.0 - nv, 3.0) * 0.08;
-        float3 color = (base * (key * 0.95 + fill) + specular + rim) * occlusion;
+        float3 color = base * (key * (0.95 * keyOcclusion) + fill * fillOcclusion)
+                       + (specular + rim) * keyOcclusion;
         return color / (1.0 + 0.18 * color);
     }
 
@@ -329,9 +333,8 @@ enum ShaderSource {
     """
 
     static var bonds: String {
-        let strip = cubeStrip.map(String.init).joined(separator: ", ")
-        return """
-        constant ushort cubeStrip[\(cubeStrip.count)] = { \(strip) };
+        """
+        // The bond proxy: see BondProxy.swift, which does the same in Swift.
 
         struct BondVaryings {
             float4 position [[position]];
@@ -347,6 +350,22 @@ enum ShaderSource {
             float endAmbient [[flat]];
             uint viewIndex [[flat]];
         };
+
+        /// How far into a sphere the cylinder runs before its surface leaves it.
+        static float insideDepth(float sphereRadius, float bondRadius) {
+            return sphereRadius > bondRadius ? sqrt(sphereRadius * sphereRadius - bondRadius * bondRadius) : 0.0;
+        }
+
+        /// Where a sphere projects onto the plane at `planeDepth`, along and
+        /// across the in-plane directions: exact (BondProxy.projectedExtent).
+        static void projectedExtents(float3 center, float depth, float radius, float2 along, float2 across,
+                                     float planeDepth, thread float2 &low, thread float2 &high) {
+            float2 a = float2(dot(center.xy, along), dot(center.xy, across));
+            float2 s = sqrt(max(a * a + depth * depth - radius * radius, 0.0));
+            float scale = planeDepth / (depth * depth - radius * radius);
+            low = (a * depth - radius * s) * scale;
+            high = (a * depth + radius * s) * scale;
+        }
 
         vertex BondVaryings bondVertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
                                        const device Particle *particles [[buffer(0)]],
@@ -367,7 +386,9 @@ enum ShaderSource {
             float3 a = (view.modelView * float4(pa.center + draw.offset.xyz, 1.0)).xyz;
             float3 b = (view.modelView * float4(pb.center + draw.offset.xyz, 1.0)).xyz;
             float scale = view.params.x;
-            float radius = frame.bond.x * scale * min(nearFadeFactor(a, frame), nearFadeFactor(b, frame));
+            float fadeA = nearFadeFactor(a, frame);
+            float fadeB = nearFadeFactor(b, frame);
+            float radius = frame.bond.x * scale * min(fadeA, fadeB);
             float sceneLength = length(pb.center - pa.center);
             float3 d = b - a;
             float axisLength = length(d);
@@ -377,7 +398,7 @@ enum ShaderSource {
             out.viewPosition = a;
             out.start = a;
             out.axis = float3(0.0, 1.0, 0.0);
-            out.axisLength = axisLength;
+            out.axisLength = 0.0;
             out.radius = radius;
             out.split = 0.5;
             bool useBondColor = frame.options.z != 0u;
@@ -389,24 +410,67 @@ enum ShaderSource {
             out.viewIndex = viewIndex;
             bool hidden = ((pa.flags | pb.flags) & flagHidden) != 0u;
             if (hidden || sceneLength > frame.bond.y || axisLength < 1e-6 || !(radius > 0.0)) {
+                return out;    // all four corners coincide: nothing is drawn
+            }
+            // Only the part between the two sphere surfaces can be seen.
+            float ra = pa.radius * draw.offset.w * scale * fadeA;
+            float rb = pb.radius * draw.offset.w * scale * fadeB;
+            float3 axis = d / axisLength;
+            float s0 = insideDepth(ra, radius);
+            float s1 = axisLength - insideDepth(rb, radius);
+            if (s1 <= s0) {
                 return out;
+            }
+            float3 p0 = a + axis * s0;
+            float3 p1 = a + axis * s1;
+            // Half the box around the cylinder, with a margin of a few pixels
+            // for the antialiased edge.
+            float margin = radius + 0.003 * length(0.5 * (p0 + p1));
+            // Keep the whole box in front of the near plane.
+            float minimumDepth = view.params.y * 1.001 + 1.5 * margin;
+            float depth0 = -p0.z, depth1 = -p1.z;
+            if (depth0 < minimumDepth && depth1 < minimumDepth) {
+                return out;
+            }
+            if (depth0 < minimumDepth) {
+                p0 = mix(p0, p1, (minimumDepth - depth0) / (depth1 - depth0));
+            } else if (depth1 < minimumDepth) {
+                p1 = mix(p0, p1, (minimumDepth - depth0) / (depth1 - depth0));
             }
             // The color changes halfway along the visible part, between the
             // two spheres' surfaces.
-            float ra = pa.radius * draw.offset.w * scale;
-            float rb = pb.radius * draw.offset.w * scale;
-            out.split = saturate((ra + 0.5 * (axisLength - ra - rb)) / axisLength);
+            float start = dot(p0 - a, axis);
+            float segmentLength = dot(p1 - a, axis) - start;
+            if (!(segmentLength > 1e-6)) {
+                return out;
+            }
+            float splitDistance = ra + 0.5 * (axisLength - ra - rb);
+            out.split = saturate((splitDistance - start) / segmentLength);
 
-            float3 axis = d / axisLength;
-            float3 helper = abs(axis.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
-            float3 side = normalize(cross(helper, axis));
-            float3 other = cross(axis, side);
-            uint corner = uint(cubeStrip[vertexID]);
-            float3 c = float3(float(corner & 1u), float((corner >> 1) & 1u), float((corner >> 2) & 1u)) * 2.0 - 1.0;
-            // A margin of a few pixels for the antialiased edge.
-            float margin = radius + 0.003 * length(a + d * 0.5);
-            float3 p = a + axis * (axisLength * (c.x * 0.5 + 0.5)) + side * (margin * c.y) + other * (margin * c.z);
+            // The capsule of radius `margin` around the segment contains the
+            // cylinder, and projects within the hull of its two end spheres'
+            // projections. Cover them with a rectangle in the plane of the
+            // capsule's nearest depth, aligned with the projected axis,
+            // spanning each sphere's exact extent along and across it.
+            depth0 = -p0.z;
+            depth1 = -p1.z;
+            float planeDepth = min(depth0, depth1) - margin;
+            float2 alongAxis = p1.xy / depth1 - p0.xy / depth0;
+            float alongLength = length(alongAxis);
+            float2 along = alongLength > 1e-9 ? alongAxis / alongLength : float2(1.0, 0.0);
+            float2 across = float2(-along.y, along.x);
+            float2 low, high;
+            projectedExtents(p0, depth0, margin, along, across, planeDepth, low, high);
+            float2 low1, high1;
+            projectedExtents(p1, depth1, margin, along, across, planeDepth, low1, high1);
+            low = min(low, low1);
+            high = max(high, high1);
+            float u = (vertexID & 1u) != 0u ? high.x : low.x;
+            float v = (vertexID & 2u) != 0u ? high.y : low.y;
+            float3 p = float3(along * u + across * v, -planeDepth);
+            out.start = p0;
             out.axis = axis;
+            out.axisLength = segmentLength;
             out.viewPosition = p;
             out.position = view.projection * float4(p, 1.0);
             return out;
@@ -603,11 +667,6 @@ enum ShaderSource {
         return out;
     }
 
-    static float hash12(float2 p) {
-        float3 p3 = fract(float3(p.xyx) * 0.1031);
-        p3 += dot(p3, p3.yzx + 33.33);
-        return fract((p3.x + p3.y) * p3.z);
-    }
 
     /// View-space position of a pixel (uv, top-left origin) at view depth
     /// `depth` (positive), for any perspective projection.
@@ -634,7 +693,11 @@ enum ShaderSource {
         }
         float3 n = normalize(center.xyz);
         float3 p = viewPositionAt(in.uv, depth, u.projection);
-        float angle = hash12(in.position.xy) * 6.2831853;
+        // Rotations from a 4×4 interleaved pattern: the composite's 4×4 blur
+        // averages over exactly one tile, so no noise is left.
+        constexpr float bayer[16] = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+        uint2 cell = uint2(in.position.xy) & 3u;
+        float angle = (bayer[cell.y * 4u + cell.x] + 0.5) / 16.0 * 6.2831853;
         float3 jitter = float3(cos(angle), sin(angle), 0.0);
         float3 tangent = jitter - n * dot(jitter, n);
         if (dot(tangent, tangent) < 1e-6) {
@@ -674,6 +737,9 @@ enum ShaderSource {
                                       texture2d<float> occlusionTexture [[texture(2)]],
                                       constant CompositeUniforms &u [[buffer(0)]]) {
         constexpr sampler nearestSampler(coord::normalized, filter::nearest, address::clamp_to_edge);
+        // Bilinear: the occlusion is at half resolution, and nearest
+        // sampling would show its 2×2 pixel steps.
+        constexpr sampler linearSampler(coord::normalized, filter::linear, address::clamp_to_edge);
         float4 color = colorTexture.sample(nearestSampler, in.uv);
         float inverseDepth = normalDepth.sample(nearestSampler, in.uv).w;
         float3 rgb = color.rgb;
@@ -683,9 +749,10 @@ enum ShaderSource {
                 float2 texel = 1.0 / max(u.sizes.zw, float2(1.0));
                 float sum = 0.0;
                 float weight = 0.0;
-                for (int y = -2; y <= 2; y++) {
-                    for (int x = -2; x <= 2; x++) {
-                        float2 o = occlusionTexture.sample(nearestSampler, in.uv + float2(float(x), float(y)) * texel).rg;
+                for (int y = 0; y < 4; y++) {
+                    for (int x = 0; x < 4; x++) {
+                        float2 offset = float2(float(x) - 1.5, float(y) - 1.5) * texel;
+                        float2 o = occlusionTexture.sample(linearSampler, in.uv + offset).rg;
                         if (o.y <= 0.0) {
                             continue;
                         }

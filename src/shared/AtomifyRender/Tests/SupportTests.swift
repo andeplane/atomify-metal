@@ -214,37 +214,6 @@ final class SceneTypesTests: XCTestCase {
 }
 
 final class ShaderSourceTests: XCTestCase {
-    func testCubeStripCoversEveryFace() {
-        let strip = ShaderSource.cubeStrip.map(Int.init)
-        XCTAssertEqual(strip.count, 14)
-        func corner(_ i: Int) -> SIMD3<Int> { SIMD3(i & 1, (i >> 1) & 1, (i >> 2) & 1) }
-        var faces: [Set<Int>] = []
-        for axis in 0..<3 {
-            for value in 0...1 {
-                faces.append(Set((0..<8).filter { corner($0)[axis] == value }))
-            }
-        }
-        let triangles = (0..<(strip.count - 2)).map { Set(strip[$0..<($0 + 3)]) }
-        for triangle in triangles {
-            XCTAssertEqual(triangle.count, 3, "no degenerate triangles")
-            XCTAssertTrue(faces.contains { triangle.isSubset(of: $0) }, "every triangle lies on a face")
-        }
-        for face in faces {
-            let onFace = Set(triangles.filter { $0.isSubset(of: face) })
-            // Two triangles sharing a diagonal (corners differing in two coordinates).
-            let tiled = onFace.contains { a in
-                onFace.contains { b in
-                    let shared = a.intersection(b)
-                    guard shared.count == 2, a.union(b) == face else { return false }
-                    let pair = Array(shared)
-                    let d = corner(pair[0]) &- corner(pair[1])
-                    return abs(d.x) + abs(d.y) + abs(d.z) == 2
-                }
-            }
-            XCTAssertTrue(tiled, "face \(face) is fully covered")
-        }
-    }
-
     func testSourceDeclaresEveryFunction() {
         let source = ShaderSource.metal
         for geometry in [ParticleRenderer.Geometry.sphere, .bond, .line] {
@@ -281,7 +250,7 @@ final class ShaderSourceTests: XCTestCase {
         }
         XCTAssertTrue(source.contains("[[function_constant(\(ShaderSource.FunctionConstant.alphaToCoverage))]]"))
         XCTAssertTrue(source.contains("[[function_constant(\(ShaderSource.FunctionConstant.blendedEdges))]]"))
-        XCTAssertTrue(source.contains("constant ushort cubeStrip[14] = { 3, 2, 7, 6, 4, 2, 0, 3, 1, 7, 5, 4, 1, 0 };"))
+        XCTAssertTrue(source.contains("static float insideDepth(float sphereRadius, float bondRadius)"))
         XCTAssertFalse(source.contains("\\("), "no unexpanded interpolation")
     }
 }

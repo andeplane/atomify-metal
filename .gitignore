@@ -5,3 +5,4 @@ src/shared/lammps/build/
 DerivedData/
 xcuserdata/
 .DS_Store
+.build-bench/
