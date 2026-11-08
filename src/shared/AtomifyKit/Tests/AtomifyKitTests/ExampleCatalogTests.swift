@@ -76,7 +76,8 @@ func scratchDirectory() throws -> URL {
     @Test func imageURLsResolveInsideTheCatalog() throws {
         let directory = try fixturesDirectory()
         let catalog = try ExampleCatalog.load(from: directory)
-        let image = try #require(catalog.imageURL(for: #require(catalog.example(id: "lj"))))
+        let lj = try #require(catalog.example(id: "lj"))
+        let image = try #require(catalog.imageURL(for: lj))
         #expect(image.standardizedFileURL == directory.appendingPathComponent("lj/lj.png").standardizedFileURL)
         #expect(FileManager.default.fileExists(atPath: image.path))
         #expect(catalog.imageURL(for: try #require(catalog.example(id: "minimal"))) == nil)

@@ -25,7 +25,8 @@ final class DensityOcclusionTests: XCTestCase {
         let ambient = DensityOcclusion.ambient(positions: points, spacing: 1)
         XCTAssertEqual(ambient.count, points.count)
         let corner = ambient[0]
-        let center = ambient[(10 * 20 + 10) * 20 + 10]
+        let centerIndex: Int = (10 * 20 + 10) * 20 + 10
+        let center = ambient[centerIndex]
         XCTAssertGreaterThan(corner, center)
         XCTAssertEqual(corner, 1, accuracy: 1e-6)
         XCTAssertTrue(ambient.allSatisfy { $0 >= 0.45 - 1e-6 && $0 <= 1 })

@@ -109,7 +109,7 @@ final class RendererGPUTests: XCTestCase {
         let center = pixel(pixels, size / 2, size / 2)
         XCTAssertGreaterThan(center.x, 60, "red sphere in the middle: \(center)")
         XCTAssertLessThan(center.z, center.x)
-        XCTAssertEqual(pixel(pixels, 1, size - 2), SIMD4(0, 0, 0, 255), "background in the corner")
+        XCTAssertEqual(pixel(pixels, 1, size / 2), SIMD4(0, 0, 0, 255), "background at the left edge")
         let stats = renderer.lastFrameStats
         XCTAssertEqual(stats.particlesDrawn, 3)
         XCTAssertEqual(stats.bondsDrawn, 1)
@@ -133,7 +133,7 @@ final class RendererGPUTests: XCTestCase {
         let pixels = try render(renderer, view: renderView())
         let center = pixel(pixels, size / 2, size / 2)
         XCTAssertGreaterThan(center.x, 40, "composited sphere: \(center)")
-        XCTAssertEqual(pixel(pixels, 1, size - 2), SIMD4(0, 0, 0, 255))
+        XCTAssertEqual(pixel(pixels, 1, size / 2), SIMD4(0, 0, 0, 255))
         XCTAssertEqual(renderer.lastFrameStats.particlesDrawn, 3)
     }
 
@@ -165,7 +165,7 @@ final class RendererGPUTests: XCTestCase {
         let hit = pick(renderer, at: SIMD2(Float(size) / 2, Float(size) / 2))
         XCTAssertEqual(hit, .some(0), "the sphere in the middle")
         let miss = pick(renderer, at: SIMD2(1, Float(size) - 1))
-        XCTAssertEqual(miss, .some(nil), "background in the corner")
+        XCTAssertEqual(miss, .some(nil), "background at the left edge")
     }
 
     func testPickBeforeAnyFrameIsNil() throws {
