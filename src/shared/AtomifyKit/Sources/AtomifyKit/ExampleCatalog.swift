@@ -237,6 +237,17 @@ public struct ExampleCatalog: Sendable, Equatable {
         return url
     }
 
+    /// Where a bundled file of an example is, or nil when its location
+    /// leaves the catalog. The file itself may still be missing.
+    public func fileURL(for file: ExampleFile) -> URL? {
+        try? resolve(file.url)
+    }
+
+    /// The example's input script among its files, for showing it.
+    public func inputScriptURL(for example: Example) -> URL? {
+        example.files.first { $0.fileName == example.inputScript }.flatMap { fileURL(for: $0) }
+    }
+
     /// Copies an example's files into a fresh writable folder under `scratch`
     /// (bundles are read only, and scripts write logs and dumps), each under
     /// its `fileName`, and returns the folder and its input script.

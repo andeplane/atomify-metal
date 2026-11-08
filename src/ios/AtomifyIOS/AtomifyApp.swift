@@ -1,14 +1,15 @@
 import AtomifyKit
 import SwiftUI
 
-/// Atomify for iPhone and iPad: a running simulation, full screen.
+/// Atomify for iPhone and iPad: the examples gallery, and the running
+/// simulation full screen over it.
 @main
 struct AtomifyApp: App {
     @State private var model = AppModel()
 
     var body: some Scene {
         WindowGroup {
-            SimulationScreen()
+            RootView()
                 .environment(model)
         }
     }
