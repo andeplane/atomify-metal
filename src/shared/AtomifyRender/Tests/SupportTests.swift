@@ -317,6 +317,9 @@ final class ParticleViewMathTests: XCTestCase {
         XCTAssertGreaterThan(ParticleViewMath.zoomFactor(scrollDelta: 10, precise: true), 1)
         XCTAssertLessThan(ParticleViewMath.zoomFactor(scrollDelta: -1, precise: false), 1)
         XCTAssertEqual(ParticleViewMath.zoomFactor(scrollDelta: .nan, precise: true), 1)
+        // One fast flick can't jump more than 1.5x.
+        XCTAssertEqual(ParticleViewMath.zoomFactor(scrollDelta: 1e4, precise: true), 1.5, accuracy: 1e-4)
+        XCTAssertEqual(ParticleViewMath.zoomFactor(scrollDelta: -1e4, precise: false), 1 / 1.5, accuracy: 1e-4)
         XCTAssertTrue(ParticleViewMath.isClick(dragDistance: 1))
         XCTAssertFalse(ParticleViewMath.isClick(dragDistance: 10))
         XCTAssertTrue(ParticleViewMath.shouldReport(now: 1, last: 0.5))

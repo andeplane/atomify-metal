@@ -45,6 +45,9 @@ public enum CameraFraming {
             camera.distance = parameters.distance
             camera.yaw = parameters.yaw
             camera.pitch = parameters.pitch
+            // Keep the hinted view inside the zoom limits.
+            let range = camera.distanceRange
+            camera.distanceRange = min(range.lowerBound, camera.distance)...max(range.upperBound, camera.distance)
         }
         return camera
     }

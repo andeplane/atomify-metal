@@ -13,11 +13,18 @@ public struct OrbitCamera: Sendable, Equatable {
     public var pitch: Float
     /// Vertical field of view, radians.
     public var fieldOfView: Float = .pi / 4
+    /// How close and how far `zoom(by:)` may go. `frame(low:high:)` fits
+    /// it to the framed box; otherwise it is the absolute range.
+    public var distanceRange: ClosedRange<Float> = minimumDistance...maximumDistance
 
     /// Just short of straight up or down, so the view never flips.
     public static let pitchLimit: Float = .pi / 2 - 0.001
     public static let minimumDistance: Float = 1e-4
     public static let maximumDistance: Float = 1e8
+    /// Closest zoom, as a fraction of the framed bounding-sphere radius.
+    public static let closestZoom: Float = 0.05
+    /// Farthest zoom, as a multiple of the framing distance.
+    public static let farthestZoom: Float = 8
 
     public init(target: SIMD3<Float> = .zero, distance: Float = 10, yaw: Float = 0, pitch: Float = 0) {
         self.target = target
@@ -44,7 +51,17 @@ public struct OrbitCamera: Sendable, Equatable {
     /// Divides the distance by `factor`: above 1 moves closer.
     public mutating func zoom(by factor: Float) {
         guard factor > 0, factor.isFinite else { return }
-        distance = Self.clampDistance(distance / factor)
+        distance = min(max(Self.clampDistance(distance / factor), distanceRange.lowerBound),
+                       distanceRange.upperBound)
+    }
+
+    /// Zoom limits for a scene of bounding-sphere `radius` framed from
+    /// `framingDistance`: close enough to look at single atoms, far enough
+    /// to see the whole system small, never further.
+    public static func distanceRange(sceneRadius radius: Float, framingDistance: Float) -> ClosedRange<Float> {
+        let low = clampDistance(radius * closestZoom)
+        let high = max(clampDistance(framingDistance * farthestZoom), low)
+        return low...high
     }
 
     /// Fit a bounding box in view: look at its center from far enough that
@@ -65,6 +82,7 @@ public struct OrbitCamera: Sendable, Equatable {
             halfAngle = atanf(tanf(halfAngle) * aspect)
         }
         distance = Self.clampDistance(radius / sinf(max(halfAngle, 1e-3)) * 1.05)
+        distanceRange = Self.distanceRange(sceneRadius: radius, framingDistance: distance)
     }
 
     /// The eye position in world space.
@@ -115,9 +133,9 @@ public struct OrbitCamera: Sendable, Equatable {
     }
 
     /// The `rotate(by:)` argument for a pointer moved by `points` (x right,
-    /// y down): a drag across the full view height turns about half a turn.
+    /// y down): a drag across the full view height turns a full turn.
     public func rotationDelta(forPointerMove points: SIMD2<Float>, viewHeight: Float) -> SIMD2<Float> {
-        let radiansPerPoint = Float.pi / max(viewHeight, 100)
+        let radiansPerPoint = 2 * Float.pi / max(viewHeight, 100)
         return SIMD2(-points.x, points.y) * radiansPerPoint
     }
 
