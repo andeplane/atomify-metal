@@ -15,6 +15,17 @@ public enum ScriptEvent: Sendable, Equatable {
     /// Marks output lines that carry an event.
     public static let marker = "@atomify"
 
+    /// The directive as it stands in the script, for a console.
+    public var directive: String {
+        switch self {
+        case .speed(let steps):
+            let number = steps == steps.rounded() && abs(steps) < 1e15 ? String(Int64(steps)) : String(steps)
+            return "#/speed \(number)"
+        case .label(let text):
+            return "#/label \(text)"
+        }
+    }
+
     /// The print command for a `#/speed` or `#/label` line, or nil for
     /// any other line.
     public static func command(forDirective line: Substring) -> String? {
@@ -62,8 +73,13 @@ public enum ScriptEvent: Sendable, Equatable {
 /// rest arrives (or `flush()`).
 public struct ScriptEventFilter: Sendable {
     private var partial = ""
+    /// Writes each event's `directive` into the text where its marker was,
+    /// for a console that should still show them.
+    public var echoesEvents: Bool
 
-    public init() {}
+    public init(echoesEvents: Bool = false) {
+        self.echoesEvents = echoesEvents
+    }
 
     public mutating func filter(_ chunk: String) -> (text: String, events: [ScriptEvent]) {
         guard !chunk.isEmpty else { return ("", []) }
@@ -79,6 +95,7 @@ public struct ScriptEventFilter: Sendable {
                 let line = combined[lineStart..<index]
                 if let event = ScriptEvent.parse(line: line) {
                     events.append(event)
+                    if echoesEvents { text += event.directive + "\n" }
                 } else if !Self.isEcho(line) {
                     text += combined[lineStart..<next]
                 }
@@ -93,7 +110,9 @@ public struct ScriptEventFilter: Sendable {
     /// The held back unfinished line, unless it is a marker.
     public mutating func flush() -> (text: String, events: [ScriptEvent]) {
         defer { partial = "" }
-        if let event = ScriptEvent.parse(line: Substring(partial)) { return ("", [event]) }
+        if let event = ScriptEvent.parse(line: Substring(partial)) {
+            return (echoesEvents ? event.directive : "", [event])
+        }
         return (Self.isEcho(Substring(partial)) ? "" : partial, [])
     }
 
