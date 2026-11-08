@@ -1,0 +1,7 @@
+.build/
+.swiftpm/
+*.xcframework/
+src/shared/lammps/build/
+DerivedData/
+xcuserdata/
+.DS_Store

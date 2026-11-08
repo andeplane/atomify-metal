@@ -1,0 +1,34 @@
+diff --git a/src/run.cpp b/src/run.cpp
+index bc5a79d..46c4c37 100644
+--- a/src/run.cpp
++++ b/src/run.cpp
+@@ -24,6 +24,11 @@
+ #include "timer.h"
+ #include "update.h"
+ 
++// Atomify: integrate through atomify_integrate (atomify_shared.h), which lets
++// fix atomify end the integrator between two steps, execute commands the app
++// queued and continue the same run.
++#include "atomify_shared.h"
++
+ #include <cstring>
+ 
+ using namespace LAMMPS_NS;
+@@ -173,7 +178,7 @@ void Run::command(int narg, char **arg)
+ 
+     timer->init();
+     timer->barrier_start();
+-    update->integrate->run(nsteps);
++    atomify_integrate(lmp, nsteps);
+     timer->barrier_stop();
+ 
+     update->integrate->cleanup();
+@@ -214,7 +219,7 @@ void Run::command(int narg, char **arg)
+ 
+       timer->init();
+       timer->barrier_start();
+-      update->integrate->run(nsteps);
++      atomify_integrate(lmp, nsteps);
+       timer->barrier_stop();
+ 
+       update->integrate->cleanup();
