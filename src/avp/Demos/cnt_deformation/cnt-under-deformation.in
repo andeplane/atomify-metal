@@ -1,0 +1,121 @@
+#/atom 1 carbon
+#/atom 2 carbon
+#/atom 3 carbon
+#/bond 1 1 1.6
+#/bond 2 2 1.6
+#/bond 3 3 1.6
+#/bond 1 2 1.6
+#/bond 1 3 1.6
+#/bond 2 3 1.6
+
+#/camera position 27.8 -0.5 -60.6
+#/camera target 28.4 -3.4 -0.5
+
+# ============= This LAMMPS input script simulates a single CNT with defects under longitudinal stress
+# ============= Written by Simon Gravelle (https://simongravelle.github.io/)
+# ============= Find more scripts here: https://github.com/simongravelle/lammps-input-files
+# ============= LAMMPS tutorials for beginners: https://lammpstutorials.github.io/
+
+# ============= define variables
+variable	poro equal 0.03 # control the fraction of atom to remove
+variable	seed equal 15462 # change to run different simulation
+variable	T equal 300 # initiale temperature
+variable	dt equal 0.0005 # ps unit 
+
+# ============= basic parameters
+units		metal # required by airebo
+atom_style	full
+boundary	p p p
+pair_style  	airebo 2.5 1 1
+
+# ============= import data
+# ============= rescale box
+read_data	cnt-under-deformation.data
+# ============= lay the tube along x (across the view in Atomify, where y is up)
+change_box	all x final -60 60
+displace_atoms	all rotate 0 0 0 0 1 0 90 units box
+change_box	all x final -30 70 y final -20 20 z final -20 20
+
+# ============= force field
+pair_coeff 	* * CH.airebo C C C
+
+# ============= define groups
+# ============= isolate atoms at the edges
+group		CNT type 1
+variable	zmax equal bound(CNT,xmax)-10
+variable	zmin equal bound(CNT,xmin)+10
+variable	zmax0 equal bound(CNT,xmax)-20
+variable	zmin0 equal bound(CNT,xmin)+20
+region		top block ${zmax} INF INF INF INF INF
+region		bot block INF ${zmin} INF INF INF INF
+region		mob block ${zmin0} ${zmax0} INF INF INF INF
+group		topgroup region top
+group		botgroup region bot
+group		mobile region mob
+set 		group topgroup type 2 # control group 1
+set 		group botgroup type 3 # control group 2
+
+# ============= create porosity only in the central part
+# delete_atoms 	porosity mob ${poro} ${seed} 
+delete_atoms random fraction ${poro} no all NULL ${seed}
+
+
+# ============= fix nve + berendsen = NVT ensemble
+# ============= set timestep (0.5 fs)
+fix		myber all temp/berendsen ${T} ${T} 0.1
+fix		mynve all nve
+timestep	${dt}
+
+thermo		500
+thermo_style one
+
+# ============= first run (1 ps)
+# ============= equilibrate the whole system at T
+run		2000
+
+# ============= cancel berendsen (will be replaced)
+unfix		myber
+
+# ============= kill all the force along the tube axis (x) for the control group 1
+# ============= kill all the force along the tube axis (x) for the control group 2
+# ============= cancel velocity for the control group 1 
+# ============= cancel velocity for the control group 2
+fix 		sf1 topgroup setforce 0.0 NULL NULL
+fix 		sf2 botgroup setforce 0.0 NULL NULL
+velocity	topgroup set 0 NULL NULL
+velocity	botgroup set 0 NULL NULL
+
+# ============= the reported temperature (thermo_temp) leaves out the clamped
+# ============= motion of the end atoms along the tube axis
+variable	clampdof equal count(topgroup)+count(botgroup)+3
+compute_modify	thermo_temp extra/dof ${clampdof}
+
+# ============= for thermalisation of the control group 1 across the tube (y and z) only
+# ============= for thermalisation of the control group 2 across the tube (y and z) only
+# ============= to print the temperature of the central part
+compute	Ttop topgroup temp/partial 0 1 1
+compute	Tbot botgroup temp/partial 0 1 1
+compute	Tmob mobile temp
+thermo_modify 	temp Tmob
+
+# ============= add berendsen thermostat to top and bot groups
+fix		myber1 topgroup temp/berendsen ${T} ${T} 0.1
+fix_modify	myber1 temp Ttop # for thermalisation of the control group 1 across the tube only
+fix		myber2 botgroup temp/berendsen ${T} ${T} 0.1
+fix_modify	myber2 temp Tbot # for thermalisation of the control group 2 across the tube only
+
+# ============= gently thermostat the free part of the tube too, so the heat
+# ============= released when it snaps is carried away (a long tube would conduct it)
+group		tube type 1
+fix		myber3 tube temp/berendsen ${T} ${T} 0.5
+
+# ============= loop for incremental elongation of the tube
+# ============= each end moves 0.03 A every 50 fs (60 m/s), 12 A in total
+variable 	a loop 400
+label 		loop
+displace_atoms	topgroup move 0.03 0 0
+displace_atoms	botgroup move -0.03 0 0
+run		100
+next		a
+jump 		SELF loop
+

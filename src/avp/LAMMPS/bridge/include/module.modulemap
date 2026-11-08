@@ -1,0 +1,5 @@
+module CLammps {
+  header "atomify_lammps.h"
+  link "c++"
+  export *
+}

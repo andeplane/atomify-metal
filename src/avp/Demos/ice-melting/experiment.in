@@ -1,0 +1,26 @@
+# Coarse-grained mW water: one sphere represents one WHOLE H2O molecule.
+# Start from cubic ice (Ic), then supply heat from a bath. No explicit hydrogen
+# atoms, water rotations, chemical reactions or individual H-bond energies.
+#/atom 1 1.05 #9CE7FF
+units real
+atom_style atomic
+boundary p p p
+lattice diamond 6.3584
+region box block 0 4 0 4 0 4
+create_box 1 box
+create_atoms 1 box
+mass 1 18.01528
+pair_style sw
+pair_coeff * * mW.sw mW
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+minimize 1e-8 1e-6 1000 10000
+reset_timestep 0
+velocity all create 200.0 49183 mom yes rot no dist gaussian
+fix integrate all nve
+variable bath equal ternary(step<1000,200.0,ternary(step<7000,200.0+180.0*(step-1000.0)/6000.0,380.0))
+fix thermal all langevin v_bath 380.0 100.0 82347 zero yes
+timestep 5.0
+thermo 1000
+thermo_style custom step atoms temp pe ke etotal
+run 0

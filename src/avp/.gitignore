@@ -1,0 +1,12 @@
+.DS_Store
+DerivedData/
+artifacts/
+*.xcuserstate
+xcuserdata/
+.build/
+.swiftpm/
+__pycache__/
+# LAMMPS checkout and build trees (LAMMPS/build-*.sh)
+LAMMPS/build/
+# Built by LAMMPS/build-xcframework.sh
+Packages/AtomifyKit/Frameworks/

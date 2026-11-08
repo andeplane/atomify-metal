@@ -1,0 +1,24 @@
+# Lennard-Jones model in reduced units; this is not water or a specific element.
+# The bath supplies energy: watch lattice order disappear and neighbors change.
+#/atom 1 0.48 #79D7FA
+units lj
+atom_style atomic
+boundary p p p
+lattice fcc 0.95
+region box block 0 4 0 4 0 4
+create_box 1 box
+create_atoms 1 box
+mass 1 1.0
+pair_style lj/cut 2.5
+pair_coeff 1 1 1.0 1.0 2.5
+pair_modify shift yes
+neighbor 0.5 bin
+neigh_modify every 1 delay 0 check yes
+velocity all create 0.12 49183 mom yes rot no dist gaussian
+fix integrate all nve
+variable bath equal ternary(step<500,0.12,ternary(step<4500,0.12+1.48*(step-500.0)/4000.0,1.6))
+fix thermal all langevin v_bath 1.6 0.2 82347 zero yes
+timestep 0.004
+thermo 500
+thermo_style custom step atoms temp pe ke etotal
+run 0

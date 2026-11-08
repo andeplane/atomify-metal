@@ -1,0 +1,128 @@
+{
+  "recorded_at_utc": "2026-10-22T11:22:52.413789+00:00",
+  "base_commit": "f66325e1220de9c6d653f814a48fd37ebf5a3738",
+  "lammps_tag": "stable_22Jul2025_update1",
+  "host_library_sha256": "d0328dd6cac9650cba1e36628ace79dd267fe71c470c68aaaeec619646f4fa5d",
+  "checks": {
+    "bridge_tests": 17,
+    "atomifykit_swift_tests": 52,
+    "visionroomkit_swift_tests": 19,
+    "native_provider_factory_probe": "pass",
+    "featured_experiment_probes": 5,
+    "reactive_manipulation_trials": 3,
+    "visionOS_device_or_simulator_build": "unavailable: Xcode and xros SDK absent",
+    "headset_acceptance": "not performed"
+  },
+  "experiments": [
+    {
+      "id": "benzene",
+      "expected_atoms": 12,
+      "exit_code": 0,
+      "script_sha256": "b9e238c67f67987d5353b727644c8d3502a41668a9cd0031d379b26962e7eb5f"
+    },
+    {
+      "id": "carbon-workshop",
+      "expected_atoms": 160,
+      "exit_code": 0,
+      "script_sha256": "6cd0073d57b4fea23cb2ffcd963c6a55a138d1136ac56d7283f15b80015d6aaf"
+    },
+    {
+      "id": "diamond",
+      "expected_atoms": 216,
+      "exit_code": 0,
+      "script_sha256": "bdb8d5a151898a58394eceaa77d1a1a934d68e59b7a2dff513e7944a25173f07"
+    },
+    {
+      "id": "watervapor",
+      "expected_atoms": 3000,
+      "exit_code": 0,
+      "script_sha256": "0640950736340659da79cb14d76d2fb750546aefff66c095c9791ac950ce4ed8"
+    },
+    {
+      "id": "zeolite_zsm5",
+      "expected_atoms": 2304,
+      "exit_code": 0,
+      "script_sha256": "3dd5d3bc6e9dd139605b36d5808f95700a706d8ad913ba256e915b0d921217dc"
+    }
+  ],
+  "reactive_manipulation": [
+    {
+      "velocity_seed": 49183,
+      "exit_code": 0,
+      "max_CH_distance_A": 4.092371,
+      "final_CH_distance_A": 1.098702
+    },
+    {
+      "velocity_seed": 12347,
+      "exit_code": 0,
+      "max_CH_distance_A": 4.09238,
+      "final_CH_distance_A": 1.098707
+    },
+    {
+      "velocity_seed": 98731,
+      "exit_code": 0,
+      "max_CH_distance_A": 4.092377,
+      "final_CH_distance_A": 1.098703
+    }
+  ],
+  "connectivity_metric": {
+    "C_C_distance_range_A": [
+      0.8,
+      1.85
+    ],
+    "C_H_distance_threshold_A": 1.3,
+    "no_carbon_within_A_at_detachment": 2.0,
+    "post_release_relaxation_steps": 20000,
+    "post_release_relaxation_ps": 5,
+    "sampling": "every 100 steps while driven, every 2000 steps after release; full engine finite-state checks each timestep",
+    "claim_limit": "Distance-based connectivity, not electronic bond order, spontaneous repair or general chemistry."
+  },
+  "source_sha256": {
+    "vision-atomify/Atomify/App/AppModel.swift": "c5509ab6b7fb3aabc893872d938d617415f23dc24a2479e156e19dd0721a39f3",
+    "vision-atomify/Atomify/Controls/ControlsView.swift": "c905c36fe57367c4827673202d387d779305a106f5dcc8ea5f87374373bb1ff4",
+    "vision-atomify/Atomify/Interaction/HandTracker.swift": "ed7a32e458ebedb295c3646d61358d5e328684ac17fe67385f6fb421b5052a63",
+    "vision-atomify/Atomify/Interaction/HeadTracker.swift": "2c4122ece6cbf390dcc45ef3ea3d560725860ecf7fbdd5fd3d5aa8b31fabb65f",
+    "vision-atomify/Atomify/Interaction/InteractionController.swift": "6460a70543ff6e468a3ba4dc9403d5e29d13a09b239c8aabe075bd323f07afed",
+    "vision-atomify/Atomify/Interaction/RoomWalls.swift": "76a72ff7b68b84a89c837a00019902c298a3ca58ef1670cf4c9ca98f2024644e",
+    "vision-atomify/Atomify/Lab/BillboardScene.swift": "783d501764ec3211f367110960aa0a59833e7970e8b405dd930fa9854a8d10af",
+    "vision-atomify/Atomify/Lab/LabDriver.swift": "0a5e3ece5f0f48096b4dbe5a3ea570f2f6105f9c04f9e1feca0aae11ce636044",
+    "vision-atomify/Atomify/Lab/LabView.swift": "04ae50da86569d9ed54f34bcb386ead93964dcc4f20b5b761c25724a31c4b3c5",
+    "vision-atomify/Atomify/Lab/MoleculeScene.swift": "7befeb5cf8f91d4e1d2da0db5193a32048871a0cee23e4ddb010b9043fb0a2c7",
+    "vision-atomify/Atomify/Library/LibraryView.swift": "668ebfe39880685d41f34cb35d33ca53d61cfcc3e661cc91a1c74d04179de843",
+    "vision-atomify/Atomify/Library/MoleculePreview.swift": "48910032c32781296c1f1a1ce03f93733e25f9701c811143124f133ce6ab14b4",
+    "vision-atomify/Demos/benzene/experiment.in": "b9e238c67f67987d5353b727644c8d3502a41668a9cd0031d379b26962e7eb5f",
+    "vision-atomify/Demos/benzene/preview.json": "8a96b346e5456729222353f210ebbf8dbc713dda199440114233d6836f1f8047",
+    "vision-atomify/Demos/carbon-workshop/experiment.in": "6cd0073d57b4fea23cb2ffcd963c6a55a138d1136ac56d7283f15b80015d6aaf",
+    "vision-atomify/Demos/carbon-workshop/preview.json": "e147d3af440aa9da67444f8ccf0668ccba0c80c24c9f72caea34c7f0c8be983e",
+    "vision-atomify/Demos/demos.json": "4ca39c693ce094dd2ede3648479ef81106d6fff792a9423e3b1da8cf2659c4a6",
+    "vision-atomify/Demos/diamond/experiment.in": "bdb8d5a151898a58394eceaa77d1a1a934d68e59b7a2dff513e7944a25173f07",
+    "vision-atomify/Demos/diamond/preview.json": "8705232f77a75492d3f2190da3805f22f58d4d8bbd1cc5e177f867b614ed322a",
+    "vision-atomify/LAMMPS/bridge/include/atomify_lammps.h": "70912b7b3c7ac4b17cf1022b4761044419431c072395ba0b1084a9e542286b16",
+    "vision-atomify/LAMMPS/bridge/src/atomify_lammps.cpp": "62386af35ff15524eccf3934661b728b6dd8be3f15ea777e416cee88280ab82f",
+    "vision-atomify/LAMMPS/bridge/src/atomify_shared.h": "503e644371b5ed4e902b2db364bffc11b0605210725ae8990c759ef7698be4bc",
+    "vision-atomify/LAMMPS/bridge/src/fix_atomify.cpp": "50697a3cfad72fdf1319153bbc64f2e286b289b561ae3c05e02a4db9cd3e7603",
+    "vision-atomify/LAMMPS/bridge/src/fix_atomify.h": "28ef32fc99b50ff25e26c1dd3a3a017372b9f4de6f9b7f2dbd108704306a15b7",
+    "vision-atomify/LAMMPS/bridge/tests/bridge_test.cpp": "656f894d6f2a5aea805e257dee8b46b5c3f6d11ad220ac53557e6156fbb8761b",
+    "vision-atomify/LAMMPS/bridge/tests/demo_probe.cpp": "6ece99e7b39b47777aea25861bf01d786605ff7c56f644da3c4ce22c3a52db4d",
+    "vision-atomify/LAMMPS/bridge/tests/preview_export.cpp": "68cc563a793dc3dcdda898689cc63a2cf24c52a1a511c320e9e2e25ba3cbdb0a",
+    "vision-atomify/LAMMPS/bridge/tests/reactive_probe.cpp": "04fdb129c5421b3515a15043259b1d004c468a974e4c7f244d68ae4383cda09a",
+    "vision-atomify/LAMMPS/package-host-library.py": "7245ec5e465e8a4c3db22c0b38d418258642b145160318ef28d63605e35bb8b2",
+    "vision-atomify/LAMMPS/prepare_lammps.py": "e9f2b32ba5274ec70346f165ae5c70541678c5a68bb3013091fb759fcc383994",
+    "vision-atomify/LAMMPS/validate-release.py": "1205610b115ae6abf6f0089e5b0e7605b5cf31c2b11b0e25ed7b72e3e42feabc",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/DemoCatalog.swift": "9b1a863adc2c9687f9a6efeabb6508ec71dc9ffd5166fff5e010c2ade1d792c1",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/LammpsSimulation.swift": "2b7e77a8a5cc6d593a3a78cc9b1c5258314d595a28a85eb8f68dce524622a165",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/PinchIntent.swift": "cd228a2e6eaa407c085a32880bb810de6ae6e0f1adf6c3edaf5046e6fcbe6a55",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/RoomScanProgress.swift": "9400db6fa07bcc04de1032ffb11a8b8d51a547663d36d65bd12222f343833bba",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/RoomScenario.swift": "645515443b09c18e56528fcb7df37f331f0ab0da9a6a0a96b33aa302a94b840c",
+    "vision-atomify/Packages/AtomifyKit/Sources/AtomifyKit/SimulationHealth.swift": "9801df6cbb618790744fafd6ad41158b9a3ead7393d4a02c87713eee8fa9c22d",
+    "vision-atomify/Packages/AtomifyKit/Tests/AtomifyKitTests/LammpsSimulationTests.swift": "a48e2b34bb372bb1fc1c87b7290991ad044b723c05d234b8bce6f0608d30942d",
+    "vision-atomify/Packages/AtomifyKit/Tests/AtomifyKitTests/SafetyTests.swift": "7eb5db7f1b7b5648020d5ddd40febb80bc3187fcd78c84993d0d688333a0c587",
+    "vision-room-kit/Sources/VisionRoomKit/RoomSensingSession.swift": "3996c98e8fb8acc2c799a52dfd2b0cf27cb6c5d971d896225759214fd72ac171"
+  },
+  "potential_sha256": {
+    "vision-atomify/Demos/cnt_deformation/CH.airebo": "967c5126cb57c49d5fb322b35320abf396e498fe144485d4f19424af3b914c7f",
+    "vision-atomify/Demos/benzene/CH.airebo": "967c5126cb57c49d5fb322b35320abf396e498fe144485d4f19424af3b914c7f",
+    "vision-atomify/Demos/carbon-workshop/CH.airebo": "967c5126cb57c49d5fb322b35320abf396e498fe144485d4f19424af3b914c7f",
+    "vision-atomify/Demos/diamond/CH.airebo": "967c5126cb57c49d5fb322b35320abf396e498fe144485d4f19424af3b914c7f"
+  }
+}

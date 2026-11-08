@@ -1,0 +1,42 @@
+# Regenerates water.data for the Water demo (run once offline with LAMMPS):
+#   lmp -in make-water.in
+# 343 SPC/E water molecules with random orientations on a 7x7x7 grid at
+# 1.0 g/cm3, minimized, then equilibrated for 25 ps at 300 K.
+units real
+atom_style full
+boundary p p p
+
+variable n equal 7
+variable L equal (${n}^3*18.0153/0.602214/1.0)^(1.0/3.0)
+lattice sc $(v_L/v_n)
+region box block 0 ${n} 0 ${n} 0 ${n}
+create_box 2 box bond/types 1 angle/types 1 extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2
+mass 1 15.9994
+mass 2 1.008
+molecule h2o spce.mol
+create_atoms 0 box mol h2o 48213
+
+pair_style lj/cut/coul/long 9.0
+pair_coeff 1 1 0.1553 3.166
+pair_coeff 2 2 0.0 1.0
+pair_coeff 1 2 0.0 1.0
+bond_style harmonic
+bond_coeff 1 450.0 1.0
+angle_style harmonic
+angle_coeff 1 55.0 109.47
+kspace_style pppm 1.0e-4
+special_bonds lj/coul 0.0 0.0 0.0
+neigh_modify every 1 delay 0 check yes
+
+thermo 1000
+thermo_style custom step temp pe press density
+minimize 1.0e-4 1.0e-6 1000 10000
+
+reset_timestep 0
+timestep 2.0
+
+fix rigid all shake 1.0e-4 100 0 b 1 a 1
+velocity all create 300.0 7741 mom yes rot yes dist gaussian
+fix nvt all nvt temp 300.0 300.0 100.0
+run 12500
+write_data water.data nocoeff

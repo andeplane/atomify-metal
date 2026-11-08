@@ -1,0 +1,53 @@
+# Restless atoms: loose nickel adatoms (type 2) hopping on a Ni(111) surface.
+# Slab: 5 layers of 10 x 10 atoms, x = [1-10], y = [111] (up), z = [-1-12],
+# periodic in x and z with vacuum above in +y. The bottom layer is held fixed.
+# Adatoms start on fcc hollow sites. Every atom is nickel: both types use
+# the same Foiles EAM potential, so Ni-adatom bonds are ordinary Ni-Ni bonds.
+#/atom 1 1.63 #9aa0a8
+#/atom 2 1.63 #ffb020
+
+units metal
+atom_style atomic
+boundary p p p
+
+lattice fcc 3.52 orient x 1 -1 0 orient y 1 1 1 orient z -1 -1 2
+region box block 0 5 -0.5 6 0 3.75
+create_box 2 box
+region slab block INF INF -0.01 1.4 INF INF units lattice
+create_atoms 1 region slab
+create_atoms 2 single 23.6457 10.1614 3.5926 units box
+create_atoms 2 single 4.9780 10.1614 5.7481 units box
+create_atoms 2 single 14.9341 10.1614 5.7481 units box
+create_atoms 2 single 9.9561 10.1614 10.0592 units box
+create_atoms 2 single 22.4011 10.1614 10.0592 units box
+create_atoms 2 single 3.7335 10.1614 12.2148 units box
+create_atoms 2 single 14.9341 10.1614 14.3703 units box
+create_atoms 2 single 4.9780 10.1614 18.6814 units box
+create_atoms 2 single 22.4011 10.1614 18.6814 units box
+create_atoms 2 single 11.2006 10.1614 20.8370 units box
+
+pair_style eam
+pair_coeff * * Ni_u3.eam
+mass * 58.69
+neigh_modify every 1 delay 0 check yes
+
+region bottom block INF INF INF 1.0 INF INF units box
+group bottom region bottom
+group adatoms type 2
+group mobile subtract all bottom
+group substrate subtract mobile adatoms
+
+variable T equal 600
+velocity mobile create ${T} 4928 mom yes rot no dist gaussian
+velocity bottom set 0 0 0
+fix integrate mobile nve
+fix thermostat substrate langevin ${T} ${T} 0.5 7253 zero yes
+timestep 0.002
+
+# The reported temperature (thermo_temp) counts only atoms that move.
+variable fixeddof equal 3*count(bottom)+3
+compute_modify thermo_temp extra/dof ${fixeddof}
+thermo_style one
+thermo 1000
+
+run 1000

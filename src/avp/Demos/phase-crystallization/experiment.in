@@ -1,0 +1,25 @@
+# Seed-assisted LJ crystallization, reduced units. The 32 gold particles are
+# an immobile crystalline template, not spontaneous homogeneous nucleation.
+# The other 224 particles cool and reorganize under actual LJ forces.
+#/atom 1 0.48 #79D7FA
+#/atom 2 0.48 #F6C86B
+units lj
+atom_style atomic
+boundary p p p
+read_data seed-liquid.data nocoeff
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0 2.5
+pair_modify shift yes
+neighbor 0.5 bin
+neigh_modify every 1 delay 0 check yes
+group template type 2
+group mobile type 1
+velocity template set 0 0 0
+fix hold template setforce 0 0 0
+fix integrate mobile nve
+variable bath equal ternary(step<500,1.6,ternary(step<4500,1.6-1.45*(step-500.0)/4000.0,0.15))
+fix thermal mobile langevin v_bath 0.15 0.2 82347 zero yes
+timestep 0.004
+thermo 1000
+thermo_style custom step atoms temp pe ke etotal
+run 0

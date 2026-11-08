@@ -1,0 +1,24 @@
+units metal
+atom_style atomic
+boundary f f f
+#/atom 1 carbon
+#/bond 1 1 1.85
+lattice diamond 3.567
+region simulation block -8 19 -8 19 -8 19 units box
+create_box 1 simulation
+region crystal block 0 2.999999 0 2.999999 0 2.999999 units lattice
+create_atoms 1 region crystal
+mass 1 12.011
+pair_style airebo 3.0
+pair_coeff * * CH.airebo C
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+timestep 0.00025
+thermo 100
+thermo_style custom step atoms temp pe ke etotal
+min_style cg
+minimize 1.0e-8 1.0e-6 1000 10000
+velocity all create 100.0 49183 mom yes rot yes dist gaussian
+fix integrate all nve
+fix thermal all langevin 100.0 100.0 0.1 82347 zero yes
+run 0

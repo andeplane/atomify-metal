@@ -1,0 +1,21 @@
+{
+  "upstream": "https://github.com/lammps/lammps",
+  "tag": "stable_22Jul2025_update1",
+  "files": [
+    {
+      "local": "in.peptide",
+      "upstream_url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/peptide/in.peptide",
+      "upstream_sha256": "d1e3b3e5c88ef8c79399f0e6a552099e6ad7c751903e211e1611cf47ce1fcaff",
+      "local_sha256": "a4aa1e0698571ac4c59c85e3141d52141fccc4fdb9dc698b15342bedfad19f8e",
+      "byte_identical": false
+    },
+    {
+      "local": "data.peptide",
+      "upstream_url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/peptide/data.peptide",
+      "upstream_sha256": "6809254d4459950fc66ca7493c87290db7e811939995a09923c7ae6357daf73b",
+      "local_sha256": "6809254d4459950fc66ca7493c87290db7e811939995a09923c7ae6357daf73b",
+      "byte_identical": true
+    }
+  ],
+  "local_changes": "Input adds presentation/group/logging directives; data is byte-identical."
+}

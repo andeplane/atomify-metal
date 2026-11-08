@@ -1,0 +1,32 @@
+units metal
+atom_style atomic
+boundary f f f
+#/atom 1 carbon
+#/atom 2 hydrogen
+#/bond 1 1 1.85
+#/bond 1 2 1.3
+region simulation block -6 6 -6 6 -6 6
+create_box 2 simulation
+create_atoms 1 single -0.7700000000 0.0000000000 0.0000000000 units box
+create_atoms 1 single 0.7700000000 0.0000000000 0.0000000000 units box
+create_atoms 2 single -1.1333333333 1.0276618553 0.0000000000 units box
+create_atoms 2 single -1.1333333333 -0.5138309277 0.8899812732 units box
+create_atoms 2 single -1.1333333333 -0.5138309277 -0.8899812732 units box
+create_atoms 2 single 1.1333333333 0.5138309277 0.8899812732 units box
+create_atoms 2 single 1.1333333333 -1.0276618553 0.0000000000 units box
+create_atoms 2 single 1.1333333333 0.5138309277 -0.8899812732 units box
+mass 1 12.011
+mass 2 1.008
+pair_style airebo 3.0
+pair_coeff * * CH.airebo C H
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+timestep 0.00025
+thermo 100
+thermo_style custom step atoms temp pe ke etotal
+min_style cg
+minimize 1.0e-8 1.0e-6 1000 10000
+velocity all create 50.0 49183 mom yes rot yes dist gaussian
+fix integrate all nve
+fix thermal all langevin 50.0 50.0 0.1 82347 zero yes
+run 0

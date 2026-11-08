@@ -1,0 +1,27 @@
+units lj
+atom_style atomic
+boundary p p p
+lattice fcc 0.95
+region box block 0 4 0 4 0 4
+create_box 2 box
+create_atoms 1 box
+mass * 1.0
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0 2.5
+pair_modify shift yes
+neighbor 0.3 bin
+neigh_modify every 1 delay 0 check yes
+region template block INF INF INF INF 0 0.25 units lattice
+group template region template
+set group template type 2
+group mobile subtract all template
+velocity mobile create 1.6 49183 mom yes rot no dist gaussian
+velocity template set 0 0 0
+fix hold template setforce 0 0 0
+fix integrate mobile nve
+fix thermal mobile langevin 1.6 1.6 0.2 82347 zero yes
+timestep 0.004
+thermo 1000
+thermo_style custom step atoms temp pe ke etotal
+run 15000
+write_data seed-liquid.data
