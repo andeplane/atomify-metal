@@ -10,26 +10,18 @@ struct ViewOptionsSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Form {
-                atoms
-                coloring
-                Section("Show") {
-                    Toggle("Bonds", isOn: $session.showBonds)
-                    Toggle("Simulation box", isOn: $session.showBox)
-                    Toggle("Performance overlay", isOn: $showPerformance)
-                }
-                rendering
-                camera
+        Form {
+            atoms
+            coloring
+            Section("Show") {
+                Toggle("Bonds", isOn: $session.showBonds)
+                Toggle("Simulation box", isOn: $session.showBox)
+                Toggle("Performance overlay", isOn: $showPerformance)
             }
-            .navigationTitle("View")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
+            rendering
+            camera
         }
+        .scrollContentBackground(.hidden)
     }
 
     private var atoms: some View {

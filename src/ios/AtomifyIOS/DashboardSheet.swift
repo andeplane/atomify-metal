@@ -7,24 +7,11 @@ import SwiftUI
 /// thermostat and force controls), in the example's order.
 struct DashboardSheet: View {
     let session: SimulationSession
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 14) {
-                    ForEach(Array(session.dashboard.enumerated()), id: \.offset) { _, panel in
-                        DashboardPanelView(session: session, panel: panel)
-                    }
-                }
-                .padding(16)
-            }
-            .navigationTitle("Dashboard")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
+        LazyVStack(spacing: 10) {
+            ForEach(Array(session.dashboard.enumerated()), id: \.offset) { _, panel in
+                DashboardPanelView(session: session, panel: panel)
             }
         }
     }

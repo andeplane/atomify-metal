@@ -2,7 +2,7 @@
 
 A SwiftUI app that runs the bundled Atomify examples with the shared engine and draws them with the Metal renderer.
 It runs in landscape only and opens, as Atomify 2 did, on the Water molecule example already running, with the welcome over it (on every launch; the close button or a tap dismisses it): drag to rotate, two fingers to pan, pinch to zoom, tap an atom to inspect it, double tap to frame the system again, and tap empty space to hide the controls.
-A glass toolbar opens the examples gallery (pausing the run until you return to it), restarts, plays or pauses, and opens the view options and the dashboard as sheets; the speed pill plays at ¼× to 10× the example's own speed, or as fast as the device can.
+Glass controls float along the edges: top left, the Examples button (the gallery, pausing the run until you return to it) and the title, which opens the Info panel; top right, a rail for the Info, Dashboard and View panels, which open in a card beside the atoms; bottom right, the speed (¼× to 10× the example's own speed, or as fast as the device can), Restart and Play or Pause.
 The gallery has a row of cards per topic as in Atomify 2; a card shows the example's description, script and files, and Run starts it. Its gear opens Settings (playback speed, performance overlay, about and acknowledgements).
 
 The app is a thin shell.

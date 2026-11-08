@@ -253,6 +253,44 @@ private struct SearchResults: View {
 
 /// Short forms of the catalog's Markdown descriptions.
 enum ExampleText {
+    /// A paragraph of a description, or a heading: a paragraph that is all
+    /// bold.
+    enum Block: Equatable {
+        case heading(String)
+        case paragraph(String)
+    }
+
+    /// A description split on blank lines. Markdown heading lines (`#`)
+    /// are left out, as `Markdown.inline` does.
+    static func blocks(of description: String) -> [Block] {
+        var blocks: [Block] = []
+        var lines: [Substring] = []
+        func flush() {
+            let paragraph = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            lines = []
+            guard !paragraph.isEmpty else { return }
+            if paragraph.count > 4, paragraph.hasPrefix("**"), paragraph.hasSuffix("**") {
+                let inner = paragraph.dropFirst(2).dropLast(2)
+                if !inner.contains("**") {
+                    blocks.append(.heading(inner.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    return
+                }
+            }
+            blocks.append(.paragraph(paragraph))
+        }
+        let text = description.replacingOccurrences(of: "\r\n", with: "\n")
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                flush()
+            } else if !trimmed.hasPrefix("#") {
+                lines.append(line)
+            }
+        }
+        flush()
+        return blocks
+    }
+
     /// The first paragraph without Markdown emphasis, for cards.
     static func summary(of description: String) -> String {
         let paragraph = description

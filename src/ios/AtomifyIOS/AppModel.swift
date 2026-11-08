@@ -2,19 +2,27 @@ import AtomifyKit
 import Foundation
 import Observation
 
-/// The sheets over the simulation.
-enum AppSheet: String, Identifiable {
-    case view
-    case dashboard
+/// The tabs of the side panel beside the simulation.
+enum SidePanel: String, Identifiable, CaseIterable {
     /// About the running example, from the title capsule.
-    case about
+    case info
+    case dashboard
+    case view
 
     var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .info: "Info"
+        case .dashboard: "Dashboard"
+        case .view: "View"
+        }
+    }
 }
 
 /// App-wide state: the bundled example catalog, the one simulation session
 /// the screen shows, whether the gallery or the welcome is over it, and
-/// which sheet and controls are up.
+/// which panel and controls are up.
 @MainActor @Observation.Observable
 final class AppModel {
     /// What runs when the app starts, as in Atomify 2.
@@ -39,8 +47,8 @@ final class AppModel {
     var showsGallery = false
     /// Atomify 2's welcome over the running simulation, on every launch.
     var showsWelcome = true
-    /// The sheet shown over the simulation, if any.
-    var sheet: AppSheet?
+    /// The side panel shown beside the simulation, if any.
+    var panel: SidePanel?
     /// All floating controls hidden, for a clean view of the atoms.
     var chromeHidden = false
 
@@ -87,14 +95,14 @@ final class AppModel {
     func run(_ example: Example) {
         session.load(example, from: catalog)
         pausedForGallery = false
-        sheet = nil
+        panel = nil
         chromeHidden = false
         showsGallery = false
     }
 
     /// Back to the gallery. A running simulation pauses until it is shown again.
     func showGallery() {
-        sheet = nil
+        panel = nil
         if session.status == .running {
             session.pause()
             pausedForGallery = true

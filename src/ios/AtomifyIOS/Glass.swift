@@ -101,9 +101,12 @@ struct RailButton: View {
 /// of any size work.
 struct LayoutMetrics: Equatable {
     var isWide = false
+    /// Too narrow for a panel beside the atoms: it covers them instead.
+    var overlaysPanel = false
 
     init(width: CGFloat = 0) {
         isWide = width >= 1000
+        overlaysPanel = width > 0 && width < 700
     }
 
     /// Between the safe area and the floating controls.
