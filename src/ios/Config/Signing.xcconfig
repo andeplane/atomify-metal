@@ -1,0 +1,11 @@
+// Signing and identity for the Atomify iOS app.
+//
+// The defaults build a development app that sits next to the App Store one.
+// Put your own values in Local.xcconfig (git-ignored, see
+// Local.xcconfig.example), or pass them to xcodebuild:
+//   xcodebuild ... DEVELOPMENT_TEAM=ABCDE12345 ATOMIFY_BUNDLE_ID=com.example.atomify
+
+ATOMIFY_BUNDLE_ID = no.uio.atomify.dev
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"
