@@ -85,6 +85,7 @@ private struct GalleryContent: View {
             .padding(.top, 6)
             .padding(.bottom, 12)
         }
+        .scrollIndicatorsFlash(onAppear: true)
         .overlay {
             if sections.isEmpty && !query.isEmpty {
                 ContentUnavailableView.search(text: query)
