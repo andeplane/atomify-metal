@@ -1,7 +1,7 @@
 # Atomify for iPhone and iPad
 
 A SwiftUI app that runs the bundled Atomify examples with the shared engine and draws them with the Metal renderer.
-It opens on the examples gallery, a row of cards per topic as in Atomify 2, with a welcome on first launch.
+It opens on the examples gallery, a row of cards per topic as in Atomify 2, with a welcome on first launch; the gear opens Settings (playback speed, performance overlay, about and acknowledgements).
 A card shows the example's description, script and files; Run opens the simulation full screen: drag to rotate, two fingers to pan, pinch to zoom, tap an atom to inspect it, double tap to frame the system again, and tap empty space to hide the controls.
 A glass toolbar goes back to the gallery (pausing the run until you return to it), restarts, plays or pauses, and opens the view options and the dashboard as sheets; the speed pill plays at ¼× to 10× the example's own speed, or as fast as the device can.
 

@@ -49,6 +49,8 @@ struct GalleryScreen: View {
     @Binding var showsWelcome: Bool
     @State private var path: [ExampleRoute] = []
     @State private var query = ""
+    @State private var showsSettings = false
+    @State private var wantsWelcome = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -78,16 +80,24 @@ struct GalleryScreen: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showsWelcome = true
+                        showsSettings = true
                     } label: {
-                        Image(systemName: "info.circle")
+                        Image(systemName: "gearshape")
                     }
-                    .accessibilityLabel("About Atomify")
+                    .accessibilityLabel("Settings")
                 }
             }
             .navigationDestination(for: ExampleRoute.self) { route in
                 ExampleRouteView(model: model, route: route)
             }
+        }
+        .sheet(isPresented: $showsSettings, onDismiss: {
+            if wantsWelcome {
+                wantsWelcome = false
+                showsWelcome = true
+            }
+        }) {
+            SettingsSheet(model: model, wantsWelcome: $wantsWelcome)
         }
     }
 }
@@ -252,7 +262,7 @@ enum ExampleText {
     }
 }
 
-/// Atomify 2's welcome, shown on first launch and from the info button.
+/// Atomify 2's welcome, shown on first launch and from Settings.
 struct WelcomeSheet: View {
     @Environment(\.dismiss) private var dismiss
 
