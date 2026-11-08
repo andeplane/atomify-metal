@@ -12,6 +12,8 @@ import simd
             == "print \"@atomify label Dissolving by entropy\"")
         #expect(ScriptEvent.command(forDirective: "#/label say \"hi\" for $5")
             == "print \"@atomify label say hi for 5\"")
+        #expect(ScriptEvent.command(forDirective: "#/label One side will have'm all")
+            == "print \"@atomify label One side will have\u{2019}m all\"")
         #expect(ScriptEvent.command(forDirective: "#/speed fast") == nil)
         #expect(ScriptEvent.command(forDirective: "#/speed 0") == nil)
         #expect(ScriptEvent.command(forDirective: "#/atom 1 oxygen") == nil)

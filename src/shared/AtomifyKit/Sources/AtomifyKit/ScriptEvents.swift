@@ -28,8 +28,10 @@ public enum ScriptEvent: Sendable, Equatable {
             guard let value = Double(argument), value.isFinite, value > 0 else { return nil }
             return "print \"\(marker) speed \(argument)\""
         case "label":
-            // Quotes would end the string; $ would start a LAMMPS variable.
-            let text = argument.filter { $0 != "\"" && $0 != "$" }
+            // Double quotes would end the string, a single quote makes LAMMPS
+            // fail (print parses its text again), and $ would start a
+            // variable: drop them, and turn apostrophes typographic.
+            let text = argument.filter { $0 != "\"" && $0 != "$" }.replacingOccurrences(of: "'", with: "\u{2019}")
             return "print \"\(marker) label \(text)\""
         default:
             return nil

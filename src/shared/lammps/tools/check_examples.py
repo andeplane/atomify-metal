@@ -51,7 +51,7 @@ def prepare(script: str) -> str:
                     lines[i] = f'print "@atomify speed {argument}"'
                     changed = True
             else:
-                text = argument.replace('"', "").replace("$", "")
+                text = argument.replace('"', "").replace("$", "").replace("'", "\u2019")
                 lines[i] = f'print "@atomify label {text}"'
                 changed = True
     return "\n".join(lines) if changed else script
