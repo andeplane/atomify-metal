@@ -4,7 +4,6 @@ import Observation
 
 /// The sheets over the simulation.
 enum AppSheet: String, Identifiable {
-    case examples
     case view
     case dashboard
     /// About the running example, from the title capsule.
@@ -14,14 +13,14 @@ enum AppSheet: String, Identifiable {
 }
 
 /// App-wide state: the bundled example catalog, the one simulation session
-/// the screen shows, and which sheet and controls are up.
+/// the screen shows, whether it is up over the gallery, and which sheet and
+/// controls are up.
 @MainActor @Observation.Observable
 final class AppModel {
-    /// What runs when the app starts.
-    static let firstExampleID = "singlewater"
-
     let catalog: ExampleCatalog
     let catalogError: String?
+    /// The examples by topic, in the gallery's order.
+    let sections: [ExampleSection]
     let session = SimulationSession()
 
     /// Render quality for the system size; the view options change its mode.
@@ -33,6 +32,8 @@ final class AppModel {
     /// simulation's pace while it runs, not at all while nothing changes.
     let framePacing = FramePacing()
 
+    /// The simulation screen is up; otherwise the gallery shows.
+    var showsSimulation = false
     /// The sheet shown over the simulation, if any.
     var sheet: AppSheet?
     /// All floating controls hidden, for a clean view of the atoms.
@@ -40,6 +41,8 @@ final class AppModel {
 
     /// Set when the app paused a running simulation on its way to the background.
     @ObservationIgnored private var pausedForBackground = false
+    /// Set when the app paused a running simulation to show the gallery.
+    @ObservationIgnored private var pausedForGallery = false
 
     init(examplesDirectory: URL? = Bundle.main.url(forResource: "Examples", withExtension: nil)) {
         var catalog = ExampleCatalog(directory: URL(fileURLWithPath: "/"), examples: [])
@@ -55,13 +58,8 @@ final class AppModel {
         }
         self.catalog = catalog
         self.catalogError = catalogError
-    }
-
-    /// Runs the first example, once.
-    func start() {
-        guard session.title == nil,
-              let example = catalog.example(id: Self.firstExampleID) ?? catalog.examples.first else { return }
-        session.load(example, from: catalog)
+        sections = ExampleSections.sections(for: catalog.examples,
+                                            definitions: catalog.sections ?? ExampleSections.curated)
     }
 
     /// Runs the example with this id, replacing the current run.
@@ -70,11 +68,43 @@ final class AppModel {
         run(example)
     }
 
-    /// Runs an example, replacing the current run, and shows the controls.
+    /// Runs an example, replacing the current run, and shows it with the
+    /// controls.
     func run(_ example: Example) {
         session.load(example, from: catalog)
+        pausedForGallery = false
         sheet = nil
         chromeHidden = false
+        showsSimulation = true
+    }
+
+    /// Back to the gallery. A running simulation pauses until it is shown again.
+    func showGallery() {
+        sheet = nil
+        if session.status == .running {
+            session.pause()
+            pausedForGallery = true
+        }
+        showsSimulation = false
+    }
+
+    /// Shows the loaded simulation again, resuming it if the gallery paused it.
+    func returnToSimulation() {
+        guard session.title != nil else { return }
+        chromeHidden = false
+        showsSimulation = true
+        if pausedForGallery {
+            pausedForGallery = false
+            if session.status == .paused { session.resume() }
+        }
+    }
+
+    /// Restarts the loaded example and shows it.
+    func restartAndShow() {
+        pausedForGallery = false
+        session.restart()
+        chromeHidden = false
+        showsSimulation = true
     }
 
     /// A tap on the atoms: an atom selects it (or deselects it when it was

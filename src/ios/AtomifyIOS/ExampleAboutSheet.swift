@@ -19,7 +19,7 @@ struct ExampleAboutSheet: View {
                             .listRowBackground(Color.clear)
                     }
                     Section {
-                        Text(example.description)
+                        Text(Markdown.inline(example.description))
                         if let author = example.author {
                             if let link = example.authorUrl.flatMap({ URL(string: $0) }) {
                                 Link(destination: link) {
@@ -48,7 +48,7 @@ struct ExampleAboutSheet: View {
                     }
                     .disabled(session.title == nil)
                     Button {
-                        model.sheet = .examples
+                        model.showGallery()
                     } label: {
                         Label("Choose Another Example", systemImage: "square.grid.2x2")
                     }

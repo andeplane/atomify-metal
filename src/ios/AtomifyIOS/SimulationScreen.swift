@@ -7,13 +7,14 @@ import SwiftUI
 enum SettingsKey {
     /// Frames per second, GPU time and steps per second over the atoms.
     static let showPerformance = "showPerformanceOverlay"
+    /// The welcome was shown once.
+    static let hasSeenWelcome = "hasSeenWelcome"
 }
 
-/// The root screen: the Metal view edge to edge, with glass controls
-/// floating on top and everything else in sheets.
+/// The running simulation, over the gallery: the Metal view edge to edge,
+/// with glass controls floating on top and everything else in sheets.
 struct SimulationScreen: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     var body: some View {
@@ -40,14 +41,6 @@ struct SimulationScreen: View {
         .sheet(item: $model.sheet) { sheet in
             SheetContent(sheet: sheet, model: model)
         }
-        .task { model.start() }
-        .onChange(of: scenePhase) { _, phase in
-            switch phase {
-            case .active: model.enterForeground()
-            case .background: model.enterBackground()
-            default: break
-            }
-        }
     }
 }
 
@@ -60,7 +53,6 @@ private struct SheetContent: View {
     var body: some View {
         Group {
             switch sheet {
-            case .examples: ExamplesSheet(model: model)
             case .view: ViewOptionsSheet(model: model, session: model.session)
             case .dashboard: DashboardSheet(session: model.session)
             case .about: ExampleAboutSheet(model: model, session: model.session)
@@ -138,7 +130,9 @@ struct SimulationChrome: View {
                 }
                 Spacer(minLength: 8)
                 ResetViewButton(session: session)
+                SpeedMenu(session: session)
             }
+            ScriptLabelBanner(session: session)
             if !landscape && showPerformance {
                 HStack {
                     PerformanceHUD(session: session)
@@ -167,6 +161,73 @@ struct SimulationChrome: View {
         .padding(.horizontal, landscape ? 8 : 16)
         .padding(.vertical, 8)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
+    }
+}
+
+/// How fast the simulation plays, relative to the example's own speed
+/// (Atomify 2's: one timestep per frame unless the script says otherwise).
+struct SpeedMenu: View {
+    let session: SimulationSession
+
+    static let choices: [(label: String, factor: Double)] = [
+        ("¼×", 0.25), ("½×", 0.5), ("1×", 1), ("2×", 2), ("4×", 4), ("10×", 10), ("Max", .infinity),
+    ]
+
+    var body: some View {
+        let factor = session.speedFactor
+        Menu {
+            Picker("Speed", selection: Binding(
+                get: { Self.choices.firstIndex { $0.factor == factor } ?? 2 },
+                set: { session.speedFactor = Self.choices[$0].factor }
+            )) {
+                ForEach(Self.choices.indices, id: \.self) { index in
+                    Text(Self.choices[index].label).tag(index)
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "gauge.with.dots.needle.67percent")
+                    .font(.footnote)
+                Text(Self.label(for: factor))
+                    .monospacedDigit()
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 46)
+            .contentShape(Capsule())
+        }
+        .glass(in: Capsule())
+        .disabled(session.stepsPerFrame == nil)
+        .accessibilityLabel("Speed")
+        .accessibilityValue(Self.label(for: factor))
+    }
+
+    static func label(for factor: Double) -> String {
+        if let choice = choices.first(where: { $0.factor == factor }) { return choice.label }
+        return "\(factor.formatted(.number.precision(.fractionLength(0...2))))×"
+    }
+}
+
+/// The script's `#/label` text, such as "Waiting for pattern".
+struct ScriptLabelBanner: View {
+    let session: SimulationSession
+
+    var body: some View {
+        if let label = session.scriptLabel {
+            HStack {
+                Text(label)
+                    .font(.callout)
+                    .lineLimit(2)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .glass(in: Capsule())
+                    .transition(.opacity)
+                    .id(label)
+                Spacer(minLength: 0)
+            }
+            .animation(.easeInOut(duration: 0.3), value: label)
+        }
     }
 }
 
@@ -254,7 +315,7 @@ struct TitleCapsule: View {
     }
 }
 
-/// Examples, Restart, Play or Pause, View and Dashboard.
+/// Gallery, Restart, Play or Pause, View and Dashboard.
 struct SimulationToolbar: View {
     let model: AppModel
     let session: SimulationSession
@@ -262,7 +323,7 @@ struct SimulationToolbar: View {
     var body: some View {
         HStack(spacing: 2) {
             ToolbarButton(systemImage: "square.grid.2x2", label: "Examples") {
-                model.sheet = .examples
+                model.showGallery()
             }
             ToolbarButton(systemImage: "arrow.counterclockwise", label: "Restart") {
                 session.restart()
@@ -542,14 +603,14 @@ struct Placeholder: View {
                     .foregroundStyle(.secondary)
                 Text("\(session.title ?? "The simulation") could not start.")
                     .foregroundStyle(.secondary)
-                Button("Choose an Example") { model.sheet = .examples }
+                Button("Choose an Example") { model.showGallery() }
                     .buttonStyle(.borderedProminent)
             } else {
                 Image(systemName: "atom")
                     .font(.system(size: 48))
                     .foregroundStyle(.secondary)
                 if session.title == nil && model.catalogError == nil {
-                    Button("Choose an Example") { model.sheet = .examples }
+                    Button("Choose an Example") { model.showGallery() }
                         .buttonStyle(.borderedProminent)
                 }
             }

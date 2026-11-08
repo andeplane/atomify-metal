@@ -84,6 +84,19 @@ func scratchDirectory() throws -> URL {
         #expect(catalog.imageURL(for: try #require(catalog.example(id: "escaping"))) == nil)
     }
 
+    @Test func inputScriptAndFileURLsResolveInsideTheCatalog() throws {
+        let directory = try fixturesDirectory()
+        let catalog = try ExampleCatalog.load(from: directory)
+        let lj = try #require(catalog.example(id: "lj"))
+        let script = try #require(catalog.inputScriptURL(for: lj))
+        #expect(script.standardizedFileURL == directory.appendingPathComponent("lj/lj.in").standardizedFileURL)
+        #expect(FileManager.default.fileExists(atPath: script.path))
+        let settings = try #require(catalog.fileURL(for: lj.files[1]))
+        #expect(settings.lastPathComponent == "settings.lmp")
+        #expect(catalog.inputScriptURL(for: try #require(catalog.example(id: "escaping"))) == nil)
+        #expect(catalog.inputScriptURL(for: try #require(catalog.example(id: "no-script"))) == nil)
+    }
+
     @Test func workingCopyHoldsEveryFileUnderItsName() throws {
         let catalog = try ExampleCatalog.load(from: fixturesDirectory())
         let scratch = try scratchDirectory()
