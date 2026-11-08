@@ -1,0 +1,24 @@
+# Nanoporous silica glass: 192,000 atoms of amorphous SiO2 with 75%
+# porosity, 23 nm across, the structure from the Atomify web app. Drawn
+# with billboards; use Step inside to fly through the pores.
+#/atom 1 silicon
+#/atom 2 oxygen
+
+units metal
+boundary p p p
+atom_style atomic
+read_data nanoporous_sio2.data
+
+pair_style vashishta/table 10000 0.5
+pair_coeff * * SiO2.vashishta Si O
+neigh_modify every 10 delay 0 check yes
+
+mass 1 28.08
+mass 2 15.9994
+
+fix nvt all nvt temp 300 300 1.0
+timestep 0.002
+
+thermo_style one
+thermo 10
+run 1000000

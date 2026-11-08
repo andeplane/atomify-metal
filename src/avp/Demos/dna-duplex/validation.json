@@ -1,0 +1,81 @@
+{
+  "model": "oxDNA2 sequence-dependent, 20 base pairs, 300 K, 0.2 M implicit salt",
+  "steps_after_warmup": 100000,
+  "pair_count_definition": "Intended complementary base interaction sites within sqrt(0.2) reduced length units; geometric proxy, not hydrogen-bond energy or biological validation.",
+  "sha256": {
+    "experiment.in": "5257423ca18dcdaad3fd7895d5f9d09d8d5afbc82d11df0b3c231ecd611c683f",
+    "data.duplex": "1fcc59aef9b5fe96a611e6b6f928c7dbda39a2071a2b38a8823634b83c2e80dd",
+    "oxdna2_lj.cgdna": "0e126507a14e52a513f1b4574b1ee7411bfc62cfe55b4807afc5ee9cc4acc967"
+  },
+  "seeds": [
+    {
+      "frames": 21,
+      "nucleotides": 40,
+      "backbone_bonds": 38,
+      "published_topology_exact": true,
+      "backbone_site_distance_range": [
+        0.5942190817085049,
+        0.877168833773289
+      ],
+      "intended_base_site_distance_range": [
+        0.33585519344393383,
+        0.6037911615519665
+      ],
+      "proximity_paired_count_range": [
+        14,
+        20
+      ],
+      "final_proximity_paired_count": 18,
+      "maximum_orientation_change_1_minus_abs_dot": 0.1806049226348163,
+      "quaternions_normalized": true,
+      "positions_finite": true,
+      "seed": 457145
+    },
+    {
+      "frames": 21,
+      "nucleotides": 40,
+      "backbone_bonds": 38,
+      "published_topology_exact": true,
+      "backbone_site_distance_range": [
+        0.6140720244885901,
+        0.8656348398441132
+      ],
+      "intended_base_site_distance_range": [
+        0.33927519802680545,
+        0.6627128827215344
+      ],
+      "proximity_paired_count_range": [
+        14,
+        19
+      ],
+      "final_proximity_paired_count": 18,
+      "maximum_orientation_change_1_minus_abs_dot": 0.20593190009888251,
+      "quaternions_normalized": true,
+      "positions_finite": true,
+      "seed": 49183
+    },
+    {
+      "frames": 21,
+      "nucleotides": 40,
+      "backbone_bonds": 38,
+      "published_topology_exact": true,
+      "backbone_site_distance_range": [
+        0.5977226595909169,
+        0.9009536085644705
+      ],
+      "intended_base_site_distance_range": [
+        0.33621413508104064,
+        0.6751124581722756
+      ],
+      "proximity_paired_count_range": [
+        16,
+        20
+      ],
+      "final_proximity_paired_count": 18,
+      "maximum_orientation_change_1_minus_abs_dot": 0.17383635960113197,
+      "quaternions_normalized": true,
+      "positions_finite": true,
+      "seed": 82347
+    }
+  ]
+}

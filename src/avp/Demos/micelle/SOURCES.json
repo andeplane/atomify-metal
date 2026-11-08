@@ -1,0 +1,21 @@
+{
+  "upstream": "https://github.com/lammps/lammps",
+  "tag": "stable_22Jul2025_update1",
+  "files": [
+    {
+      "local": "in.micelle",
+      "upstream_url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/micelle/in.micelle",
+      "upstream_sha256": "9510f8040bfb0e05912c29ca223bb3d6366a54a365d784852b8833c24f90f07f",
+      "local_sha256": "11a4520812097ec1c2a8e5be40779e64bf26ab45d92d2af2afb3785abfa5bbee",
+      "byte_identical": false
+    },
+    {
+      "local": "data.micelle",
+      "upstream_url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/micelle/data.micelle",
+      "upstream_sha256": "35d33cbc97b1862bc46dd18ee52fec5f6dd879436cf12fbc6d0bb6ba9a803c8c",
+      "local_sha256": "20c19da54e76b7e39f1ad7c01daa20bd2fa2aacbc7dae0b01c4eb0b37c6738da",
+      "byte_identical": false
+    }
+  ],
+  "local_changes": "Data differs only by periodic wrapping/formatting. Input retains physical coefficients; startup main run shortened to1000steps and presentation colors added."
+}

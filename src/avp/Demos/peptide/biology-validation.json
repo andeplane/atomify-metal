@@ -1,0 +1,165 @@
+{
+  "tests": [
+    {
+      "snapshots": 11,
+      "atom_count": 2004,
+      "topology_bonds": 1365,
+      "published_bond_count_range": [
+        1285,
+        1309
+      ],
+      "finite_coordinates": true,
+      "displayed_topology_valid": true,
+      "minimum_image_bond_distance_range": [
+        0.9571928297527157,
+        1.9066538826829542
+      ],
+      "temperature_range": [
+        269.2733440725691,
+        285.79501505850646
+      ],
+      "maximum_bridge_vs_lammps_temperature_error": 0.0,
+      "temperature_reference_samples": 11,
+      "temperature_reference_excluded_steps": [],
+      "first_step": 300,
+      "last_step": 10300,
+      "name": "peptide"
+    },
+    {
+      "snapshots": 11,
+      "atom_count": 1200,
+      "topology_bonds": 300,
+      "published_bond_count_range": [
+        289,
+        293
+      ],
+      "finite_coordinates": true,
+      "displayed_topology_valid": true,
+      "minimum_image_bond_distance_range": [
+        0.508338387014987,
+        0.9638490120370984
+      ],
+      "temperature_range": [
+        0.4410266392396385,
+        0.4715960062333821
+      ],
+      "maximum_bridge_vs_lammps_temperature_error": 0.0,
+      "temperature_reference_samples": 10,
+      "temperature_reference_excluded_steps": [
+        1000
+      ],
+      "first_step": 1000,
+      "last_step": 11010,
+      "name": "micelle",
+      "association_indicator": [
+        {
+          "step": 1000,
+          "tail_bead_groups_within_1_5": 64,
+          "largest_group_tail_beads": 18
+        },
+        {
+          "step": 2001,
+          "tail_bead_groups_within_1_5": 58,
+          "largest_group_tail_beads": 14
+        },
+        {
+          "step": 3002,
+          "tail_bead_groups_within_1_5": 53,
+          "largest_group_tail_beads": 28
+        },
+        {
+          "step": 4003,
+          "tail_bead_groups_within_1_5": 50,
+          "largest_group_tail_beads": 28
+        },
+        {
+          "step": 5004,
+          "tail_bead_groups_within_1_5": 49,
+          "largest_group_tail_beads": 18
+        },
+        {
+          "step": 6005,
+          "tail_bead_groups_within_1_5": 47,
+          "largest_group_tail_beads": 18
+        },
+        {
+          "step": 7006,
+          "tail_bead_groups_within_1_5": 46,
+          "largest_group_tail_beads": 18
+        },
+        {
+          "step": 8007,
+          "tail_bead_groups_within_1_5": 43,
+          "largest_group_tail_beads": 18
+        },
+        {
+          "step": 9008,
+          "tail_bead_groups_within_1_5": 41,
+          "largest_group_tail_beads": 32
+        },
+        {
+          "step": 10009,
+          "tail_bead_groups_within_1_5": 42,
+          "largest_group_tail_beads": 32
+        },
+        {
+          "step": 11010,
+          "tail_bead_groups_within_1_5": 42,
+          "largest_group_tail_beads": 26
+        }
+      ]
+    },
+    {
+      "snapshots": 11,
+      "atom_count": 108,
+      "topology_bonds": 0,
+      "published_bond_count_range": [
+        0,
+        0
+      ],
+      "finite_coordinates": true,
+      "displayed_topology_valid": true,
+      "minimum_image_bond_distance_range": null,
+      "temperature_range": [
+        0.592767331676763,
+        1.0712753798864683
+      ],
+      "maximum_bridge_vs_lammps_temperature_error": 0.0,
+      "temperature_reference_samples": 11,
+      "temperature_reference_excluded_steps": [],
+      "first_step": 201,
+      "last_step": 1201,
+      "name": "lj"
+    },
+    {
+      "snapshots": 11,
+      "atom_count": 108,
+      "topology_bonds": 0,
+      "published_bond_count_range": [
+        0,
+        0
+      ],
+      "finite_coordinates": true,
+      "displayed_topology_valid": true,
+      "minimum_image_bond_distance_range": null,
+      "temperature_range": [
+        0,
+        0
+      ],
+      "maximum_bridge_vs_lammps_temperature_error": 0,
+      "temperature_reference_samples": 11,
+      "temperature_reference_excluded_steps": [],
+      "first_step": 1,
+      "last_step": 1,
+      "name": "cold-minimized-lj"
+    }
+  ],
+  "temperature_reference": "LAMMPS immediate variable $(temp), evaluated independently after each sampled run",
+  "bridge_source_sha256": "6b0da17cfdc80b016d18b9d11f001bbe3d9de4fffbc6b9c6d44ef1e511db99db",
+  "sources": {
+    "peptide/in.peptide": "a4aa1e0698571ac4c59c85e3141d52141fccc4fdb9dc698b15342bedfad19f8e",
+    "peptide/data.peptide": "6809254d4459950fc66ca7493c87290db7e811939995a09923c7ae6357daf73b",
+    "micelle/in.micelle": "11a4520812097ec1c2a8e5be40779e64bf26ab45d92d2af2afb3785abfa5bbee",
+    "micelle/data.micelle": "20c19da54e76b7e39f1ad7c01daa20bd2fa2aacbc7dae0b01c4eb0b37c6738da"
+  }
+}

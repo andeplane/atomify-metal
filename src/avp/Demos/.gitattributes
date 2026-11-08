@@ -1,0 +1,2 @@
+# Preserve vendored scientific parameter bytes and avoid reformatting them as code.
+*.airebo -diff -text -whitespace

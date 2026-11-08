@@ -1,0 +1,26 @@
+{
+  "upstream": "https://github.com/lammps/lammps",
+  "tag": "stable_22Jul2025_update1",
+  "files": [
+    {
+      "local": "upstream/generate.py",
+      "url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/PACKAGES/cgdna/util/generate.py",
+      "sha256": "40a8aac7e8bbca7402a78998a48169426db4a67e92e7c37e0818bf7bd2ab56d1"
+    },
+    {
+      "local": "upstream/in.duplex1",
+      "url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/duplex1/in.duplex1",
+      "sha256": "4e693cb2ef3b9b37ed1bb39806803479fa8685564a698a6c103002a2f60fddf0"
+    },
+    {
+      "local": "oxdna2_lj.cgdna",
+      "url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/potentials/oxdna2_lj.cgdna",
+      "sha256": "0e126507a14e52a513f1b4574b1ee7411bfc62cfe55b4807afc5ee9cc4acc967"
+    },
+    {
+      "local": "upstream/COPYING",
+      "url": "https://raw.githubusercontent.com/lammps/lammps/stable_22Jul2025_update1/LICENSE",
+      "sha256": "be38e38d9482c2beae35408e413045b4363e0e067b0d9f31549047948637a7ed"
+    }
+  ]
+}

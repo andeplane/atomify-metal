@@ -1,0 +1,44 @@
+# 20-base-pair duplex: one orientation-aware coarse-grained bead per nucleotide.
+# A/C/G/T are nucleotide identities, not chemical elements or individual atoms.
+# oxDNA reduced units: T*=0.1 is 300 K; one length unit is about 0.8518 nm.
+# See dna-model.md and SOURCES.json for attribution and scientific limits.
+units lj
+atom_style hybrid bond ellipsoid oxdna
+boundary p p p
+atom_modify sort 0 1.0
+#/atom 1 0.70 #67E8BD
+#/atom 2 0.70 #6EC6FF
+#/atom 3 0.70 #FFB86B
+#/atom 4 0.70 #C4A3FF
+# Actual covalent backbone topology is published directly; no proximity bonds.
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+read_data data.duplex
+set atom * mass 3.1575
+
+# The published oxDNA2 model, using sequence-dependent base stacking/pairing.
+# Keep these coefficients matched to the thermostat's reduced temperature.
+bond_style oxdna2/fene
+bond_coeff * 2.0 0.25 0.7564
+special_bonds lj 0 1 1
+pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
+pair_coeff * * oxdna2/excv oxdna2_lj.cgdna
+pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 oxdna2_lj.cgdna
+pair_coeff * * oxdna2/hbond seqdep oxdna2_lj.cgdna
+pair_coeff 1 4 oxdna2/hbond seqdep oxdna2_lj.cgdna
+pair_coeff 2 3 oxdna2/hbond seqdep oxdna2_lj.cgdna
+pair_coeff * * oxdna2/xstk oxdna2_lj.cgdna
+pair_coeff * * oxdna2/coaxstk oxdna2_lj.cgdna
+pair_coeff * * oxdna2/dh 0.1 0.2 oxdna2_lj.cgdna
+
+# This single fix integrates BOTH position and orientation and thermostats both.
+# Do not add nve: integrating the same particles twice would corrupt the model.
+fix integrate all nve/dotc/langevin 0.1 0.1 2.5 457145 angmom 10
+timestep 0.001
+compute rotational all erotate/asphere
+thermo 1000
+thermo_style custom step atoms temp pe ke c_rotational etotal
+thermo_modify lost error
+run 5000
+reset_timestep 0
+run 0

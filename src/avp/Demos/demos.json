@@ -1,0 +1,485 @@
+{
+  "demos": [
+    {
+      "id": "water",
+      "title": "Water",
+      "summary": "This is liquid water, magnified a hundred million times. Each V is one molecule, an oxygen holding two hydrogens, tumbling and tugging at its neighbours. Reach in and pull one out.",
+      "category": "Liquids",
+      "folder": "water",
+      "inputScript": "water.in",
+      "credit": "Atomify · SPC/E water",
+      "releaseOrder": 0,
+      "stepsPerSecond": 180,
+      "frame": "box",
+      "showsBox": false,
+      "hint": "Pinch a molecule and pull it out of the water.",
+      "wholeMolecules": true
+    },
+    {
+      "id": "zeolite_zsm5",
+      "title": "A crystal full of corridors",
+      "summary": "Cool atoms down and they lock into a repeating pattern. This zeolite, a crystal of silicon and oxygen, is threaded with corridors barely wider than a molecule. Make it big and look down one.",
+      "category": "Materials",
+      "folder": "zeolite_zsm5",
+      "inputScript": "zeolite_zsm5.in",
+      "credit": "Atomify",
+      "releaseOrder": 1,
+      "stepsPerSecond": 150,
+      "frame": "box",
+      "showsBox": false,
+      "hint": "Pinch with both hands and spread them to step inside.",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "crystals",
+      "observation": "Find the repeating channels through the ZSM-5 framework. Empty space is part of the structure.",
+      "interactionNote": "Start in Observe, then step inside. Hands perturb the model; reset to return to the original crystal.",
+      "reactive": false
+    },
+    {
+      "id": "surface-diffusion",
+      "title": "Restless atoms",
+      "summary": "Even in a solid, atoms on the surface never sit still. The bright atoms are loose nickel atoms on a nickel crystal, hopping from one hollow to the next. Watch them wander, meet and cling together.",
+      "category": "Surfaces",
+      "folder": "surface-diffusion",
+      "inputScript": "surface.in",
+      "credit": "Atomify · Foiles EAM nickel",
+      "releaseOrder": 2,
+      "stepsPerSecond": 300,
+      "frame": "atoms",
+      "showsBox": false,
+      "hint": "Pinch a bright atom and drop it somewhere else on the surface."
+    },
+    {
+      "id": "sic_nanoparticle",
+      "title": "A nanoparticle grows",
+      "summary": "A speck of silicon carbide, a few nanometres across, floats among a few dozen loose carbon atoms. As it cools from 2200 K, they stick to it and the particle grows. Keep an eye on the temperature.",
+      "category": "Materials",
+      "folder": "sic_nanoparticle",
+      "inputScript": "nanoparticle.in",
+      "credit": "Atomify",
+      "releaseOrder": 3,
+      "stepsPerSecond": 400,
+      "frame": "atoms",
+      "showsBox": false,
+      "hint": "Watch the temperature fall as loose atoms stick to the particle.",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "cnt_deformation",
+      "title": "Breaking point",
+      "summary": "Roll a sheet of carbon into a tube and you get one of the strongest materials known. Here its two ends are pulled apart, slowly. Watch the hexagons stretch, then snap where atoms are missing.",
+      "category": "Materials",
+      "folder": "cnt_deformation",
+      "inputScript": "cnt-under-deformation.in",
+      "credit": "Simon Gravelle",
+      "releaseOrder": 4,
+      "stepsPerSecond": 250,
+      "frame": "box",
+      "showsBox": false,
+      "hint": "Pinch an atom to tug on the tube yourself.",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "benzene",
+      "title": "A ring of carbon",
+      "summary": "Twelve atoms. A familiar shape. Meet benzene at the scale of your hands.",
+      "category": "Molecules",
+      "folder": "benzene",
+      "inputScript": "experiment.in",
+      "credit": "AIREBO · carbon and hydrogen",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "molecules",
+      "observation": "Find the six-carbon ring, then gently pull one atom. The bond network responds to the empirical potential.",
+      "interactionNote": "Open your hand, pinch near an atom, then move slowly. Strong pulls can change this carbon–hydrogen model.",
+      "reactive": true
+    },
+    {
+      "id": "methane",
+      "title": "Four directions",
+      "summary": "One carbon, four hydrogens. Discover the tetrahedral shape hidden inside methane.",
+      "observation": "Turn the molecule and find the four directions around carbon. Compare this three-dimensional shape with the flat benzene ring.",
+      "interactionNote": "Pinch the carbon with one hand and a hydrogen with the other. Move gently to feel the molecular geometry respond.",
+      "category": "Molecules",
+      "folder": "methane",
+      "inputScript": "experiment.in",
+      "credit": "AIREBO · carbon and hydrogen",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "molecules",
+      "reactive": true
+    },
+    {
+      "id": "ethane",
+      "title": "A little room to turn",
+      "summary": "Two carbons, six hydrogens. Explore how a small molecule can twist in three dimensions.",
+      "observation": "Look down the carbon–carbon axis. Follow the staggered arrangement of the hydrogen atoms.",
+      "interactionNote": "Hold one carbon and gently move the other. Stronger pulls drive this empirical model; bond changes are not guaranteed.",
+      "category": "Molecules",
+      "folder": "ethane",
+      "inputScript": "experiment.in",
+      "credit": "AIREBO · carbon and hydrogen",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "molecules",
+      "reactive": true
+    },
+    {
+      "id": "carbon-workshop",
+      "title": "Carbon workshop",
+      "summary": "Bend a sheet one atom thick. Discover how a carbon network shares the strain.",
+      "category": "Materials",
+      "folder": "carbon-workshop",
+      "inputScript": "experiment.in",
+      "credit": "AIREBO · finite unpassivated carbon sheet",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "molecules",
+      "observation": "Pull at an edge, release, and watch the sheet respond. Bond changes depend on how the atoms meet.",
+      "interactionNote": "Pinch two atoms to stretch the network. Rejoining broken edges is an experiment, not a guaranteed reaction.",
+      "reactive": true
+    },
+    {
+      "id": "diamond",
+      "title": "Carbon, in another form",
+      "summary": "The same element, a different world. Explore a tiny diamond lattice in three dimensions.",
+      "category": "Materials",
+      "folder": "diamond",
+      "inputScript": "experiment.in",
+      "credit": "AIREBO · finite carbon nanocrystal",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "crystals",
+      "observation": "Compare this three-dimensional network with the flexible carbon sheet. Look for the tetrahedral geometry.",
+      "interactionNote": "Push a surface atom and watch its neighbours respond. Step inside to inspect the network.",
+      "reactive": true
+    },
+    {
+      "id": "watervapor",
+      "title": "Water vapor",
+      "summary": "Follow one water molecule as it tumbles through a sparse cloud. A familiar substance, seen differently.",
+      "category": "Molecules",
+      "folder": "watervapor",
+      "inputScript": "vapor.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch",
+        "touch"
+      ],
+      "chapter": "molecules",
+      "observation": "Follow one oxygen and its two hydrogen neighbours through a dilute gas.",
+      "interactionNote": "This is the bundled empirical water model. It is not a general-purpose reaction experiment.",
+      "reactive": false
+    },
+    {
+      "id": "peptide",
+      "title": "Peptide in water",
+      "summary": "Dynamics of a small solvated peptide chain (5-mer).",
+      "category": "Molecules",
+      "folder": "peptide",
+      "inputScript": "in.peptide",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch"
+      ],
+      "chapter": "biology",
+      "previewNote": "84 peptide atoms shown · live solvent omitted from preview",
+      "observation": "Trace the five-residue peptide among its surrounding water.",
+      "interactionNote": "Fixed molecular topology; observe fluctuations rather than chemical reactions."
+    },
+    {
+      "id": "go-nanoparticle",
+      "title": "Graphene oxide nanoparticle",
+      "summary": "A graphene oxide particle with a few water molecules around it.",
+      "category": "Molecules",
+      "folder": "go-nanoparticle",
+      "inputScript": "GO-nanoparticle.in",
+      "credit": "Simon Gravelle",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "reax_rdf",
+      "title": "RDX explosive",
+      "summary": "RDX, an explosive, simulated with the reactive ReaxFF force field.",
+      "category": "Molecules",
+      "folder": "reax_rdf",
+      "inputScript": "RDX.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "betacristobalite",
+      "title": "Silica beta cristobalite",
+      "summary": "Beta cristobalite silica crystal with the Vashishta potential.",
+      "category": "Materials",
+      "folder": "betacristobalite",
+      "inputScript": "betacristobalite.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "zeolite_large",
+      "title": "Large nanoporous zeolite (23,040 atoms)",
+      "summary": "A bigger ZSM-5 crystal, 4 by 4 by 5 unit cells, with its channels running all the way through. Use billboards to see every atom.",
+      "category": "Materials",
+      "folder": "zeolite_large",
+      "inputScript": "zeolite_large.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "nanoporous_silica",
+      "title": "Nanoporous silica glass",
+      "summary": "Amorphous silica with 75% porosity from the Atomify web app: 192,000 simulated atoms drawn as 3 by 3 by 3 periodic copies, 5.2 million atoms and 68 nm across. Use Step inside to fly through the pores.",
+      "category": "Materials",
+      "folder": "nanoporous_silica",
+      "inputScript": "nanoporous_sio2.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch"
+      ],
+      "renderer": "billboards",
+      "copies": 3
+    },
+    {
+      "id": "shear",
+      "title": "Shear in nickel",
+      "summary": "Sideways shear applied to a nickel slab, with the embedded atom method.",
+      "category": "Materials",
+      "folder": "shear",
+      "inputScript": "in.shear",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "3D-lj-fluid",
+      "title": "Lennard-Jones fluid",
+      "summary": "A binary Lennard-Jones gas of small and large particles.",
+      "category": "Fluids and grains",
+      "folder": "3D-lj-fluid",
+      "inputScript": "3D-lj-fluid.in",
+      "credit": "Simon Gravelle",
+      "modes": [
+        "watch"
+      ]
+    },
+    {
+      "id": "large-lj-liquid",
+      "title": "Large liquid (108,000 atoms)",
+      "summary": "A Lennard-Jones liquid big enough to need billboards, which it switches to when it opens.",
+      "category": "Fluids and grains",
+      "folder": "large-lj-liquid",
+      "inputScript": "large.in",
+      "credit": "LAMMPS benchmarks",
+      "modes": [
+        "watch"
+      ],
+      "renderer": "billboards"
+    },
+    {
+      "id": "diffusion",
+      "title": "Diffusion (10,000 particles)",
+      "summary": "About 10,000 Lennard-Jones particles with masses 1 and 4, starting as a slab of light ones. The heavy ones diffuse half as fast.",
+      "category": "Fluids and grains",
+      "folder": "diffusion",
+      "inputScript": "simple_diffusion.in",
+      "credit": "Atomify",
+      "modes": [
+        "watch"
+      ]
+    },
+    {
+      "id": "pour_3d",
+      "title": "Pouring grains",
+      "summary": "Pouring of granular particles into a 3d box, then chute flow.",
+      "category": "Fluids and grains",
+      "folder": "pour_3d",
+      "inputScript": "in.pour",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "deposit_molecule",
+      "title": "Depositing molecules",
+      "summary": "Deposition of molecules onto a 3d substrate.",
+      "category": "Fluids and grains",
+      "folder": "deposit_molecule",
+      "inputScript": "in.deposit.molecule",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "crack",
+      "title": "Crack 2D",
+      "summary": "Crack propagation in a 2d solid.",
+      "category": "Flat worlds",
+      "folder": "crack",
+      "inputScript": "crack.in",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch"
+      ]
+    },
+    {
+      "id": "friction",
+      "title": "Friction 2D",
+      "summary": "Frictional contact of spherical asperities between 2d surfaces.",
+      "category": "Flat worlds",
+      "folder": "friction",
+      "inputScript": "friction.in",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "micelle",
+      "title": "Tiny chains, gathering",
+      "summary": "Water-loving heads and water-avoiding tails organise in a two-dimensional model.",
+      "category": "Flat worlds",
+      "folder": "micelle",
+      "inputScript": "in.micelle",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch"
+      ],
+      "chapter": "biology",
+      "previewNote": "2D surfactant model · one bead represents a coarse-grained part",
+      "observation": "Follow water-loving heads and water-avoiding tails as groups organise.",
+      "interactionNote": "A two-dimensional model, not a complete membrane."
+    },
+    {
+      "id": "obstacle",
+      "title": "Flow past an obstacle",
+      "summary": "Flow around two voids in a 2d channel.",
+      "category": "Flat worlds",
+      "folder": "obstacle",
+      "inputScript": "in.obstacle",
+      "credit": "LAMMPS examples",
+      "modes": [
+        "watch",
+        "touch"
+      ]
+    },
+    {
+      "id": "dna-duplex",
+      "title": "The threads of life",
+      "summary": "A 20-base-pair DNA duplex. Follow two complementary strands and watch the helix breathe.",
+      "chapter": "biology",
+      "category": "Biology",
+      "previewNote": "40 nucleotides · one particle per nucleotide",
+      "folder": "dna-duplex",
+      "inputScript": "experiment.in",
+      "modes": [
+        "watch"
+      ],
+      "reactive": false,
+      "observation": "A 20-base-pair DNA duplex. Follow two complementary strands and watch the helix breathe.",
+      "interactionNote": "Observe this model and inspect its particles using the controls."
+    },
+    {
+      "id": "phase-melting",
+      "title": "When a solid lets go",
+      "summary": "Follow an ordered model crystal as heating lets its particles rearrange.",
+      "chapter": "phases",
+      "category": "Phase changes",
+      "previewNote": "Model particles · Lennard-Jones reduced units",
+      "folder": "phase-melting",
+      "inputScript": "experiment.in",
+      "modes": [
+        "watch"
+      ],
+      "reactive": false,
+      "observation": "Follow an ordered model crystal as heating lets its particles rearrange.",
+      "interactionNote": "Observe this model and inspect its particles using the controls."
+    },
+    {
+      "id": "phase-crystallization",
+      "title": "A seed becomes a crystal",
+      "summary": "Cool a liquid around a small fixed seed and watch local order grow.",
+      "chapter": "phases",
+      "category": "Phase changes",
+      "previewNote": "Gold seed · 224 mobile model particles",
+      "folder": "phase-crystallization",
+      "inputScript": "experiment.in",
+      "modes": [
+        "watch"
+      ],
+      "reactive": false,
+      "observation": "Cool a liquid around a small fixed seed and watch local order grow.",
+      "interactionNote": "Observe this model and inspect its particles using the controls."
+    },
+    {
+      "id": "ice-melting",
+      "title": "Ice becomes water",
+      "summary": "Watch a 512-molecule ice network lose its order as whole water molecules become mobile.",
+      "chapter": "phases",
+      "category": "Phase changes",
+      "previewNote": "mW water · each sphere is a whole H₂O molecule",
+      "folder": "ice-melting",
+      "inputScript": "experiment.in",
+      "modes": [
+        "watch"
+      ],
+      "reactive": false,
+      "observation": "Watch a 512-molecule ice network lose its order as whole water molecules become mobile.",
+      "interactionNote": "Observe this model and inspect its particles using the controls."
+    },
+    {
+      "id": "methane-oxidation",
+      "title": "Where reaction heat comes from",
+      "summary": "Ignite a tiny methane–oxygen reactor. Follow real products and the exchange between potential and kinetic energy.",
+      "chapter": "molecules",
+      "category": "Reactions",
+      "previewNote": "Compressed hot reactor · ReaxFF · 36 atoms",
+      "folder": "methane-oxidation",
+      "inputScript": "experiment.in",
+      "modes": [
+        "watch"
+      ],
+      "reactive": false,
+      "observation": "Ignite a tiny methane–oxygen reactor. Follow real products and the exchange between potential and kinetic energy.",
+      "interactionNote": "Observe this model and inspect its particles using the controls."
+    }
+  ]
+}

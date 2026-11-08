@@ -1,0 +1,644 @@
+{
+  "recorded_at_utc": "2026-10-22T12:53:53.964421+00:00",
+  "code_commit": "5b25cc48d2eed8fb7ab3336fb42430eef548b459",
+  "host": "Apple silicon macOS 26.3",
+  "bridge_tests": 18,
+  "atomify_swift_tests": 62,
+  "vision_room_kit_tests": 19,
+  "limitations": [
+    "No physical headset test performed",
+    "macOS adapted UI checks do not replace native SDK compilation"
+  ],
+  "results": {
+    "contact-stress": {
+      "recorded_at_utc": "2026-10-22T12:40:41.994124+00:00",
+      "cases": [
+        {
+          "seed": 49183,
+          "case": "sweep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=1 atoms=12 max_temperature=69.664 final_temperature=54.7963 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "sweep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=2 atoms=12 max_temperature=228.001 final_temperature=65.5972 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "sweep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=10 atoms=12 max_temperature=206.045 final_temperature=59.9211 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "sweep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=100 atoms=12 max_temperature=130.947 final_temperature=59.2842 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "overlap",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=1 atoms=12 max_temperature=171.279 final_temperature=54.8276 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "overlap",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=2 atoms=12 max_temperature=632.302 final_temperature=65.3948 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "overlap",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=10 atoms=12 max_temperature=513.611 final_temperature=61.992 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "overlap",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=100 atoms=12 max_temperature=139.899 final_temperature=55.4998 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "deep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=1 atoms=12 max_temperature=99.8366 final_temperature=54.7111 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "deep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=2 atoms=12 max_temperature=173.75 final_temperature=67.2595 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "deep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=10 atoms=12 max_temperature=210.758 final_temperature=63.8673 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "deep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=100 atoms=12 max_temperature=210.53 final_temperature=60.298 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "tracking",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=1 atoms=12 max_temperature=51.3398 final_temperature=54.7605 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "tracking",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=2 atoms=12 max_temperature=89.2192 final_temperature=66.3541 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "tracking",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=10 atoms=12 max_temperature=136.784 final_temperature=63.6721 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 49183,
+          "case": "tracking",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=100 atoms=12 max_temperature=210.53 final_temperature=60.242 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "sweep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=1 atoms=12 max_temperature=57.0974 final_temperature=54.7077 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "sweep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=2 atoms=12 max_temperature=212.56 final_temperature=65.2629 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "sweep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=10 atoms=12 max_temperature=214.366 final_temperature=64.2914 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "sweep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=100 atoms=12 max_temperature=132.149 final_temperature=59.5913 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "overlap",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=1 atoms=12 max_temperature=154.085 final_temperature=54.6827 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "overlap",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=2 atoms=12 max_temperature=469.41 final_temperature=64.7991 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "overlap",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=10 atoms=12 max_temperature=547.444 final_temperature=65.1663 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "overlap",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=100 atoms=12 max_temperature=139.436 final_temperature=52.9198 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "deep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=1 atoms=12 max_temperature=122.226 final_temperature=54.6557 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "deep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=2 atoms=12 max_temperature=194.189 final_temperature=61.7352 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "deep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=10 atoms=12 max_temperature=232.212 final_temperature=60.0348 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "deep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=100 atoms=12 max_temperature=194.097 final_temperature=58.0083 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "tracking",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=1 atoms=12 max_temperature=58.4097 final_temperature=54.6837 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "tracking",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=2 atoms=12 max_temperature=99.8423 final_temperature=63.7324 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "tracking",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=10 atoms=12 max_temperature=149.727 final_temperature=60.0923 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 12347,
+          "case": "tracking",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=100 atoms=12 max_temperature=194.097 final_temperature=58.0083 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "sweep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=1 atoms=12 max_temperature=57.4204 final_temperature=54.7433 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "sweep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=2 atoms=12 max_temperature=258.726 final_temperature=65.9535 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "sweep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=10 atoms=12 max_temperature=209.54 final_temperature=59.9493 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "sweep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=sweep cadence_steps=100 atoms=12 max_temperature=131.344 final_temperature=59.4462 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "overlap",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=1 atoms=12 max_temperature=151.729 final_temperature=54.7659 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "overlap",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=2 atoms=12 max_temperature=623.246 final_temperature=65.6547 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "overlap",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=10 atoms=12 max_temperature=531.74 final_temperature=61.937 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "overlap",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=overlap cadence_steps=100 atoms=12 max_temperature=138.997 final_temperature=55.8309 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "deep",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=1 atoms=12 max_temperature=85.409 final_temperature=54.7097 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "deep",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=2 atoms=12 max_temperature=171.238 final_temperature=67.1782 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "deep",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=10 atoms=12 max_temperature=202.075 final_temperature=63.8264 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "deep",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=deep cadence_steps=100 atoms=12 max_temperature=198.654 final_temperature=60.3578 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "tracking",
+          "cadence_steps": 1,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=1 atoms=12 max_temperature=48.271 final_temperature=54.7306 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "tracking",
+          "cadence_steps": 2,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=2 atoms=12 max_temperature=82.1328 final_temperature=66.2262 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "tracking",
+          "cadence_steps": 10,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=10 atoms=12 max_temperature=129.065 final_temperature=63.6279 original_connectivity=1\n",
+          "error": ""
+        },
+        {
+          "seed": 98731,
+          "case": "tracking",
+          "cadence_steps": 100,
+          "exit_code": 0,
+          "output": "case=tracking cadence_steps=100 atoms=12 max_temperature=198.654 final_temperature=60.3562 original_connectivity=1\n",
+          "error": ""
+        }
+      ],
+      "passed": true
+    },
+    "molecule-validation": {
+      "recorded_at_utc": "2026-10-22T12:46:33.172546+00:00",
+      "cases": [
+        {
+          "molecule": "methane",
+          "seed": 49183,
+          "exit_code": 0,
+          "output": "molecule=methane steps=100000 CH_min_A=1.0522093 CH_max_A=1.1426236 angle_min_deg=102.52427 angle_max_deg=115.11385 NVE_max_energy_drift_eV_per_atom=2.6008712e-05 connectivity_retained=1\n",
+          "error": ""
+        },
+        {
+          "molecule": "methane",
+          "seed": 12347,
+          "exit_code": 0,
+          "output": "molecule=methane steps=100000 CH_min_A=1.0522108 CH_max_A=1.1426799 angle_min_deg=102.48238 angle_max_deg=115.11389 NVE_max_energy_drift_eV_per_atom=3.874634e-05 connectivity_retained=1\n",
+          "error": ""
+        },
+        {
+          "molecule": "methane",
+          "seed": 98731,
+          "exit_code": 0,
+          "output": "molecule=methane steps=100000 CH_min_A=1.052209 CH_max_A=1.1426623 angle_min_deg=102.5164 angle_max_deg=115.11385 NVE_max_energy_drift_eV_per_atom=2.600871e-05 connectivity_retained=1\n",
+          "error": ""
+        },
+        {
+          "molecule": "ethane",
+          "seed": 49183,
+          "exit_code": 0,
+          "output": "molecule=ethane steps=100000 CH_min_A=1.0477438 CH_max_A=1.1381676 angle_min_deg=102.36638 angle_max_deg=114.29585 NVE_max_energy_drift_eV_per_atom=2.8083448e-05 connectivity_retained=1\n",
+          "error": ""
+        },
+        {
+          "molecule": "ethane",
+          "seed": 12347,
+          "exit_code": 0,
+          "output": "molecule=ethane steps=100000 CH_min_A=1.0477438 CH_max_A=1.1382136 angle_min_deg=102.36632 angle_max_deg=114.29531 NVE_max_energy_drift_eV_per_atom=2.8085527e-05 connectivity_retained=1\n",
+          "error": ""
+        },
+        {
+          "molecule": "ethane",
+          "seed": 98731,
+          "exit_code": 0,
+          "output": "molecule=ethane steps=100000 CH_min_A=1.0477438 CH_max_A=1.1381995 angle_min_deg=102.36634 angle_max_deg=114.29564 NVE_max_energy_drift_eV_per_atom=2.8084858e-05 connectivity_retained=1\n",
+          "error": ""
+        }
+      ],
+      "passed": true
+    },
+    "trajectory-soak": {
+      "recorded_at_utc": "2026-10-22T12:49:51.451240+00:00",
+      "experiments": [
+        {
+          "id": "benzene",
+          "steps": 100000,
+          "elapsed_seconds": 0.9837964590406045,
+          "exit_code": 0,
+          "output": "stage=0 atoms=12 step=7 temperature=50 potential=-59.0751381 finite=1\nstage=1 atoms=12 step=10007 temperature=26.3909868 potential=-58.9523102 finite=1\nstage=2 atoms=12 step=20007 temperature=57.953324 potential=-58.9678479 finite=1\nstage=3 atoms=12 step=30007 temperature=33.3893953 potential=-59.0081551 finite=1\nstage=4 atoms=12 step=40007 temperature=71.217046 potential=-58.9954041 finite=1\nstage=5 atoms=12 step=50007 temperature=67.6389488 potential=-59.0241686 finite=1\nstage=6 atoms=12 step=60007 temperature=48.9109734 potential=-58.9769919 finite=1\nstage=7 atoms=12 step=70007 temperature=43.2711323 potential=-59.0050799 finite=1\nstage=8 atoms=12 step=80007 temperature=65.997832 potential=-58.9432502 finite=1\nstage=9 atoms=12 step=90007 temperature=51.1716108 potential=-58.9667096 finite=1\nstage=10 atoms=12 step=100007 temperature=33.6092854 potential=-59.0249028 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "carbon-workshop",
+          "steps": 100000,
+          "elapsed_seconds": 18.953068875009194,
+          "exit_code": 0,
+          "output": "stage=0 atoms=160 step=40 temperature=100 potential=-1099.91165 finite=1\nstage=1 atoms=160 step=10040 temperature=97.1844549 potential=-1098.75642 finite=1\nstage=2 atoms=160 step=20040 temperature=89.0036755 potential=-1098.63803 finite=1\nstage=3 atoms=160 step=30040 temperature=100.566995 potential=-1098.69292 finite=1\nstage=4 atoms=160 step=40040 temperature=103.116479 potential=-1098.62385 finite=1\nstage=5 atoms=160 step=50040 temperature=100.492382 potential=-1098.73833 finite=1\nstage=6 atoms=160 step=60040 temperature=90.4384512 potential=-1098.64986 finite=1\nstage=7 atoms=160 step=70040 temperature=100.149835 potential=-1098.6418 finite=1\nstage=8 atoms=160 step=80040 temperature=98.6410316 potential=-1098.71697 finite=1\nstage=9 atoms=160 step=90040 temperature=109.608874 potential=-1098.42247 finite=1\nstage=10 atoms=160 step=100040 temperature=120.344204 potential=-1098.44189 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "diamond",
+          "steps": 100000,
+          "elapsed_seconds": 67.0256073330529,
+          "exit_code": 0,
+          "output": "stage=0 atoms=216 step=55 temperature=100 potential=-1263.42469 finite=1\nstage=1 atoms=216 step=10055 temperature=99.4372926 potential=-1260.71638 finite=1\nstage=2 atoms=216 step=20055 temperature=101.401278 potential=-1260.64803 finite=1\nstage=3 atoms=216 step=30055 temperature=94.7166715 potential=-1260.53898 finite=1\nstage=4 atoms=216 step=40055 temperature=98.0826543 potential=-1260.76338 finite=1\nstage=5 atoms=216 step=50055 temperature=96.1998283 potential=-1260.74792 finite=1\nstage=6 atoms=216 step=60055 temperature=99.006148 potential=-1260.59639 finite=1\nstage=7 atoms=216 step=70055 temperature=103.905604 potential=-1260.70732 finite=1\nstage=8 atoms=216 step=80055 temperature=105.335371 potential=-1260.39993 finite=1\nstage=9 atoms=216 step=90055 temperature=92.1038743 potential=-1260.48128 finite=1\nstage=10 atoms=216 step=100055 temperature=93.5981332 potential=-1260.84614 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "watervapor",
+          "steps": 100000,
+          "elapsed_seconds": 18.37130066601094,
+          "exit_code": 0,
+          "output": "stage=0 atoms=3000 step=10000 temperature=342.603838 potential=-4295.32876 finite=1\nstage=1 atoms=3000 step=20000 temperature=339.637169 potential=-4294.15142 finite=1\nstage=2 atoms=3000 step=30000 temperature=344.312553 potential=-4295.99729 finite=1\nstage=3 atoms=3000 step=40000 temperature=344.539696 potential=-4296.03661 finite=1\nstage=4 atoms=3000 step=50000 temperature=342.219628 potential=-4295.13385 finite=1\nstage=5 atoms=3000 step=60000 temperature=343.648306 potential=-4295.71902 finite=1\nstage=6 atoms=3000 step=70000 temperature=346.499352 potential=-4296.82357 finite=1\nstage=7 atoms=3000 step=80000 temperature=339.777785 potential=-4294.17748 finite=1\nstage=8 atoms=3000 step=90000 temperature=343.769217 potential=-4295.75531 finite=1\nstage=9 atoms=3000 step=100000 temperature=346.606412 potential=-4296.8661 finite=1\nstage=10 atoms=3000 step=110000 temperature=342.076033 potential=-4295.0908 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "zeolite_zsm5",
+          "steps": 100000,
+          "elapsed_seconds": 218.75913495803252,
+          "exit_code": 0,
+          "output": "stage=0 atoms=2304 step=5000 temperature=289.674401 potential=-7826.08615 finite=1\nstage=1 atoms=2304 step=15000 temperature=293.646395 potential=-7825.93813 finite=1\nstage=2 atoms=2304 step=25000 temperature=299.519674 potential=-7826.68725 finite=1\nstage=3 atoms=2304 step=35000 temperature=298.263172 potential=-7826.28572 finite=1\nstage=4 atoms=2304 step=45000 temperature=299.161573 potential=-7824.40028 finite=1\nstage=5 atoms=2304 step=55000 temperature=293.406722 potential=-7825.32805 finite=1\nstage=6 atoms=2304 step=65000 temperature=289.088408 potential=-7825.04859 finite=1\nstage=7 atoms=2304 step=75000 temperature=288.662971 potential=-7824.89743 finite=1\nstage=8 atoms=2304 step=85000 temperature=292.351824 potential=-7826.221 finite=1\nstage=9 atoms=2304 step=95000 temperature=300.108815 potential=-7828.91322 finite=1\nstage=10 atoms=2304 step=105000 temperature=286.857077 potential=-7830.14228 finite=1\n",
+          "error": ""
+        }
+      ],
+      "passed": true
+    },
+    "release-validation": {
+      "recorded_at_utc": "2026-10-22T12:45:06.606447+00:00",
+      "library_sha256": "af30a9939ea12db29e879855a451a55266d022aad9f230b43bf532f06985e21e",
+      "experiments": [
+        {
+          "id": "benzene",
+          "expected_atoms": 12,
+          "exit_code": 0,
+          "script_sha256": "b9e238c67f67987d5353b727644c8d3502a41668a9cd0031d379b26962e7eb5f",
+          "output": "stage=0 atoms=12 step=7 temperature=50 potential=-59.0751381 finite=1\nstage=1 atoms=12 step=207 temperature=42.0559057 potential=-59.041299 finite=1\nstage=2 atoms=12 step=407 temperature=57.5410284 potential=-59.0412282 finite=1\nstage=3 atoms=12 step=607 temperature=50.5741395 potential=-59.0150455 finite=1\nstage=4 atoms=12 step=807 temperature=35.0785545 potential=-59.014236 finite=1\nstage=5 atoms=12 step=1007 temperature=42.8158677 potential=-59.0079984 finite=1\nstage=6 atoms=12 step=1207 temperature=75.9767006 potential=-59.0097824 finite=1\nstage=7 atoms=12 step=1407 temperature=73.250828 potential=-58.9586987 finite=1\nstage=8 atoms=12 step=1607 temperature=71.1851487 potential=-58.9909343 finite=1\nstage=9 atoms=12 step=1807 temperature=44.9602562 potential=-58.9701097 finite=1\nstage=10 atoms=12 step=2007 temperature=50.0990308 potential=-59.000534 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "methane",
+          "expected_atoms": 5,
+          "exit_code": 0,
+          "script_sha256": "77cc262f3fa015410dfc354014f21fb519998547545c0621839938c00f3bf7a3",
+          "output": "stage=0 atoms=5 step=3 temperature=50 potential=-18.1850504 finite=1\nstage=1 atoms=5 step=203 temperature=40.2397895 potential=-18.1628922 finite=1\nstage=2 atoms=5 step=403 temperature=57.4000537 potential=-18.1621387 finite=1\nstage=3 atoms=5 step=603 temperature=114.281996 potential=-18.1734162 finite=1\nstage=4 atoms=5 step=803 temperature=49.6381083 potential=-18.1708938 finite=1\nstage=5 atoms=5 step=1003 temperature=64.4956118 potential=-18.170341 finite=1\nstage=6 atoms=5 step=1203 temperature=52.4706148 potential=-18.1600306 finite=1\nstage=7 atoms=5 step=1403 temperature=33.8837455 potential=-18.1468218 finite=1\nstage=8 atoms=5 step=1603 temperature=69.5275182 potential=-18.1676472 finite=1\nstage=9 atoms=5 step=1803 temperature=44.3717892 potential=-18.1719363 finite=1\nstage=10 atoms=5 step=2003 temperature=50.7033923 potential=-18.1574893 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "ethane",
+          "expected_atoms": 8,
+          "exit_code": 0,
+          "script_sha256": "451b0a14c5dd33973dcdbfc12ccdd6add58033242a6a5c1bc9c7c78c2166dfe9",
+          "output": "stage=0 atoms=8 step=9 temperature=50 potential=-30.8457192 finite=1\nstage=1 atoms=8 step=209 temperature=34.1911466 potential=-30.795773 finite=1\nstage=2 atoms=8 step=409 temperature=96.9031002 potential=-30.7866679 finite=1\nstage=3 atoms=8 step=609 temperature=78.107901 potential=-30.8064715 finite=1\nstage=4 atoms=8 step=809 temperature=61.2301182 potential=-30.8139302 finite=1\nstage=5 atoms=8 step=1009 temperature=67.5597682 potential=-30.776741 finite=1\nstage=6 atoms=8 step=1209 temperature=87.1203399 potential=-30.798792 finite=1\nstage=7 atoms=8 step=1409 temperature=62.0787822 potential=-30.798644 finite=1\nstage=8 atoms=8 step=1609 temperature=56.0780466 potential=-30.7781379 finite=1\nstage=9 atoms=8 step=1809 temperature=48.1347729 potential=-30.7500337 finite=1\nstage=10 atoms=8 step=2009 temperature=46.2549882 potential=-30.7794223 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "carbon-workshop",
+          "expected_atoms": 160,
+          "exit_code": 0,
+          "script_sha256": "6cd0073d57b4fea23cb2ffcd963c6a55a138d1136ac56d7283f15b80015d6aaf",
+          "output": "stage=0 atoms=160 step=40 temperature=100 potential=-1099.91165 finite=1\nstage=1 atoms=160 step=240 temperature=72.0763904 potential=-1098.58364 finite=1\nstage=2 atoms=160 step=440 temperature=86.8076781 potential=-1098.5996 finite=1\nstage=3 atoms=160 step=640 temperature=101.036372 potential=-1098.62496 finite=1\nstage=4 atoms=160 step=840 temperature=91.1149007 potential=-1098.53336 finite=1\nstage=5 atoms=160 step=1040 temperature=89.7942275 potential=-1098.58739 finite=1\nstage=6 atoms=160 step=1240 temperature=95.3477407 potential=-1098.54027 finite=1\nstage=7 atoms=160 step=1440 temperature=102.516946 potential=-1098.72307 finite=1\nstage=8 atoms=160 step=1640 temperature=88.9426087 potential=-1098.52442 finite=1\nstage=9 atoms=160 step=1840 temperature=89.5148187 potential=-1098.68378 finite=1\nstage=10 atoms=160 step=2040 temperature=92.5609897 potential=-1098.55867 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "diamond",
+          "expected_atoms": 216,
+          "exit_code": 0,
+          "script_sha256": "bdb8d5a151898a58394eceaa77d1a1a934d68e59b7a2dff513e7944a25173f07",
+          "output": "stage=0 atoms=216 step=55 temperature=100 potential=-1263.42469 finite=1\nstage=1 atoms=216 step=255 temperature=70.8421401 potential=-1261.29058 finite=1\nstage=2 atoms=216 step=455 temperature=78.0138177 potential=-1261.0719 finite=1\nstage=3 atoms=216 step=655 temperature=98.7052394 potential=-1261.00451 finite=1\nstage=4 atoms=216 step=855 temperature=94.5624666 potential=-1260.69507 finite=1\nstage=5 atoms=216 step=1055 temperature=98.8463458 potential=-1260.83172 finite=1\nstage=6 atoms=216 step=1255 temperature=95.9380055 potential=-1260.75143 finite=1\nstage=7 atoms=216 step=1455 temperature=105.592883 potential=-1260.86844 finite=1\nstage=8 atoms=216 step=1655 temperature=94.0547996 potential=-1260.8117 finite=1\nstage=9 atoms=216 step=1855 temperature=97.478693 potential=-1260.63777 finite=1\nstage=10 atoms=216 step=2055 temperature=100.920943 potential=-1260.48287 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "watervapor",
+          "expected_atoms": 3000,
+          "exit_code": 0,
+          "script_sha256": "0640950736340659da79cb14d76d2fb750546aefff66c095c9791ac950ce4ed8",
+          "output": "stage=0 atoms=3000 step=10000 temperature=342.603838 potential=-4295.32876 finite=1\nstage=1 atoms=3000 step=10200 temperature=341.367516 potential=-4294.83226 finite=1\nstage=2 atoms=3000 step=10400 temperature=341.357584 potential=-4294.82862 finite=1\nstage=3 atoms=3000 step=10600 temperature=340.663543 potential=-4294.54865 finite=1\nstage=4 atoms=3000 step=10800 temperature=339.971012 potential=-4294.31251 finite=1\nstage=5 atoms=3000 step=11000 temperature=342.55812 potential=-4295.31381 finite=1\nstage=6 atoms=3000 step=11200 temperature=342.654027 potential=-4295.34835 finite=1\nstage=7 atoms=3000 step=11400 temperature=340.741568 potential=-4294.58374 finite=1\nstage=8 atoms=3000 step=11600 temperature=342.037777 potential=-4295.11175 finite=1\nstage=9 atoms=3000 step=11800 temperature=340.640488 potential=-4294.54641 finite=1\nstage=10 atoms=3000 step=12000 temperature=340.297134 potential=-4294.42391 finite=1\n",
+          "error": ""
+        },
+        {
+          "id": "zeolite_zsm5",
+          "expected_atoms": 2304,
+          "exit_code": 0,
+          "script_sha256": "3dd5d3bc6e9dd139605b36d5808f95700a706d8ad913ba256e915b0d921217dc",
+          "output": "stage=0 atoms=2304 step=5000 temperature=289.674401 potential=-7826.08615 finite=1\nstage=1 atoms=2304 step=5200 temperature=287.688929 potential=-7826.44666 finite=1\nstage=2 atoms=2304 step=5400 temperature=296.157716 potential=-7829.1993 finite=1\nstage=3 atoms=2304 step=5600 temperature=290.104746 potential=-7826.80543 finite=1\nstage=4 atoms=2304 step=5800 temperature=295.371398 potential=-7827.11987 finite=1\nstage=5 atoms=2304 step=6000 temperature=295.203114 potential=-7825.29803 finite=1\nstage=6 atoms=2304 step=6200 temperature=301.026307 potential=-7825.08523 finite=1\nstage=7 atoms=2304 step=6400 temperature=304.313374 potential=-7824.27116 finite=1\nstage=8 atoms=2304 step=6600 temperature=299.329895 potential=-7821.34374 finite=1\nstage=9 atoms=2304 step=6800 temperature=310.495323 potential=-7823.84885 finite=1\nstage=10 atoms=2304 step=7000 temperature=307.73667 potential=-7822.86845 finite=1\n",
+          "error": ""
+        }
+      ],
+      "reactive_manipulation": [
+        {
+          "velocity_seed": 49183,
+          "exit_code": 0,
+          "max_CH_distance_A": 4.092371,
+          "final_CH_distance_A": 1.098702,
+          "output": "initial 0 distance=1.090036 temperature=50.000000 energy=-59.075138 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 0 distance=1.090549 temperature=25.190955 energy=-59.026311 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 1 distance=1.131642 temperature=26.769340 energy=-59.016512 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 2 distance=1.189518 temperature=35.359351 energy=-58.915113 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 3 distance=1.241117 temperature=38.855220 energy=-58.790209 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 4 distance=1.301916 temperature=41.317229 energy=-58.598815 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 5 distance=1.329208 temperature=34.001668 energy=-58.461259 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 6 distance=1.356875 temperature=49.274261 energy=-58.293256 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 7 distance=1.380656 temperature=43.160520 energy=-58.098425 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 8 distance=1.404307 temperature=32.660652 energy=-57.845691 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 9 distance=1.431359 temperature=31.385529 energy=-57.515546 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 10 distance=1.463276 temperature=37.108871 energy=-57.051713 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 11 distance=1.497478 temperature=66.204447 energy=-56.501677 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 12 distance=1.742959 temperature=178.163173 energy=-53.678731 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 13 distance=2.049993 temperature=229.329200 energy=-53.524658 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 14 distance=2.150916 temperature=124.473453 energy=-53.485009 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 15 distance=2.244834 temperature=86.895337 energy=-53.529223 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 16 distance=2.285869 temperature=116.381706 energy=-53.634660 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 17 distance=2.353012 temperature=45.885111 energy=-53.555036 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 18 distance=2.430144 temperature=77.008170 energy=-53.635515 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 19 distance=2.516260 temperature=69.162230 energy=-53.649744 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 20 distance=2.599879 temperature=52.426504 energy=-53.647346 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 21 distance=2.664394 temperature=60.066686 energy=-53.654625 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 22 distance=2.734724 temperature=40.166358 energy=-53.643149 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 23 distance=2.811409 temperature=42.165404 energy=-53.671147 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 24 distance=2.893823 temperature=40.587868 energy=-53.655762 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 25 distance=2.964845 temperature=47.710760 energy=-53.662890 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 26 distance=3.040822 temperature=39.954094 energy=-53.656790 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 27 distance=3.116939 temperature=36.514366 energy=-53.659066 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 28 distance=3.187172 temperature=29.888088 energy=-53.657931 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 29 distance=3.263894 temperature=43.083246 energy=-53.643802 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 30 distance=3.338099 temperature=42.026845 energy=-53.655477 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 31 distance=3.413415 temperature=36.689874 energy=-53.652054 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 32 distance=3.490890 temperature=45.792466 energy=-53.650680 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 33 distance=3.563817 temperature=31.601212 energy=-53.639322 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 34 distance=3.638253 temperature=51.123449 energy=-53.643706 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 35 distance=3.717096 temperature=47.808302 energy=-53.646773 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 36 distance=3.791249 temperature=61.586903 energy=-53.645038 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 37 distance=3.867737 temperature=42.405928 energy=-53.635985 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 38 distance=3.939650 temperature=35.725790 energy=-53.646533 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 39 distance=4.011419 temperature=30.174980 energy=-53.629624 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 40 distance=4.092371 temperature=43.897972 energy=-53.619404 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 0 distance=4.088529 temperature=44.940665 energy=-53.620996 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 1 distance=4.014359 temperature=40.979096 energy=-53.629675 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 2 distance=3.940220 temperature=42.346497 energy=-53.616404 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 3 distance=3.861246 temperature=50.224469 energy=-53.622695 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 4 distance=3.788265 temperature=56.188757 energy=-53.639958 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 5 distance=3.712824 temperature=45.759053 energy=-53.628898 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 6 distance=3.641512 temperature=41.481400 energy=-53.618122 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 7 distance=3.567044 temperature=34.941554 energy=-53.636264 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 8 distance=3.487145 temperature=42.928602 energy=-53.650591 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 9 distance=3.415032 temperature=48.310180 energy=-53.639522 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 10 distance=3.340349 temperature=35.081130 energy=-53.611813 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 11 distance=3.265515 temperature=54.834012 energy=-53.642629 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 12 distance=3.189863 temperature=49.512956 energy=-53.634564 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 13 distance=3.112692 temperature=39.214621 energy=-53.602164 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 14 distance=3.040781 temperature=50.730169 energy=-53.620415 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 15 distance=2.966828 temperature=48.994061 energy=-53.605103 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 16 distance=2.889158 temperature=47.793676 energy=-53.617815 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 17 distance=2.812511 temperature=28.940159 energy=-53.618918 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 18 distance=2.742173 temperature=29.521443 energy=-53.625856 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 19 distance=2.663759 temperature=64.467175 energy=-53.647882 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 20 distance=2.591193 temperature=46.416746 energy=-53.589639 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 21 distance=2.516827 temperature=62.015191 energy=-53.614527 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 22 distance=2.440668 temperature=53.081996 energy=-53.601141 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 23 distance=2.365527 temperature=38.451476 energy=-53.624680 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 24 distance=2.288073 temperature=63.164491 energy=-53.636539 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 25 distance=2.214973 temperature=57.772916 energy=-53.645981 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 26 distance=2.138684 temperature=51.115485 energy=-53.646353 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 27 distance=2.066774 temperature=46.912615 energy=-53.640807 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 28 distance=1.991214 temperature=34.910555 energy=-53.637920 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 29 distance=1.911134 temperature=40.352098 energy=-53.649963 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 30 distance=1.838398 temperature=36.555502 energy=-53.639692 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 31 distance=1.446265 temperature=230.738442 energy=-57.138663 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 32 distance=1.408044 temperature=205.531262 energy=-57.690608 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 33 distance=1.369282 temperature=107.495883 energy=-58.027509 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 34 distance=1.359754 temperature=164.794785 energy=-58.220861 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 35 distance=1.334542 temperature=108.686185 energy=-58.386622 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 36 distance=1.304738 temperature=85.445053 energy=-58.549461 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 37 distance=1.234741 temperature=49.330404 energy=-58.748989 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 38 distance=1.182000 temperature=61.040337 energy=-58.904603 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 39 distance=1.136911 temperature=64.821534 energy=-58.967605 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 40 distance=1.092600 temperature=69.118122 energy=-58.995180 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 0 distance=1.097291 temperature=75.480908 energy=-59.005137 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 1 distance=1.091305 temperature=51.962832 energy=-59.024838 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 2 distance=1.096473 temperature=43.949402 energy=-58.904882 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 3 distance=1.096976 temperature=49.877883 energy=-58.999112 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 4 distance=1.101297 temperature=91.191668 energy=-59.002436 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 5 distance=1.085804 temperature=81.579587 energy=-58.991548 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 6 distance=1.100047 temperature=89.044948 energy=-58.981089 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 7 distance=1.077845 temperature=98.464576 energy=-58.959474 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 8 distance=1.061807 temperature=52.003243 energy=-58.990048 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 9 distance=1.098702 temperature=63.936513 energy=-59.014717 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreleased 0 distance=1.098702 temperature=63.936513 energy=-59.014717 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nmax_distance=4.092371 final_distance=1.098702\n",
+          "error": ""
+        },
+        {
+          "velocity_seed": 12347,
+          "exit_code": 0,
+          "max_CH_distance_A": 4.09238,
+          "final_CH_distance_A": 1.098707,
+          "output": "initial 0 distance=1.090036 temperature=50.000000 energy=-59.075138 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 0 distance=1.090645 temperature=29.347795 energy=-59.037444 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 1 distance=1.133449 temperature=22.895436 energy=-59.014761 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 2 distance=1.188550 temperature=25.552136 energy=-58.922953 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 3 distance=1.242531 temperature=33.419905 energy=-58.782411 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 4 distance=1.301645 temperature=36.221370 energy=-58.608982 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 5 distance=1.330150 temperature=30.574959 energy=-58.464779 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 6 distance=1.357332 temperature=46.350794 energy=-58.290828 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 7 distance=1.380520 temperature=44.416535 energy=-58.109691 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 8 distance=1.404257 temperature=31.540379 energy=-57.852742 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 9 distance=1.430968 temperature=35.628875 energy=-57.522592 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 10 distance=1.463632 temperature=38.460315 energy=-57.050342 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 11 distance=1.497222 temperature=64.319424 energy=-56.505012 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 12 distance=1.746796 temperature=183.670230 energy=-53.671886 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 13 distance=2.050117 temperature=220.396934 energy=-53.519097 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 14 distance=2.150964 temperature=122.090865 energy=-53.488080 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 15 distance=2.244128 temperature=87.177584 energy=-53.534047 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 16 distance=2.285875 temperature=112.097022 energy=-53.634197 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 17 distance=2.353342 temperature=47.491620 energy=-53.561557 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 18 distance=2.430308 temperature=75.640123 energy=-53.637345 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 19 distance=2.516198 temperature=68.183254 energy=-53.650352 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 20 distance=2.599626 temperature=50.487718 energy=-53.647355 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 21 distance=2.664401 temperature=57.639583 energy=-53.652351 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 22 distance=2.734896 temperature=38.603454 energy=-53.642629 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 23 distance=2.811284 temperature=42.734948 energy=-53.671758 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 24 distance=2.893805 temperature=40.117213 energy=-53.654933 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 25 distance=2.964968 temperature=45.795178 energy=-53.660471 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 26 distance=3.040690 temperature=40.309865 energy=-53.656846 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 27 distance=3.116969 temperature=36.540422 energy=-53.657923 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 28 distance=3.187189 temperature=30.103668 energy=-53.656902 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 29 distance=3.263846 temperature=43.965836 energy=-53.643991 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 30 distance=3.338042 temperature=41.906944 energy=-53.653756 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 31 distance=3.413423 temperature=36.991751 energy=-53.651181 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 32 distance=3.490927 temperature=46.570748 energy=-53.650357 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 33 distance=3.563837 temperature=31.382697 energy=-53.637763 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 34 distance=3.638278 temperature=51.549985 energy=-53.642880 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 35 distance=3.717033 temperature=48.750605 energy=-53.647319 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 36 distance=3.791238 temperature=61.122872 energy=-53.643907 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 37 distance=3.867723 temperature=42.174254 energy=-53.635640 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 38 distance=3.939736 temperature=35.723417 energy=-53.646165 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 39 distance=4.011407 temperature=29.506761 energy=-53.628829 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 40 distance=4.092380 temperature=44.133770 energy=-53.620063 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 0 distance=4.088483 temperature=44.870666 energy=-53.621680 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 1 distance=4.014424 temperature=40.626411 energy=-53.629291 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 2 distance=3.940178 temperature=42.237883 energy=-53.615854 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 3 distance=3.861241 temperature=50.504335 energy=-53.622438 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 4 distance=3.788242 temperature=56.357399 energy=-53.639400 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 5 distance=3.712844 temperature=46.174702 energy=-53.628523 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 6 distance=3.641547 temperature=41.669323 energy=-53.617691 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 7 distance=3.567050 temperature=35.192962 energy=-53.636061 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 8 distance=3.487146 temperature=43.247571 energy=-53.651003 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 9 distance=3.415013 temperature=48.486461 energy=-53.639746 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 10 distance=3.340346 temperature=35.316866 energy=-53.612265 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 11 distance=3.265530 temperature=55.063919 energy=-53.642635 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 12 distance=3.189896 temperature=49.445255 energy=-53.634673 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 13 distance=3.112660 temperature=39.260422 energy=-53.602657 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 14 distance=3.040758 temperature=50.627159 energy=-53.620005 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 15 distance=2.966774 temperature=49.182069 energy=-53.605045 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 16 distance=2.889184 temperature=47.779126 energy=-53.617905 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 17 distance=2.812534 temperature=28.884896 energy=-53.619362 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 18 distance=2.742184 temperature=29.498773 energy=-53.626050 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 19 distance=2.663743 temperature=64.579729 energy=-53.648108 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 20 distance=2.591199 temperature=46.455400 energy=-53.590165 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 21 distance=2.516819 temperature=61.629224 energy=-53.614861 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 22 distance=2.440714 temperature=53.080938 energy=-53.601815 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 23 distance=2.365515 temperature=38.461555 energy=-53.624725 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 24 distance=2.288095 temperature=63.140113 energy=-53.636516 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 25 distance=2.214977 temperature=57.759015 energy=-53.645911 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 26 distance=2.138683 temperature=51.344817 energy=-53.646789 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 27 distance=2.066777 temperature=46.773709 energy=-53.640710 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 28 distance=1.991230 temperature=34.770145 energy=-53.637678 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 29 distance=1.911126 temperature=40.570767 energy=-53.650154 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 30 distance=1.838378 temperature=36.647670 energy=-53.639704 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 31 distance=1.446247 temperature=230.055702 energy=-57.137634 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 32 distance=1.408090 temperature=206.012208 energy=-57.690140 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 33 distance=1.369399 temperature=108.222729 energy=-58.026396 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 34 distance=1.359773 temperature=164.359733 energy=-58.219409 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 35 distance=1.334494 temperature=109.872498 energy=-58.386469 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 36 distance=1.304770 temperature=86.472985 energy=-58.549178 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 37 distance=1.234783 temperature=49.889622 energy=-58.748929 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 38 distance=1.182063 temperature=61.163730 energy=-58.903935 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 39 distance=1.136856 temperature=65.234369 energy=-58.967498 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 40 distance=1.092540 temperature=69.900276 energy=-58.995574 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 0 distance=1.097212 temperature=75.374353 energy=-59.005103 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 1 distance=1.091396 temperature=51.857545 energy=-59.024796 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 2 distance=1.096587 temperature=43.830261 energy=-58.904528 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 3 distance=1.097011 temperature=49.906338 energy=-58.999091 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 4 distance=1.101283 temperature=91.244219 energy=-59.002471 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 5 distance=1.085808 temperature=81.540224 energy=-58.991318 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 6 distance=1.100027 temperature=89.042318 energy=-58.981262 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 7 distance=1.077861 temperature=98.471093 energy=-58.959520 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 8 distance=1.061838 temperature=52.077247 energy=-58.989986 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 9 distance=1.098707 temperature=63.831587 energy=-59.014785 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreleased 0 distance=1.098707 temperature=63.831587 energy=-59.014785 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nmax_distance=4.092380 final_distance=1.098707\n",
+          "error": ""
+        },
+        {
+          "velocity_seed": 98731,
+          "exit_code": 0,
+          "max_CH_distance_A": 4.092377,
+          "final_CH_distance_A": 1.098703,
+          "output": "initial 0 distance=1.090036 temperature=50.000000 energy=-59.075138 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 0 distance=1.092057 temperature=33.430216 energy=-59.036894 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 1 distance=1.133907 temperature=33.608714 energy=-59.023146 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 2 distance=1.187252 temperature=26.456679 energy=-58.936244 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 3 distance=1.243589 temperature=33.658311 energy=-58.766660 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\npull 4 distance=1.301320 temperature=41.319355 energy=-58.597611 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 5 distance=1.330314 temperature=36.593002 energy=-58.457661 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 6 distance=1.356993 temperature=47.027423 energy=-58.267251 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 7 distance=1.380389 temperature=48.612893 energy=-58.101211 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 8 distance=1.404382 temperature=35.475410 energy=-57.843697 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 9 distance=1.430842 temperature=34.576447 energy=-57.516726 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 10 distance=1.463993 temperature=41.128220 energy=-57.042692 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 11 distance=1.497943 temperature=60.148019 energy=-56.486572 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 12 distance=1.748196 temperature=185.539736 energy=-53.674066 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 13 distance=2.050055 temperature=220.835971 energy=-53.523449 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 14 distance=2.151175 temperature=122.814455 energy=-53.488790 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 15 distance=2.244217 temperature=86.194109 energy=-53.532145 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 16 distance=2.286277 temperature=114.695160 energy=-53.636489 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 17 distance=2.353565 temperature=46.463899 energy=-53.558266 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 18 distance=2.430334 temperature=75.233938 energy=-53.636691 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 19 distance=2.516425 temperature=68.043174 energy=-53.649234 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 20 distance=2.599609 temperature=53.243169 energy=-53.650184 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 21 distance=2.664582 temperature=55.530710 energy=-53.651063 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 22 distance=2.734748 temperature=39.485633 energy=-53.644276 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 23 distance=2.811526 temperature=42.028438 energy=-53.669954 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 24 distance=2.893813 temperature=40.071893 energy=-53.654211 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 25 distance=2.964926 temperature=46.348924 energy=-53.661768 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 26 distance=3.040664 temperature=40.432896 energy=-53.656212 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 27 distance=3.117017 temperature=37.212237 energy=-53.658214 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 28 distance=3.187287 temperature=30.192200 energy=-53.657560 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 29 distance=3.263866 temperature=43.767917 energy=-53.643694 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 30 distance=3.337964 temperature=41.491674 energy=-53.654148 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 31 distance=3.413409 temperature=36.563452 energy=-53.651924 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 32 distance=3.490938 temperature=45.746726 energy=-53.650938 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 33 distance=3.563876 temperature=31.521253 energy=-53.639303 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 34 distance=3.638251 temperature=51.193916 energy=-53.643330 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 35 distance=3.717060 temperature=48.558606 energy=-53.647457 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 36 distance=3.791207 temperature=61.330155 energy=-53.644057 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 37 distance=3.867719 temperature=42.203676 energy=-53.635563 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 38 distance=3.939680 temperature=35.644811 energy=-53.646192 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 39 distance=4.011440 temperature=29.835866 energy=-53.629185 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\npull 40 distance=4.092377 temperature=43.774619 energy=-53.619423 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 0 distance=4.088506 temperature=45.031814 energy=-53.621365 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 1 distance=4.014367 temperature=40.936879 energy=-53.629288 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 2 distance=3.940167 temperature=42.215401 energy=-53.615813 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 3 distance=3.861240 temperature=50.448711 energy=-53.622511 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 4 distance=3.788264 temperature=56.142293 energy=-53.639360 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 5 distance=3.712851 temperature=46.069312 energy=-53.628825 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 6 distance=3.641527 temperature=41.654651 energy=-53.617726 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 7 distance=3.567059 temperature=35.109284 energy=-53.636075 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 8 distance=3.487138 temperature=43.047297 energy=-53.650511 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 9 distance=3.415031 temperature=48.519618 energy=-53.639569 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 10 distance=3.340345 temperature=35.223954 energy=-53.611892 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 11 distance=3.265527 temperature=55.014632 energy=-53.642642 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 12 distance=3.189872 temperature=49.523112 energy=-53.634544 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 13 distance=3.112688 temperature=39.185507 energy=-53.602305 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 14 distance=3.040762 temperature=50.693832 energy=-53.620351 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 15 distance=2.966827 temperature=49.002690 energy=-53.605112 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 16 distance=2.889159 temperature=47.797071 energy=-53.617913 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 17 distance=2.812505 temperature=28.953105 energy=-53.619110 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 18 distance=2.742161 temperature=29.438750 energy=-53.625946 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 19 distance=2.663750 temperature=64.386726 energy=-53.647917 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 20 distance=2.591193 temperature=46.457546 energy=-53.589846 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 21 distance=2.516831 temperature=61.892362 energy=-53.614564 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 22 distance=2.440668 temperature=53.141116 energy=-53.601352 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 23 distance=2.365515 temperature=38.455723 energy=-53.624635 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 24 distance=2.288073 temperature=63.167902 energy=-53.636525 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 25 distance=2.214979 temperature=57.796152 energy=-53.646002 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 26 distance=2.138688 temperature=51.197385 energy=-53.646420 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 27 distance=2.066774 temperature=46.922700 energy=-53.640772 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 28 distance=1.991218 temperature=34.885073 energy=-53.637801 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 29 distance=1.911128 temperature=40.436854 energy=-53.649986 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 30 distance=1.838392 temperature=36.586356 energy=-53.639662 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 31 distance=1.446268 temperature=230.545947 energy=-57.137959 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 32 distance=1.408051 temperature=205.613086 energy=-57.690311 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 33 distance=1.369315 temperature=107.775002 energy=-58.027148 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 34 distance=1.359752 temperature=164.718210 energy=-58.220498 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 35 distance=1.334527 temperature=108.999977 energy=-58.386635 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 36 distance=1.304748 temperature=85.718709 energy=-58.549463 finite=1 nearest_carbon=1 CH_neighbours=0 ring_intact=1\nreturn 37 distance=1.234750 temperature=49.448919 energy=-58.749019 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 38 distance=1.182017 temperature=61.048256 energy=-58.904448 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 39 distance=1.136895 temperature=64.903732 energy=-58.967576 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreturn 40 distance=1.092584 temperature=69.310880 energy=-58.995255 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 0 distance=1.097271 temperature=75.428216 energy=-59.005121 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 1 distance=1.091338 temperature=51.934752 energy=-59.024823 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 2 distance=1.096507 temperature=43.914167 energy=-58.904772 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 3 distance=1.096988 temperature=49.888687 energy=-58.999107 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 4 distance=1.101292 temperature=91.208059 energy=-59.002452 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 5 distance=1.085805 temperature=81.568566 energy=-58.991477 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 6 distance=1.100039 temperature=89.045110 energy=-58.981146 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 7 distance=1.077850 temperature=98.463503 energy=-58.959490 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 8 distance=1.061818 temperature=52.025453 energy=-58.990031 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nrelax 9 distance=1.098703 temperature=63.901577 energy=-59.014741 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nreleased 0 distance=1.098703 temperature=63.901577 energy=-59.014741 finite=1 nearest_carbon=1 CH_neighbours=1 ring_intact=1\nmax_distance=4.092377 final_distance=1.098703\n",
+          "error": ""
+        }
+      ],
+      "passed": true
+    }
+  },
+  "room_soak": {
+    "source_commit": "70ef8006ddd50716cfc06807c02195706422faf8",
+    "cases": [
+      "ROOM_SOAK preset=gas atoms=3000 step=30111 samples=375 contact_samples=264 temperature=0.9979055633982723 finite=true",
+      "ROOM_SOAK preset=twoGases atoms=4000 step=30013 samples=538 contact_samples=377 temperature=1.004069278202936 finite=true",
+      "ROOM_SOAK preset=droplets atoms=3750 step=30007 samples=1183 contact_samples=829 temperature=0.4731945237770049 finite=true"
+    ],
+    "synthetic_room_containment_checked_each_sample": true,
+    "physical_sensing_verified": false
+  },
+  "native_builds": [
+    {
+      "commit": "5b25cc48d2eed8fb7ab3336fb42430eef548b459",
+      "device": "passed",
+      "simulator": "passed",
+      "swift_tests": "passed",
+      "url": "https://github.com/andeplane/AppleVisionProProjects/actions/runs/39781418582"
+    },
+    {
+      "commit": "70ef8006ddd50716cfc06807c02195706422faf8",
+      "device": "passed",
+      "simulator": "passed",
+      "swift_tests": "passed",
+      "url": "https://github.com/andeplane/AppleVisionProProjects/actions/runs/39782873727"
+    },
+    {
+      "commit": "8b77f722897d796437984bcdfdc105355275593d",
+      "device": "passed",
+      "simulator": "passed",
+      "swift_tests": "passed",
+      "app_lifecycle_probe": "passed",
+      "shared_room_host_tests": "passed",
+      "shared_room_native_device_and_simulator_api": "passed",
+      "shared_room_consumer_simulator_builds": {
+        "ApolloCabin": "passed",
+        "VisionCraft": "passed",
+        "TheOtherSide": "passed"
+      },
+      "url": "https://github.com/andeplane/AppleVisionProProjects/actions/runs/39790758945",
+      "linux_trajectory_job_at_recording": "in_progress"
+    }
+  ],
+  "availability_followup": {
+    "recorded_at_utc": "2026-10-22T13:52:25.399983+00:00",
+    "base_commit": "339c6765893eb991087364f21e1e13a1bfe160b3",
+    "source_sha256": {
+      "vision-atomify/Atomify/App/AppModel.swift": "bc3014be46bd7340be8433e402b922e260e5148325ec9a8a4aaf9964545b521c",
+      "vision-atomify/Atomify/Controls/ControlsView.swift": "5b45e16c1332295cbd8eacaadb7ddc9d3fb39dd780ebe49e296a66d62650d9e9",
+      "vision-atomify/Atomify/Interaction/RoomWalls.swift": "db817ec34c78834d3667ae861bc28287368622636daa202540ccec671ae033f6",
+      "vision-atomify/Atomify/Lab/LabDriver.swift": "67bcbe53c90e2bdaa0422a69a73e07b5e9ae0f50f7e88bb56f88a57971294f18",
+      "vision-atomify/Tests/AppModelLifecycleProbe.swift": "59147967adb6fb8a0b857094091d8515d903ade5b119d0be7e23797e64ef1de8",
+      "vision-atomify/scripts/check-app-lifecycle.sh": "b2869d92b554ebbc84a4b5a4d32514ee45d6b40e47b46856bd33daa202d33e29"
+    },
+    "app_lifecycle_probe": "APP_LIFECYCLE runs=32 unique_ids=true unique_folders=true final_atoms=12 observe_fallback=true stale_completion=false background_holds=true foreground_resumes=true engines_stopped=true folders_removed=true cwd_restored=true",
+    "adapted_swift6_ui_typecheck": "passed",
+    "ui_layout_review": "Main room status visible for denied and unsupported cases in a macOS-adapted 2D render. Native controls and ARKit permission interactions are not verified by that render."
+  }
+}
