@@ -7,6 +7,7 @@ let package = Package(
     name: "AtomifyMetal",
     platforms: [.macOS(.v15), .iOS(.v18), .visionOS(.v2)],
     products: [
+        .library(name: "AtomifyRender", targets: ["AtomifyRender"]),
         .library(name: "AtomifyEngine", targets: ["AtomifyEngine"]),
     ],
     targets: [
@@ -16,5 +17,9 @@ let package = Package(
                 linkerSettings: [.linkedLibrary("c++")]),
         .testTarget(name: "AtomifyEngineTests", dependencies: ["AtomifyEngine"],
                     path: "src/shared/AtomifyEngine/Tests", resources: [.copy("Fixtures")]),
+
+        .target(name: "AtomifyRender", path: "src/shared/AtomifyRender/Sources"),
+        .testTarget(name: "AtomifyRenderTests", dependencies: ["AtomifyRender"],
+                    path: "src/shared/AtomifyRender/Tests"),
     ]
 )
