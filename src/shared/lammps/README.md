@@ -22,6 +22,7 @@ corresponding source with every binary.
 | `prepare_lammps.py` | Fetches LAMMPS, applies the patches, copies bridge and extra styles into `src/`. |
 | `build-host.sh` | Builds for this machine (Linux or macOS) and runs the bridge tests. |
 | `build-xcframework.sh` | Builds `Frameworks/CLammps.xcframework` for macOS, iOS, iOS Simulator, visionOS and visionOS Simulator. |
+| `check-examples.sh`, `tools/` | Runs every bundled example with the host build (see below). |
 | `package-host-library.py` | Wraps a macOS host build as a one-slice xcframework (quick local testing). |
 
 `build/` and `Frameworks/` are generated and ignored by git.
@@ -40,6 +41,24 @@ SLICES=macos src/shared/lammps/build-xcframework.sh   # macOS only, much faster
 The first build compiles all of LAMMPS and takes a while; later builds only
 recompile what changed. `prepare_lammps.py` reuses `build/lammps` if it holds
 the pinned tag; delete it after changing `LAMMPS_TAG`.
+
+## Checking the examples
+
+```sh
+src/shared/lammps/check-examples.sh [--steps 100] [--timeout 120] [--filter ID] [--jobs N] [--keep]
+```
+
+Runs each example of `src/macos/AtomifyMac/Examples/examples.json` in a fresh
+working copy and its own process (`tools/example_check.cpp` through the
+bridge, driven by `tools/check_examples.py`) until its input completes or N
+steps after its first run started, and prints a table: status (ok, failed,
+timeout, skipped), whether it ended with the input or at the step limit,
+atoms, steps, seconds, and the error with its input line. LAMMPS output of
+failing examples stays in `atomify-check.log` in their working copy. Exits
+1 if any example failed or timed out. On a Mac, `swift run
+atomify-check-examples` and the ExampleRunTests target do the same through
+AtomifyKit's `ExampleRunner`. An example marked
+`"atomifyMetal": {"skip": "reason"}` in examples.json is skipped by all three.
 
 ## Patches
 

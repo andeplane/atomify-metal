@@ -14,6 +14,18 @@ public struct ExampleFile: Codable, Sendable, Hashable {
     }
 }
 
+/// Atomify Metal's own settings for an example, under `"atomifyMetal"` in
+/// examples.json (the web app ignores the key).
+public struct ExampleOptions: Codable, Sendable, Hashable {
+    /// Why the example checks (`atomify-check-examples`, ExampleRunTests)
+    /// skip this example, e.g. a package this build lacks. Nil runs it.
+    public var skip: String?
+
+    public init(skip: String? = nil) {
+        self.skip = skip
+    }
+}
+
 /// An example simulation in the web app's `examples.json` format.
 public struct Example: Codable, Sendable, Identifiable, Hashable {
     public var id: String
@@ -29,10 +41,13 @@ public struct Example: Codable, Sendable, Identifiable, Hashable {
     public var authorUrl: String?
     public var analysisDescription: String?
     public var analysisScript: String?
+    /// Settings that only Atomify Metal reads.
+    public var atomifyMetal: ExampleOptions?
 
     public init(id: String, title: String, description: String, imageUrl: String? = nil, inputScript: String,
                 keywords: [String]? = nil, files: [ExampleFile], author: String? = nil, authorUrl: String? = nil,
-                analysisDescription: String? = nil, analysisScript: String? = nil) {
+                analysisDescription: String? = nil, analysisScript: String? = nil,
+                atomifyMetal: ExampleOptions? = nil) {
         self.id = id
         self.title = title
         self.description = description
@@ -44,7 +59,11 @@ public struct Example: Codable, Sendable, Identifiable, Hashable {
         self.authorUrl = authorUrl
         self.analysisDescription = analysisDescription
         self.analysisScript = analysisScript
+        self.atomifyMetal = atomifyMetal
     }
+
+    /// Why the example checks skip this example, or nil.
+    public var skipReason: String? { atomifyMetal?.skip }
 
     /// Whether the example matches a search: every word of `query` appears in
     /// the title, id, description, author or a keyword (case and diacritics
