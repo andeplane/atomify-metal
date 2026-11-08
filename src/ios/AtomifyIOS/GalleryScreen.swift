@@ -2,27 +2,21 @@ import AtomifyKit
 import SwiftUI
 import UIKit
 
-/// The app's root: the examples gallery, with the running simulation over
-/// it full screen, and the welcome on first launch.
+/// The app's root, as in Atomify 2: a running simulation from launch, with
+/// the welcome over it, and the examples gallery full screen over it when
+/// asked for.
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage(SettingsKey.hasSeenWelcome) private var hasSeenWelcome = false
-    @State private var showsWelcome = false
 
     var body: some View {
         @Bindable var model = model
-        GalleryScreen(model: model, showsWelcome: $showsWelcome)
-            .fullScreenCover(isPresented: $model.showsSimulation) {
-                SimulationScreen()
+        SimulationScreen()
+            .fullScreenCover(isPresented: $model.showsGallery) {
+                GalleryScreen(model: model)
                     .environment(model)
             }
-            .sheet(isPresented: $showsWelcome, onDismiss: { hasSeenWelcome = true }) {
-                WelcomeSheet()
-            }
-            .onAppear {
-                if !hasSeenWelcome { showsWelcome = true }
-            }
+            .task { model.start() }
             .onChange(of: scenePhase) { _, phase in
                 switch phase {
                 case .active: model.enterForeground()
@@ -46,7 +40,6 @@ enum ExampleRoute: Hashable {
 /// example's detail, where Run starts it.
 struct GalleryScreen: View {
     let model: AppModel
-    @Binding var showsWelcome: Bool
     @State private var path: [ExampleRoute] = []
     @State private var query = ""
     @State private var showsSettings = false
@@ -78,6 +71,15 @@ struct GalleryScreen: View {
             .navigationTitle("Atomify")
             .searchable(text: $query, prompt: "Search examples")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        model.returnToSimulation()
+                    } label: {
+                        Label("Simulation", systemImage: "chevron.backward")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .accessibilityHint("Returns to the simulation.")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showsSettings = true
@@ -94,7 +96,8 @@ struct GalleryScreen: View {
         .sheet(isPresented: $showsSettings, onDismiss: {
             if wantsWelcome {
                 wantsWelcome = false
-                showsWelcome = true
+                model.showsWelcome = true
+                model.returnToSimulation()
             }
         }) {
             SettingsSheet(model: model, wantsWelcome: $wantsWelcome)
@@ -262,57 +265,58 @@ enum ExampleText {
     }
 }
 
-/// Atomify 2's welcome, shown on first launch and from Settings.
-struct WelcomeSheet: View {
-    @Environment(\.dismiss) private var dismiss
+/// Atomify 2's welcome, over the running simulation on every launch (and
+/// from Settings). The close button or a tap anywhere dismisses it.
+struct WelcomeOverlay: View {
+    let onClose: () -> Void
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+        ZStack {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .center, spacing: 14) {
                     Image(systemName: "atom")
-                        .font(.system(size: 56))
+                        .font(.system(size: 34))
                         .foregroundStyle(.tint)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 8)
                         .accessibilityHidden(true)
                     Text("Welcome to Atomify")
-                        .font(.largeTitle.weight(.bold))
-                        .frame(maxWidth: .infinity)
-                        .multilineTextAlignment(.center)
-                    Text("""
-                        We simulate how atoms and molecules behave with a physical model called molecular \
-                        dynamics. It uses Newton's laws to move atoms around following the laws of physics. \
-                        You can study gases, liquids and solids to see different properties and effects. \
-                        Atomify is open source and uses LAMMPS as physics engine.
-                        """)
-                        .font(.body)
-                        .fixedSize(horizontal: false, vertical: true)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Anders Hafreager and Svenn-Arne Dragly")
-                            .font(.subheadline.weight(.semibold))
-                        Text("University of Oslo")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        .font(.title2.weight(.bold))
+                    Spacer(minLength: 8)
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                            .frame(width: 36, height: 36)
+                            .contentShape(Circle())
                     }
+                    .buttonStyle(.plain)
+                    .glass(in: Circle())
+                    .accessibilityLabel("Close")
                 }
-                .padding(24)
-            }
-            .safeAreaInset(edge: .bottom) {
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Explore Examples")
-                        .frame(maxWidth: .infinity)
+                Text("""
+                    We simulate how atoms and molecules behave with a physical model called molecular \
+                    dynamics. It uses Newton's laws to move atoms around following the laws of physics. \
+                    You can study gases, liquids and solids to see different properties and effects. \
+                    Atomify is open source and uses LAMMPS as physics engine.
+                    """)
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Anders Hafreager and Svenn-Arne Dragly")
+                        .font(.footnote.weight(.semibold))
+                    Text("University of Oslo")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .font(.headline)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 12)
             }
+            .padding(22)
+            .frame(maxWidth: 560)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .padding(24)
         }
-        .presentationDetents([.large])
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onClose)
+        .accessibilityAddTraits(.isModal)
     }
 }
 

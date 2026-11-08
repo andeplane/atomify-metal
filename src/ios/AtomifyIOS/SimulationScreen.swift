@@ -7,15 +7,13 @@ import SwiftUI
 enum SettingsKey {
     /// Frames per second, GPU time and steps per second over the atoms.
     static let showPerformance = "showPerformanceOverlay"
-    /// The welcome was shown once.
-    static let hasSeenWelcome = "hasSeenWelcome"
 }
 
-/// The running simulation, over the gallery: the Metal view edge to edge,
-/// with glass controls floating on top and everything else in sheets.
+/// The running simulation, the app's main screen: the Metal view edge to
+/// edge, with glass controls floating on top and everything else in sheets.
+/// The app is landscape only, as Atomify 2 was.
 struct SimulationScreen: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     var body: some View {
         @Bindable var model = model
@@ -28,12 +26,18 @@ struct SimulationScreen: View {
                 Placeholder(model: model, session: session)
             }
 
-            if !model.chromeHidden {
-                SimulationChrome(model: model, session: session, landscape: verticalSizeClass == .compact)
+            if !model.chromeHidden && !model.showsWelcome {
+                SimulationChrome(model: model, session: session)
+                    .transition(.opacity)
+            }
+
+            if model.showsWelcome {
+                WelcomeOverlay { model.showsWelcome = false }
                     .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: model.chromeHidden)
+        .animation(.easeInOut(duration: 0.25), value: model.showsWelcome)
         .background(Color(red: 0.08, green: 0.08, blue: 0.1))
         .preferredColorScheme(.dark)
         .statusBarHidden(model.chromeHidden)
@@ -115,20 +119,18 @@ func performOnMain(_ work: @escaping @MainActor @Sendable () -> Void) {
     }
 }
 
-/// The floating controls: title and reset view on top, messages, the atom
-/// card and the toolbar at the bottom. In landscape the bottom row splits
-/// into the card on the left and the toolbar on the right.
+/// The floating controls: title, speed and reset view on top; messages and
+/// the atom card bottom left, the toolbar bottom right.
 struct SimulationChrome: View {
     let model: AppModel
     let session: SimulationSession
-    let landscape: Bool
     @AppStorage(SettingsKey.showPerformance) private var showPerformance = false
 
     var body: some View {
         VStack(spacing: 10) {
             HStack(alignment: .top, spacing: 10) {
                 TitleCapsule(session: session) { model.sheet = .about }
-                if landscape && showPerformance {
+                if showPerformance {
                     PerformanceHUD(session: session)
                 }
                 Spacer(minLength: 8)
@@ -147,32 +149,18 @@ struct SimulationChrome: View {
                     Spacer(minLength: 0)
                 }
             }
-            if !landscape && showPerformance {
-                HStack {
-                    PerformanceHUD(session: session)
-                    Spacer()
-                }
-            }
             Spacer(minLength: 0)
-            if landscape {
-                HStack(alignment: .bottom, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        RunMessages(model: model, session: session)
-                        SelectedAtomCard(model: model, session: session)
-                    }
-                    .frame(maxWidth: 380, alignment: .leading)
-                    Spacer(minLength: 0)
-                    SimulationToolbar(model: model, session: session)
-                }
-            } else {
-                VStack(spacing: 8) {
+            HStack(alignment: .bottom, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
                     RunMessages(model: model, session: session)
                     SelectedAtomCard(model: model, session: session)
-                    SimulationToolbar(model: model, session: session)
                 }
+                .frame(maxWidth: 380, alignment: .leading)
+                Spacer(minLength: 0)
+                SimulationToolbar(model: model, session: session)
             }
         }
-        .padding(.horizontal, landscape ? 8 : 16)
+        .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
     }
