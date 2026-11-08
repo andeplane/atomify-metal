@@ -1,0 +1,22 @@
+# test Vashishta potential for quartz
+
+#/atom 1 oxygen
+#/atom 2 hydrogen
+#/bond 1 2 2.0
+log none
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	singlewater.data
+
+pair_style 	vashishta
+pair_coeff	* *  H2O.vashishta O H
+mass            1 15.9994
+mass            2 1.00794
+
+velocity	all create 300.0 86151 mom yes
+
+fix nve all nve
+timestep	0.0005

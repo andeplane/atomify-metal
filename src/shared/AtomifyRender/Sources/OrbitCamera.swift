@@ -15,8 +15,12 @@ public struct OrbitCamera: Sendable, Equatable {
     /// right becomes cos(roll)·right + sin(roll)·up; π shows the scene
     /// upside down.
     public var roll: Float = 0
-    /// Vertical field of view, radians.
+    /// Vertical field of view, radians (see `fitsShorterSide`).
     public var fieldOfView: Float = .pi / 4
+    /// When true, `fieldOfView` spans the shorter side of the view: the
+    /// height in landscape, the width in portrait. Atomify 2 was landscape
+    /// only, so its cameras keep their framing in portrait this way.
+    public var fitsShorterSide = false
     /// How close and how far `zoom(by:)` may go. `frame(low:high:)` fits
     /// it to the framed box; otherwise it is the absolute range.
     public var distanceRange: ClosedRange<Float> = minimumDistance...maximumDistance
@@ -117,13 +121,22 @@ public struct OrbitCamera: Sendable, Equatable {
         ])
     }
 
+    /// The vertical field of view in a view of width / height `aspect`:
+    /// `fieldOfView`, or with `fitsShorterSide` in portrait, the angle that
+    /// makes the width span `fieldOfView`.
+    public func verticalFieldOfView(aspect: Float) -> Float {
+        guard fitsShorterSide, aspect > 0, aspect < 1, aspect.isFinite else { return fieldOfView }
+        return min(2 * atanf(tanf(fieldOfView / 2) / aspect), .pi * 0.99)
+    }
+
     public func projectionMatrix(aspect: Float, near: Float, far: Float, reverseZ: Bool) -> simd_float4x4 {
-        Transforms.perspective(fovY: fieldOfView, aspect: aspect, near: near, far: far, reverseZ: reverseZ)
+        Transforms.perspective(fovY: verticalFieldOfView(aspect: aspect), aspect: aspect, near: near, far: far,
+                               reverseZ: reverseZ)
     }
 
     /// World-space ray through a point in normalized device coords (−1...1).
     public func ray(ndc: SIMD2<Float>, aspect: Float) -> (origin: SIMD3<Float>, direction: SIMD3<Float>) {
-        let t = tanf(fieldOfView / 2)
+        let t = tanf(verticalFieldOfView(aspect: aspect) / 2)
         let (right, up, forward) = basis
         let direction = simd_normalize(forward + right * (ndc.x * t * aspect) + up * (ndc.y * t))
         return (position, direction)
@@ -131,10 +144,12 @@ public struct OrbitCamera: Sendable, Equatable {
 
     /// The `pan(by:)` argument that makes the scene at the target follow a
     /// pointer moved by `points` (x right, y down, as in view coordinates)
-    /// in a view `viewHeight` points tall.
-    public func panDelta(forPointerMove points: SIMD2<Float>, viewHeight: Float) -> SIMD2<Float> {
+    /// in a view `viewHeight` points tall (and `viewWidth` wide, which
+    /// matters only with `fitsShorterSide`).
+    public func panDelta(forPointerMove points: SIMD2<Float>, viewHeight: Float, viewWidth: Float = 0) -> SIMD2<Float> {
         guard viewHeight > 0 else { return .zero }
-        let unitsPerPoint = 2 * tanf(fieldOfView / 2) / viewHeight
+        let aspect = viewWidth > 0 ? viewWidth / viewHeight : 1
+        let unitsPerPoint = 2 * tanf(verticalFieldOfView(aspect: aspect) / 2) / viewHeight
         return SIMD2(-points.x, points.y) * unitsPerPoint
     }
 

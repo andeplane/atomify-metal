@@ -232,7 +232,8 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
     func pan(pointerDelta: SIMD2<Float>) {
         noteInteraction()
         var camera = self.camera.wrappedValue
-        camera.pan(by: camera.panDelta(forPointerMove: pointerDelta, viewHeight: boundsSize(view).y))
+        let size = boundsSize(view)
+        camera.pan(by: camera.panDelta(forPointerMove: pointerDelta, viewHeight: size.y, viewWidth: size.x))
         self.camera.wrappedValue = camera
     }
 

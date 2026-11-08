@@ -116,6 +116,7 @@ import simd
         #expect(abs(camera.distance - 45) < 1e-3)
         #expect(simd_length(camera.position - SIMD3(10, 5, -45)) < 1e-3)
         #expect(abs(camera.fieldOfView - 25 * .pi / 180) < 1e-6)
+        #expect(camera.fitsShorterSide)
         // Looking along +z with -y up: screen up is -y, screen right is +x.
         #expect(simd_length(camera.basis.up - SIMD3(0, -1, 0)) < 1e-4)
         #expect(simd_length(camera.basis.right - SIMD3(1, 0, 0)) < 1e-4)
@@ -133,8 +134,10 @@ import simd
         var base = OrbitCamera()
         base.roll = 1
         base.fieldOfView = 0.3
+        base.fitsShorterSide = true
         let camera = CameraFraming.camera(hint: nil, boxLow: .zero, boxHigh: SIMD3(1, 1, 1), base: base)
         #expect(camera.roll == 0)
         #expect(camera.fieldOfView == OrbitCamera().fieldOfView)
+        #expect(!camera.fitsShorterSide)
     }
 }

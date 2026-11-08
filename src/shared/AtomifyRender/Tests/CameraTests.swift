@@ -155,6 +155,25 @@ final class OrbitCameraTests: XCTestCase {
         XCTAssertEqual(simd_length(ray.direction), 1, accuracy: 1e-5)
     }
 
+    func testFieldOfViewOnTheShorterSide() {
+        var camera = OrbitCamera(distance: 10)
+        camera.fieldOfView = 25 * .pi / 180
+        XCTAssertEqual(camera.verticalFieldOfView(aspect: 0.5), camera.fieldOfView)
+        camera.fitsShorterSide = true
+        // Landscape: unchanged. Portrait: the width spans the field of view.
+        XCTAssertEqual(camera.verticalFieldOfView(aspect: 2), camera.fieldOfView)
+        let portrait = camera.verticalFieldOfView(aspect: 0.5)
+        XCTAssertEqual(tanf(portrait / 2) * 0.5, tanf(camera.fieldOfView / 2), accuracy: 1e-6)
+        let projection = camera.projectionMatrix(aspect: 0.5, near: 0.1, far: 100, reverseZ: false)
+        let edge = SIMD3<Float>(tanf(camera.fieldOfView / 2), 0, -1)
+        XCTAssertEqual(transform(projection, edge).x, 1, accuracy: 1e-5)
+        // Rays and pans follow the same projection.
+        let ray = camera.ray(ndc: SIMD2(1, 0), aspect: 0.5)
+        XCTAssertEqual(ray.direction.x / -ray.direction.z, tanf(camera.fieldOfView / 2), accuracy: 1e-5)
+        let pan = camera.panDelta(forPointerMove: SIMD2(100, 0), viewHeight: 1000, viewWidth: 500)
+        XCTAssertEqual(pan.x, -100 * 2 * tanf(camera.fieldOfView / 2) / 500, accuracy: 1e-6)
+    }
+
     func testPointerDeltas() {
         let camera = OrbitCamera(distance: 10)
         let pan = camera.panDelta(forPointerMove: SIMD2(100, 50), viewHeight: 500)

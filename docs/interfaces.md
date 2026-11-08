@@ -122,6 +122,8 @@ public struct OrbitCamera: Sendable, Equatable {
     public var pitch: Float     // radians, clamped
     public var roll: Float = 0  // radians about the view direction (π: upside down)
     public var fieldOfView: Float = .pi / 4
+    public var fitsShorterSide = false  // fieldOfView spans the width in portrait (set by hinted cameras)
+    public func verticalFieldOfView(aspect: Float) -> Float
     public init(target: SIMD3<Float> = .zero, distance: Float = 10, yaw: Float = 0, pitch: Float = 0)
     public mutating func rotate(by delta: SIMD2<Float>)   // radians
     public mutating func pan(by delta: SIMD2<Float>)      // in view-plane units of distance
@@ -304,7 +306,7 @@ public struct Example: Codable, Sendable, Identifiable, Hashable {
     func matches(query: String) -> Bool; func hasKeyword(_: String?) -> Bool
 }
 /// "atomifyMetal" options: skip?, dialect?, stepsPerFrame? (timesteps per frame at 60 fps), camera: ExampleCamera?
-/// (position/target/up arrays, fieldOfView degrees, relativeToBoxCenter), dashboard: [DashboardPanel]? (kind, parameters),
+/// (position/target/up arrays, fieldOfView degrees on the shorter side, relativeToBoxCenter), dashboard: [DashboardPanel]? (kind, parameters),
 /// periodicImages: [Int]? (copies along x, y, z; imageCounts).
 public struct ExampleOptions: Codable, Sendable, Hashable
 public enum ExampleCatalogError: Error, Equatable, LocalizedError { case missingFile(String), unsupportedLocation(String), missingInputScript(String) }
