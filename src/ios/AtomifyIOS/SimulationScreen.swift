@@ -136,6 +136,17 @@ struct SimulationChrome: View {
                 SpeedMenu(session: session)
             }
             ScriptLabelBanner(session: session)
+            if session.colorQuantity != nil {
+                HStack {
+                    ColorLegend(session: session, compact: true)
+                        .frame(width: 170)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .glass(in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .onTapGesture { model.sheet = .view }
+                    Spacer(minLength: 0)
+                }
+            }
             if !landscape && showPerformance {
                 HStack {
                     PerformanceHUD(session: session)
