@@ -39,14 +39,14 @@ Do the work in this repository.
 
 ## Tests
 
-Aim for about 100% test coverage of the code in this repository.
-New code arrives with tests that cover its branches.
-
-A few kinds of code sit outside that bar:
+Coverage should be close to complete.
+100% is the aim, and it is not a rule that every line must be covered.
+Exceptions exist, including:
 
 - App entry points and other thin platform shells.
 - Metal shader source, and GPU-only paths that a unit test cannot run.
 - Code that needs a headset or another device.
+- Other cases where a test would not be meaningful.
 
 Pull logic out of those paths when you can.
 Buffer packing, colors, bonds, camera math, and script directives are ordinary code, and they are covered.
