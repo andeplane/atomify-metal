@@ -31,6 +31,7 @@ public enum CameraFraming {
             && abs(a.distance - b.distance) <= tolerance * scale
             && abs(a.yaw - b.yaw) <= tolerance
             && abs(a.pitch - b.pitch) <= tolerance
+            && abs(a.roll - b.roll) <= tolerance
             && a.fieldOfView == b.fieldOfView
     }
 
@@ -44,16 +45,23 @@ public enum CameraFraming {
     public static func camera(hint: CameraHint?, boxLow: SIMD3<Double>, boxHigh: SIMD3<Double>,
                               tilt: SIMD3<Double> = .zero, base: OrbitCamera = OrbitCamera()) -> OrbitCamera {
         var camera = base
+        camera.roll = 0
+        camera.fieldOfView = OrbitCamera().fieldOfView
+        if let degrees = hint?.fieldOfView, degrees.isFinite, degrees > 0, degrees < 180 {
+            camera.fieldOfView = Float(degrees * .pi / 180)
+        }
         let bounds = SceneBuilder.bounds(low: boxLow, high: boxHigh, tilt: tilt)
         if bounds.low.x.isFinite, bounds.high.x.isFinite, bounds.low.y.isFinite, bounds.high.y.isFinite,
            bounds.low.z.isFinite, bounds.high.z.isFinite {
             camera.frame(low: bounds.low, high: bounds.high)
         }
         guard let hint else { return camera }
-        let target = hint.target.map { SIMD3<Float>($0) } ?? (bounds.low + bounds.high) / 2
+        let center = (bounds.low + bounds.high) / 2
+        let origin: SIMD3<Float> = hint.relativeToBoxCenter && Self.isFinite(center) ? center : .zero
+        let target = hint.target.map { origin + SIMD3<Float>($0) } ?? center
         camera.target = target
         if let position = hint.position {
-            let parameters = Self.orbit(position: SIMD3<Float>(position), target: target)
+            let parameters = Self.orbit(position: origin + SIMD3<Float>(position), target: target)
             camera.distance = parameters.distance
             camera.yaw = parameters.yaw
             camera.pitch = parameters.pitch
@@ -61,6 +69,23 @@ public enum CameraFraming {
             let range = camera.distanceRange
             camera.distanceRange = min(range.lowerBound, camera.distance)...max(range.upperBound, camera.distance)
         }
+        if let up = hint.up {
+            camera.roll = Self.roll(toward: SIMD3<Float>(up), in: camera)
+        }
         return camera
     }
+
+    /// The roll that turns `camera`'s screen up toward `up` (its part
+    /// across the viewing direction); 0 when `up` is along it.
+    public static func roll(toward up: SIMD3<Float>, in camera: OrbitCamera) -> Float {
+        var level = camera
+        level.roll = 0
+        let (right, levelUp, forward) = level.basis
+        let across = up - simd_dot(up, forward) * forward
+        guard Self.isFinite(across), simd_length(across) > 1e-6 else { return 0 }
+        // Rolled up = cos(r)·up − sin(r)·right.
+        return atan2(-simd_dot(across, right), simd_dot(across, levelUp))
+    }
+
+    private static func isFinite(_ v: SIMD3<Float>) -> Bool { v.x.isFinite && v.y.isFinite && v.z.isFinite }
 }

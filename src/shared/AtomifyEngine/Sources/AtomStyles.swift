@@ -49,6 +49,8 @@ public struct AtomStyle: Sendable, Equatable {
 public struct AtomStyleTable: Sendable, Equatable {
     /// Style of each type 1...typeCount.
     public var styles: [Int: AtomStyle]
+    /// Decides the colors of types without a style.
+    public var dialect: ScriptDialect = .web
 
     public static let palette: [RGBColor] = [
         RGBColor(hex: 0xE8C547), RGBColor(hex: 0x4F9DDE), RGBColor(hex: 0xE5604D),
@@ -58,20 +60,37 @@ public struct AtomStyleTable: Sendable, Equatable {
 
     public init(directives: ScriptDirectives, typeCount: Int, units: String) {
         var styles: [Int: AtomStyle] = [:]
+        let dialect = directives.dialect
         for type in 1...max(typeCount, 1) {
-            styles[type] = directives.atomStyles[type] ?? Self.fallback(type: type, units: units)
+            styles[type] = directives.atomStyles[type] ?? Self.fallback(type: type, units: units, dialect: dialect)
         }
         // Directives for types beyond typeCount are kept; LAMMPS may add types later.
         for (type, style) in directives.atomStyles where type > 0 && styles[type] == nil {
             styles[type] = style
         }
         self.styles = styles
+        self.dialect = dialect
     }
 
     /// The style of a type; types without one get the palette color for
     /// their number and a radius of half a length unit.
     public func style(forType type: Int) -> AtomStyle {
-        styles[type] ?? Self.fallback(type: type, units: "lj")
+        styles[type] ?? Self.fallback(type: type, units: "lj", dialect: dialect)
+    }
+
+    /// The style of a type without a directive. Atomify 2 drew type `t`
+    /// as the `t`-th element of its table counting from hydrogen at 0
+    /// (type 1 helium, 2 lithium, ...), repeating after calcium.
+    public static func fallback(type: Int, units: String, dialect: ScriptDialect) -> AtomStyle {
+        switch dialect {
+        case .web:
+            return fallback(type: type, units: units)
+        case .atomify2:
+            let cycle = 20
+            let element = Element.atomify2[((type % cycle) + cycle) % cycle]
+            return AtomStyle(name: "Type \(type)", color: element.color,
+                             radius: element.radius * ScriptDirectives.atomify2RadiusScale)
+        }
     }
 
     /// The palette style of a type without a directive.

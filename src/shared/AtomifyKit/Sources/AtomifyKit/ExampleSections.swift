@@ -15,7 +15,7 @@ public struct ExampleSection: Sendable, Equatable, Identifiable {
 /// but no categories, so the grouping is a curated list of example ids.
 public enum ExampleSections {
     /// One curated section: its id, title and example ids in display order.
-    public struct Definition: Sendable, Equatable {
+    public struct Definition: Sendable, Equatable, Codable {
         public var id: String
         public var title: String
         public var exampleIDs: [String]

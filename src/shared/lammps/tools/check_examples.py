@@ -30,7 +30,8 @@ DEFAULT_EXAMPLES = HERE.parents[3] / "src/macos/AtomifyMac/Examples"
 
 
 def prepare(script: str) -> str:
-    """Comments out `suffix kk` lines, like ScriptPreparation.prepare."""
+    """Comments out `suffix kk` lines and turns `#/speed` and `#/label` lines
+    into print commands, like ScriptPreparation.prepare."""
     lines = script.split("\n")
     changed = False
     for i, line in enumerate(lines):
@@ -38,6 +39,21 @@ def prepare(script: str) -> str:
         if len(words) >= 2 and words[0] == "suffix" and (words[1] == "kk" or words[1].startswith("kk#")):
             lines[i] = f"# {line}  (KOKKOS is not in this build)"
             changed = True
+        directive = re.match(r"^[ \t]*#/(speed|label)(?:[ \t]+(.*))?$", line.rstrip("\r"))
+        if directive:
+            argument = (directive.group(2) or "").strip()
+            if directive.group(1) == "speed":
+                try:
+                    ok = float(argument) > 0
+                except ValueError:
+                    ok = False
+                if ok:
+                    lines[i] = f'print "@atomify speed {argument}"'
+                    changed = True
+            else:
+                text = argument.replace('"', "").replace("$", "")
+                lines[i] = f'print "@atomify label {text}"'
+                changed = True
     return "\n".join(lines) if changed else script
 
 
