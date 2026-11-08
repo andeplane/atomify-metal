@@ -166,6 +166,7 @@ public final class ParticleRenderer {
         slot.images = images
 
         slot.bondCount = 0
+        slot.bondRanges = []
         slot.hasBondColors = false
         if let bonds = scene.bonds, slot.particleCount > 0, !bonds.pairs.isEmpty, bonds.radius > 0,
            let pointer = slot.bonds.pointer(GPUBond.self, count: bonds.pairs.count) {
@@ -176,6 +177,15 @@ public final class ParticleRenderer {
             slot.hasBondColors = colors != nil
             slot.bondRadius = bonds.radius
             slot.bondMaxLength = bonds.maxLength.isFinite ? bonds.maxLength : .greatestFiniteMagnitude
+            let positions = particles.positions
+            let order = layout.order
+            slot.bondRanges = BondBlocking.group(bonds: pointer, colors: colors, count: slot.bondCount,
+                                                 blocks: slot.blocks, particleCount: n,
+                                                 maxLength: slot.bondMaxLength) { bond in
+                let a = order.map { Int($0[Int(bond.a)]) } ?? Int(bond.a)
+                let b = order.map { Int($0[Int(bond.b)]) } ?? Int(bond.b)
+                return simd_distance(positions[a], positions[b])
+            }
         }
 
         slot.lineCount = 0
@@ -349,11 +359,25 @@ public final class ParticleRenderer {
             encoder.setVertexBuffer(slot.hasBondColors ? slot.bondColors.buffer ?? placeholderBuffer : placeholderBuffer,
                                     offset: 0, index: ShaderSource.BufferIndex.bondColors)
             // Bonds go with every copy drawn in full; thinned copies have none.
-            for image in fullDetailImages.sorted() {
-                setDraw(offset: slot.images[image], radiusFactor: radiusScale)
-                encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0,
-                                       vertexCount: 4, instanceCount: slot.bondCount)
-                bondsDrawn += slot.bondCount
+            let images = fullDetailImages.sorted()
+            let draws: [(image: Int, range: Range<Int>)]
+            if slot.bondRanges.isEmpty {
+                draws = images.map { ($0, 0..<slot.bondCount) }
+            } else {
+                let clipFromModels = viewUniforms.map { $0.projection * $0.modelView }
+                draws = BondBlocking.draws(ranges: slot.bondRanges, blocks: slot.blocks, images: images,
+                                           offsets: slot.images, clipFromModels: clipFromModels,
+                                           radiusScale: radiusScale, bondRadius: slot.bondRadius)
+            }
+            var currentImage: Int?
+            for draw in draws {
+                if currentImage != draw.image {
+                    currentImage = draw.image
+                    setDraw(offset: slot.images[draw.image], radiusFactor: radiusScale)
+                }
+                encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4,
+                                       instanceCount: draw.range.count, baseInstance: draw.range.lowerBound)
+                bondsDrawn += draw.range.count
             }
         }
 

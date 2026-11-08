@@ -5,7 +5,7 @@
 //
 //   swift run -c release atomify-render-bench                 # timing table
 //   swift run -c release atomify-render-bench --shots DIR     # PNGs, fast and high
-// Options: --size 2560x1600  --frames 240  --in-flight 1  --scenes water,sic,sic1m,lj
+// Options: --size 2560x1600  --frames 240  --in-flight 1  --scenes water,sic,lj,sic1m,sic1m-zoom
 //          --label NAME (PNG suffix)  --msaa 4
 // Each timed run turns the camera once around the scene. With one frame in
 // flight (the default) GPU time is the frame's own; more frames in flight
@@ -23,7 +23,7 @@ struct Options {
     var width = 2560, height = 1600, frames = 240, inFlight = 1, msaa = 4
     var shotsDirectory: String?
     var label = ""
-    var scenes = ["water", "sic", "lj", "sic1m"]
+    var scenes = ["water", "sic", "lj", "sic1m", "sic1m-zoom"]
 
     init(_ arguments: [String]) {
         var it = arguments.dropFirst().makeIterator()
@@ -112,12 +112,24 @@ func loadScenes(_ names: [String]) async throws -> [BenchScene] {
     var scenes: [BenchScene] = []
     for name in names {
         let started = Date()
-        let scene: BenchScene
+        var scene: BenchScene
         switch name {
         case "water": scene = try await capture(example: "nanotube_water", script: nil, minimumStep: 200)
         case "sic": scene = try await capture(example: "sic_nanoparticle", script: nil, minimumStep: 100)
         case "lj": scene = try await capture(example: "3D-lj-fluid", script: nil, minimumStep: 500)
         case "sic1m": scene = try await capture(example: nil, script: siliconCarbideScript, minimumStep: 0)
+        case "sic1m-zoom":
+            // The same crystal seen from close by: most of it is out of view.
+            if let full = scenes.first(where: { $0.name == "sic1m" }) {
+                scene = full
+            } else {
+                scene = try await capture(example: nil, script: siliconCarbideScript, minimumStep: 0)
+            }
+            var camera = scene.camera
+            camera.distance *= 0.2
+            camera.pitch = 0.3
+            camera.yaw = 0.5
+            scene = BenchScene(name: name, scene: scene.scene, camera: camera, settings: scene.settings)
         default: throw BenchError("unknown scene \(name)")
         }
         var renamed = scene
