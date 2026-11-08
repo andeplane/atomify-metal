@@ -2,8 +2,19 @@ import AtomifyKit
 import Foundation
 import Observation
 
-/// App-wide state: the bundled example catalog and the one simulation
-/// session the screen shows.
+/// The sheets over the simulation.
+enum AppSheet: String, Identifiable {
+    case examples
+    case view
+    case dashboard
+    /// About the running example, from the title capsule.
+    case about
+
+    var id: String { rawValue }
+}
+
+/// App-wide state: the bundled example catalog, the one simulation session
+/// the screen shows, and which sheet and controls are up.
 @MainActor @Observation.Observable
 final class AppModel {
     /// What runs when the app starts.
@@ -21,6 +32,11 @@ final class AppModel {
     /// How often the particle view draws: fast while touched, at the
     /// simulation's pace while it runs, not at all while nothing changes.
     let framePacing = FramePacing()
+
+    /// The sheet shown over the simulation, if any.
+    var sheet: AppSheet?
+    /// All floating controls hidden, for a clean view of the atoms.
+    var chromeHidden = false
 
     /// Set when the app paused a running simulation on its way to the background.
     @ObservationIgnored private var pausedForBackground = false
@@ -51,8 +67,37 @@ final class AppModel {
     /// Runs the example with this id, replacing the current run.
     func open(_ id: Example.ID) {
         guard let example = catalog.example(id: id) else { return }
-        session.load(example, from: catalog)
+        run(example)
     }
+
+    /// Runs an example, replacing the current run, and shows the controls.
+    func run(_ example: Example) {
+        session.load(example, from: catalog)
+        sheet = nil
+        chromeHidden = false
+    }
+
+    /// A tap on the atoms: an atom selects it (or deselects it when it was
+    /// selected); empty space clears the selection, or with nothing
+    /// selected hides or shows the controls.
+    func handlePick(_ index: Int?) {
+        if index != nil {
+            chromeHidden = false
+            session.selectParticle(index)
+        } else if session.selectedAtom != nil {
+            session.clearSelection()
+        } else {
+            chromeHidden.toggle()
+        }
+    }
+
+    /// Moves the orbit target onto the selected atom.
+    func centerOnSelectedAtom() {
+        guard let atom = session.selectedAtom, Self.isFinite(atom.position) else { return }
+        session.camera.target = atom.position
+    }
+
+    private static func isFinite(_ v: SIMD3<Float>) -> Bool { v.x.isFinite && v.y.isFinite && v.z.isFinite }
 
     /// The most pixels per point to draw the current system at.
     var contentScaleLimit: Double? {
