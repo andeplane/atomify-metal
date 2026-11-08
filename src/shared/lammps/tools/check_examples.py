@@ -89,7 +89,8 @@ def run(binary, catalog, example, args, scratch):
         return dict(status="failed", atoms=0, steps=0, seconds=0.0, error=str(error), line="")
     try:
         process = subprocess.run([str(binary), example["inputScript"], "--steps", str(args.steps),
-                                  "--timeout", str(args.timeout), "--threads", str(args.threads)],
+                                  "--timeout", str(args.timeout), "--threads", str(args.threads),
+                                  "--continue", "1" if getattr(args, "continue_after", False) else "0"],
                                  cwd=folder, capture_output=True, text=True, timeout=args.timeout + 60)
         lines = [line for line in process.stdout.splitlines() if line.startswith("{")]
         if lines:

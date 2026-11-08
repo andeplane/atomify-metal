@@ -1,12 +1,14 @@
 // Runs one LAMMPS script through the Atomify bridge the way the example
 // checks do (see check-examples.sh), and prints the result as one JSON line.
 //
-//   example_check <script> [--steps N] [--timeout S] [--threads T]
+//   example_check <script> [--steps N] [--timeout S] [--threads T] [--continue 1]
 //
 // Run it in the example's working copy. The script runs until its input
 // completes, or until N steps after the first run (or minimization) started,
 // whichever comes first; after S wall clock seconds it is cancelled. T > 1
-// runs LAMMPS on T OpenMP threads. The LAMMPS output goes to
+// runs LAMMPS on T OpenMP threads. With --continue 1 a script that ends
+// keeps integrating, as the apps do (continueAfterScript), so scripts
+// without a run are measured too. The LAMMPS output goes to
 // atomify-check.log in the working directory.
 //
 // Output: {"status":"ok|failed|timeout","reason":"completed|steps|...",
@@ -76,10 +78,12 @@ int main(int argc, char **argv)
   long long max_steps = 100;
   double timeout = 120.0;
   int threads = 1;
+  bool continue_after = false;
   for (int i = 2; i + 1 < argc; i += 2) {
     if (!std::strcmp(argv[i], "--steps")) max_steps = std::atoll(argv[i + 1]);
     else if (!std::strcmp(argv[i], "--timeout")) timeout = std::atof(argv[i + 1]);
     else if (!std::strcmp(argv[i], "--threads")) threads = std::atoi(argv[i + 1]);
+    else if (!std::strcmp(argv[i], "--continue")) continue_after = std::atoi(argv[i + 1]) != 0;
   }
 
   const auto start = std::chrono::steady_clock::now();
@@ -94,7 +98,11 @@ int main(int argc, char **argv)
   atomify_sim_set_publish_interval(sim, 0.02);
 
   std::atomic<int> status{-1};
-  std::thread worker([&] { status = atomify_sim_run_file(sim, script.c_str()); });
+  std::thread worker([&] {
+    int result = atomify_sim_run_file(sim, script.c_str());
+    if (result == ATOMIFY_OK && continue_after) result = atomify_sim_command(sim, "run 1000000000");
+    status = result;
+  });
 
   long long atoms = 0, steps = 0, run_start = -1, first_step = -1;
   double first_seconds = 0;

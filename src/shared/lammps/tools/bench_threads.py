@@ -6,7 +6,8 @@ Usage: bench_threads.py --binary example_check [--examples DIR] [--filter TEXT]
 
 Runs each example of an examples.json catalog once per thread count, one at a
 time, through example_check (built by check-examples.sh), for N steps after
-its first run starts, and prints steps per second of that run and the speedup
+its first run starts (scripts that end keep integrating, as in the apps),
+and prints steps per second of that run and the speedup
 over the first thread count. Started by bench-threads.sh.
 """
 import argparse
@@ -43,7 +44,8 @@ def main():
         rates, atoms, problem = [], 0, ""
         for n in counts:
             result = run(args.binary.resolve(), catalog, example,
-                         SimpleNamespace(steps=args.steps, timeout=args.timeout, threads=n, keep=False), scratch)
+                         SimpleNamespace(steps=args.steps, timeout=args.timeout, threads=n, keep=False,
+                                         continue_after=True), scratch)
             if result["status"] != "ok":
                 problem = f"{result['status']} with {n} threads: {result.get('error', '')}"
                 break
