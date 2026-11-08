@@ -3,34 +3,31 @@ import SwiftUI
 
 /// The side panel's View tab: how the atoms look (size and color), what
 /// else is drawn, render quality and the camera. Changes show at once
-/// beside the panel, which stays open.
+/// beside the panel, which stays open. Grouped cards in the panel's own
+/// scroll view, as the Dashboard tab is (a Form here did not scroll inside
+/// the panel).
 struct ViewPanel: View {
     @Bindable var model: AppModel
     @Bindable var session: SimulationSession
 
     var body: some View {
-        Form {
-            atoms
-            coloring
-            Section("Show") {
-                Toggle("Bonds", isOn: $session.showBonds)
-                Toggle("Simulation box", isOn: $session.showBox)
+        PanelScroll {
+            VStack(alignment: .leading, spacing: 14) {
+                atoms
+                coloring
+                ViewSection("Show") {
+                    Toggle("Bonds", isOn: $session.showBonds)
+                    Divider()
+                    Toggle("Simulation box", isOn: $session.showBox)
+                }
+                rendering
+                camera
             }
-            rendering
-            camera
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .listSectionSpacing(.compact)
-        .environment(\.defaultMinListRowHeight, 42)
-        .contentMargins(.horizontal, 14, for: .scrollContent)
-        .contentMargins(.top, 0, for: .scrollContent)
-        .contentMargins(.bottom, PanelFade.height + 10, for: .scrollContent)
-        .scrollIndicatorsFlash(onAppear: true)
     }
 
     private var atoms: some View {
-        Section("Atoms") {
+        ViewSection("Atoms") {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Size")
@@ -48,54 +45,70 @@ struct ViewPanel: View {
                 }
             }
             if session.renderSettings.radiusScale != 1 {
+                Divider()
                 Button("Normal Size") { session.renderSettings.radiusScale = 1 }
             }
         }
     }
 
-    @ViewBuilder
     private var coloring: some View {
-        Section {
-            Picker("Color by", selection: $session.colorQuantity) {
-                Text("Atom type").tag(String?.none)
-                ForEach(session.availableQuantities, id: \.self) { quantity in
-                    Text(QuantityName.title(quantity)).tag(String?.some(quantity))
-                }
-            }
-            if session.colorQuantity != nil {
-                Picker("Colormap", selection: $session.colormap) {
-                    ForEach(Colormap.allCases, id: \.self) { colormap in
-                        Label {
-                            Text(colormap.rawValue.capitalized)
-                        } icon: {
-                            ColormapSwatch(colormap: colormap)
-                        }
-                        .tag(colormap)
+        ViewSection("Color", footer: colorFooter) {
+            HStack {
+                Text("Color by")
+                Spacer(minLength: 8)
+                Picker("Color by", selection: $session.colorQuantity) {
+                    Text("Atom type").tag(String?.none)
+                    ForEach(session.availableQuantities, id: \.self) { quantity in
+                        Text(QuantityName.title(quantity)).tag(String?.some(quantity))
                     }
                 }
+                .labelsHidden()
+                .pickerStyle(.menu)
+            }
+            if session.colorQuantity != nil {
+                Divider()
+                HStack {
+                    Text("Colormap")
+                    Spacer(minLength: 8)
+                    Picker("Colormap", selection: $session.colormap) {
+                        ForEach(Colormap.allCases, id: \.self) { colormap in
+                            Label {
+                                Text(colormap.rawValue.capitalized)
+                            } icon: {
+                                ColormapSwatch(colormap: colormap)
+                            }
+                            .tag(colormap)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                }
+                Divider()
                 ColorLegend(session: session)
+                Divider()
                 Button("Reset Range") { session.resetColorRange() }
                     .disabled(session.colorRange == nil)
-            }
-        } header: {
-            Text("Color")
-        } footer: {
-            if session.colorQuantity == nil, session.example?.atomifyMetal?.colorRamp != nil {
-                Text("Shaded by position, as in Atomify 2.")
-            } else if session.colorQuantity != nil {
-                Text("The range grows with every value seen.")
             }
         }
     }
 
+    private var colorFooter: String? {
+        if session.colorQuantity == nil, session.example?.atomifyMetal?.colorRamp != nil {
+            return "Shaded by position, as in Atomify 2."
+        }
+        return session.colorQuantity != nil ? "The range grows with every value seen." : nil
+    }
+
     private var rendering: some View {
-        Section {
+        ViewSection("Rendering", footer: "Automatic adds shadows and outlines below 50,000 atoms.") {
             Picker("Quality", selection: $model.qualityPolicy.mode) {
                 ForEach(QualityPolicy.Mode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
+            Divider()
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Ambient occlusion")
@@ -109,27 +122,62 @@ struct ViewPanel: View {
                     Text("Ambient occlusion")
                 }
             }
-        } header: {
-            Text("Rendering")
-        } footer: {
-            Text("Automatic adds shadows and outlines below 50,000 atoms.")
         }
     }
 
     private var camera: some View {
-        Section("Camera") {
+        ViewSection("Camera") {
             Button {
                 session.resetCamera()
             } label: {
                 Label("Reset View", systemImage: "viewfinder")
             }
             .disabled(session.scene == nil || session.isCameraFramed)
+            Divider()
             Button {
                 model.centerOnSelectedAtom()
             } label: {
                 Label("Center on Selected Atom", systemImage: "scope")
             }
             .disabled(session.selectedAtom == nil)
+        }
+    }
+}
+
+/// A titled group of rows on the panel's lighter fill, like a grouped
+/// form section, with an optional one-line footer.
+private struct ViewSection<Content: View>: View {
+    let title: String
+    let footer: String?
+    let content: Content
+
+    init(_ title: String, footer: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.footer = footer
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title.uppercased())
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 12)
+                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 10) {
+                content
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            if let footer {
+                Text(footer)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+            }
         }
     }
 }
