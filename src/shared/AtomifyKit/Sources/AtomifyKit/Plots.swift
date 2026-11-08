@@ -144,7 +144,8 @@ public struct ConsoleLog: Sendable, Equatable {
 
     public mutating func append(_ text: String) {
         guard !text.isEmpty else { return }
-        let parts = (pending + text).split(separator: "\n", omittingEmptySubsequences: false)
+        // "\r\n" is a single Character in Swift, so split on it explicitly.
+        let parts = (pending + text).split(omittingEmptySubsequences: false) { $0 == "\n" || $0 == "\r\n" }
         pending = String(parts[parts.count - 1])
         lines.append(contentsOf: parts.dropLast().map { $0.hasSuffix("\r") ? String($0.dropLast()) : String($0) })
         if lines.count > maxLines { lines.removeFirst(lines.count - maxLines) }
