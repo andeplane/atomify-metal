@@ -98,6 +98,11 @@ public final class SimulationSession {
     public private(set) var directiveWarnings: [String] = []
     /// Keep integrating when the script's last command is done.
     public var continueAfterScript = true
+    /// Whether runs follow the example's `stepsPerFrame` and the script's
+    /// `#/speed` lines (Atomify 2's pacing, for the iOS app). Off, as the
+    /// Mac app runs, they are ignored and the console shows `#/speed` and
+    /// `#/label` lines as written. Takes effect from the next run.
+    public var appliesScriptSpeed = false
 
     // MARK: View state
 
@@ -147,14 +152,54 @@ public final class SimulationSession {
     }
 
     /// Most timesteps per second, or nil to run as fast as the device can.
-    /// Zero, negative and non-finite limits mean no limit.
+    /// Zero, negative and non-finite limits mean no limit. With
+    /// `stepsPerFrame` the lower of the two limits applies.
     public var maxStepsPerSecond: Double? {
         get { storedMaxStepsPerSecond }
         set {
             storedMaxStepsPerSecond = Self.speedLimit(newValue)
-            run?.simulation.setMaxStepsPerSecond(storedMaxStepsPerSecond)
+            applySpeed()
         }
     }
+
+    /// Timesteps per displayed frame at normal speed: the example's
+    /// `stepsPerFrame`, then the script's latest `#/speed`. Nil (examples
+    /// without either) runs as fast as the device can.
+    public private(set) var stepsPerFrame: Double?
+
+    /// How fast to play relative to normal: 0.5 is half the example's
+    /// speed, `.infinity` as fast as the device can. Kept across runs.
+    public var speedFactor: Double {
+        get { storedSpeedFactor }
+        set {
+            storedSpeedFactor = newValue.isNaN || newValue <= 0 ? 1 : newValue
+            applySpeed()
+        }
+    }
+
+    /// Frames per second the speeds refer to, Atomify 2's display rate.
+    nonisolated public static let referenceFrameRate = 60.0
+
+    /// The limit the engine runs at: `stepsPerFrame` at the reference frame
+    /// rate times `speedFactor`, and `maxStepsPerSecond`, whichever is lower.
+    public var effectiveMaxStepsPerSecond: Double? {
+        Self.effectiveLimit(stepsPerFrame: stepsPerFrame, speedFactor: storedSpeedFactor,
+                            maxStepsPerSecond: storedMaxStepsPerSecond)
+    }
+
+    nonisolated public static func effectiveLimit(stepsPerFrame: Double?, speedFactor: Double,
+                                                  maxStepsPerSecond: Double?) -> Double? {
+        let paced = stepsPerFrame.flatMap { speedLimit($0 * referenceFrameRate * speedFactor) }
+        switch (paced, speedLimit(maxStepsPerSecond)) {
+        case let (a?, b?): return min(a, b)
+        case let (a?, nil): return a
+        case let (nil, b?): return b
+        case (nil, nil): return nil
+        }
+    }
+
+    /// The script's latest `#/label` line, e.g. "Dissolving by entropy".
+    public private(set) var scriptLabel: String?
 
     /// The app's heat bath (see `Thermostat`). Setting it queues the LAMMPS
     /// commands that add, change or remove the fix and echoes them in the
@@ -242,6 +287,8 @@ public final class SimulationSession {
     private var storedShowBonds = true
     private var storedShowBox = true
     private var storedMaxStepsPerSecond: Double?
+    private var storedSpeedFactor = 1.0
+    @ObservationIgnored private var eventFilter = ScriptEventFilter()
     private var storedThermostat = Thermostat()
     /// Unit style the thermostat target was chosen for.
     @ObservationIgnored private var thermostatUnits: String?
@@ -376,14 +423,18 @@ public final class SimulationSession {
             }
             let folder = prepared.folder, script = prepared.script
             let text = try String(contentsOf: script, encoding: .utf8)
-            let directives = ScriptDirectives.parse(text)
+            let options = example?.atomifyMetal
+            var directives = ScriptDirectives.parse(text, dialect: options?.dialect ?? .web)
+            if let camera = options?.camera { directives.camera = camera.hint }
             directiveWarnings = directives.warnings
+            stepsPerFrame = appliesScriptSpeed ? options?.stepsPerFrame.flatMap { Self.speedLimit($0) } : nil
+            eventFilter = ScriptEventFilter(echoesEvents: !appliesScriptSpeed)
             let simulation = try Simulation()
             let run = Run(simulation: simulation, directives: directives)
             self.run = run
             applyBondSettings()
             simulation.setPublishInterval(publishInterval)
-            simulation.setMaxStepsPerSecond(storedMaxStepsPerSecond)
+            simulation.setMaxStepsPerSecond(effectiveMaxStepsPerSecond)
             simulation.setPerAtomQuantity(storedColorQuantity)
             status = .running
             let id = run.id
@@ -439,6 +490,9 @@ public final class SimulationSession {
         availableQuantities = PerAtomQuantities.builtIn
         console.clear()
         pendingOutput = ""
+        eventFilter = ScriptEventFilter()
+        scriptLabel = nil
+        stepsPerFrame = nil
         stats = SessionStats()
         pendingStats = SessionStats()
         errorMessage = nil
@@ -448,7 +502,7 @@ public final class SimulationSession {
     private func finished(_ id: UUID, _ outcome: Simulation.Outcome) {
         retiring[id] = nil
         guard let run, run.id == id else { return }
-        drain(run)
+        drain(run, flushing: true)
         publish()
         status = RunStatus.after(outcome)
         storedThermostat.isEnabled = false
@@ -477,9 +531,16 @@ public final class SimulationSession {
         if clock.now - lastRefresh >= refreshInterval { publish() }
     }
 
-    private func drain(_ run: Run) {
+    private func drain(_ run: Run, flushing: Bool = false) {
         let output = run.simulation.takeOutput()
-        if !output.isEmpty { pendingOutput += output }
+        var filtered = eventFilter.filter(output)
+        if flushing {
+            let rest = eventFilter.flush()
+            filtered.text += rest.text
+            filtered.events += rest.events
+        }
+        if !filtered.text.isEmpty { pendingOutput += filtered.text }
+        for event in filtered.events { apply(event) }
         if let snapshot = run.simulation.takeNewSnapshot() { process(snapshot, run: run) }
     }
 
@@ -546,6 +607,21 @@ public final class SimulationSession {
         rebuildScene()
     }
 
+    private func apply(_ event: ScriptEvent) {
+        switch event {
+        case .speed(let steps):
+            guard appliesScriptSpeed else { return }
+            stepsPerFrame = Self.speedLimit(steps)
+            applySpeed()
+        case .label(let text):
+            scriptLabel = text.isEmpty ? nil : text
+        }
+    }
+
+    private func applySpeed() {
+        run?.simulation.setMaxStepsPerSecond(effectiveMaxStepsPerSecond)
+    }
+
     private func applyBondSettings() {
         guard let run else { return }
         run.simulation.setTopologyBonds(storedShowBonds)
@@ -558,8 +634,13 @@ public final class SimulationSession {
             return
         }
         let mode = colorMode
-        scene = SceneBuilder.scene(from: frame, typeStyles: typeStyles, colorMode: mode, selectedTag: selectedTag,
-                                   showBox: storedShowBox, bondRadius: storedShowBonds ? bondRadius : 0)
+        var built = SceneBuilder.scene(from: frame, typeStyles: typeStyles, colorMode: mode, selectedTag: selectedTag,
+                                       showBox: storedShowBox, bondRadius: storedShowBonds ? bondRadius : 0)
+        if let counts = example?.atomifyMetal?.imageCounts {
+            built.images = SceneBuilder.imageOffsets(counts: counts, low: frame.boxLow, high: frame.boxHigh,
+                                                     tilt: frame.tilt)
+        }
+        scene = built
         sceneRevision += 1
         let range = SceneBuilder.colorRange(for: frame, colorMode: mode)
         if range != colorRange { colorRange = range }

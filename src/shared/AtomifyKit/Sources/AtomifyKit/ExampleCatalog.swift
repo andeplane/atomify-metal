@@ -1,3 +1,4 @@
+import AtomifyEngine
 import Foundation
 
 /// One file of an example: where it lives in the catalog and the name LAMMPS
@@ -20,9 +21,83 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     /// Why the example checks (`atomify-check-examples`, ExampleRunTests)
     /// skip this example, e.g. a package this build lacks. Nil runs it.
     public var skip: String?
+    /// Which Atomify the script's `#/atom` lines were written for; web when nil.
+    public var dialect: ScriptDialect?
+    /// Timesteps per displayed frame at normal speed, as Atomify 2's
+    /// "simulation speed" (it drew 60 frames per second). The script's
+    /// `#/speed N` lines change it while it runs. Nil runs as fast as the
+    /// device can.
+    public var stepsPerFrame: Double?
+    /// The starting view; overrides the script's `#/camera` lines.
+    public var camera: ExampleCamera?
+    /// Dashboard panels in display order.
+    public var dashboard: [DashboardPanel]?
+    /// Copies of the box to draw along x, y and z (Atomify 2's
+    /// `periodicImagesX/Y/Z`); one each when nil.
+    public var periodicImages: [Int]?
 
-    public init(skip: String? = nil) {
+    public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
+                camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil) {
         self.skip = skip
+        self.dialect = dialect
+        self.stepsPerFrame = stepsPerFrame
+        self.camera = camera
+        self.dashboard = dashboard
+        self.periodicImages = periodicImages
+    }
+
+    /// `periodicImages` as counts, when it asks for more than one copy.
+    public var imageCounts: SIMD3<Int>? {
+        guard let values = periodicImages, values.count == 3, values.contains(where: { $0 > 1 }) else { return nil }
+        return SIMD3(max(values[0], 1), max(values[1], 1), max(values[2], 1))
+    }
+}
+
+/// One dashboard panel of an example, as an Atomify 2 controller: its kind
+/// ("summary", "thermometer", "pressure", "thermostat", "angle", ...) and
+/// its QML settings as written ("xLabel": "Time [fs]", "atom1": "1").
+public struct DashboardPanel: Codable, Sendable, Hashable {
+    public var kind: String
+    public var parameters: [String: String]?
+
+    public init(kind: String, parameters: [String: String]? = nil) {
+        self.kind = kind
+        self.parameters = parameters
+    }
+}
+
+/// An example's starting view, as Atomify 2's `initialCameraPosition`,
+/// `initialViewCenter` and `initialUpVector`.
+public struct ExampleCamera: Codable, Sendable, Hashable {
+    public var position: [Double]?
+    /// The point looked at; the box center when nil.
+    public var target: [Double]?
+    public var up: [Double]?
+    /// Vertical field of view in degrees.
+    public var fieldOfView: Double?
+    /// Position and target are offsets from the box center (Atomify 2 drew
+    /// the box centered on the origin).
+    public var relativeToBoxCenter: Bool?
+
+    public init(position: [Double]? = nil, target: [Double]? = nil, up: [Double]? = nil,
+                fieldOfView: Double? = nil, relativeToBoxCenter: Bool? = nil) {
+        self.position = position
+        self.target = target
+        self.up = up
+        self.fieldOfView = fieldOfView
+        self.relativeToBoxCenter = relativeToBoxCenter
+    }
+
+    /// As the engine's camera hint; vectors that are not three finite
+    /// numbers are left out.
+    public var hint: CameraHint {
+        CameraHint(position: Self.vector(position), target: Self.vector(target), up: Self.vector(up),
+                   fieldOfView: fieldOfView, relativeToBoxCenter: relativeToBoxCenter ?? false)
+    }
+
+    static func vector(_ values: [Double]?) -> SIMD3<Double>? {
+        guard let values, values.count == 3, values.allSatisfy(\.isFinite) else { return nil }
+        return SIMD3(values[0], values[1], values[2])
     }
 }
 
@@ -106,18 +181,24 @@ public struct ExampleCatalog: Sendable, Equatable {
     public var directory: URL
     public var title: String?
     public var examples: [Example]
+    /// The catalog's own gallery rows, under `"atomifyMetalSections"`;
+    /// nil uses `ExampleSections.curated`.
+    public var sections: [ExampleSections.Definition]?
 
     private struct File: Codable {
         var baseUrl: String?
         var title: String?
         var descriptionFile: String?
         var examples: [Example]
+        var atomifyMetalSections: [ExampleSections.Definition]?
     }
 
-    public init(directory: URL, title: String? = nil, examples: [Example]) {
+    public init(directory: URL, title: String? = nil, examples: [Example],
+                sections: [ExampleSections.Definition]? = nil) {
         self.directory = directory
         self.title = title
         self.examples = examples
+        self.sections = sections
     }
 
     /// Reads `examples.json` from `directory`.
@@ -129,7 +210,8 @@ public struct ExampleCatalog: Sendable, Equatable {
     /// Decodes the contents of an examples.json whose relative urls resolve against `directory`.
     public static func decode(_ data: Data, directory: URL) throws -> ExampleCatalog {
         let file = try JSONDecoder().decode(File.self, from: data)
-        return ExampleCatalog(directory: directory, title: file.title, examples: file.examples)
+        return ExampleCatalog(directory: directory, title: file.title, examples: file.examples,
+                              sections: file.atomifyMetalSections)
     }
 
     public func example(id: String) -> Example? { examples.first { $0.id == id } }
@@ -220,14 +302,23 @@ public struct ExampleCatalog: Sendable, Equatable {
 /// Small source edits that let web app scripts run on this LAMMPS build.
 public enum ScriptPreparation {
     /// The web app opts scripts into KOKKOS with a `suffix kk` line. This build
-    /// has no KOKKOS package, so such lines are commented out.
+    /// has no KOKKOS package, so such lines are commented out. Atomify 2's
+    /// `#/speed` and `#/label` lines become print commands that report
+    /// them when LAMMPS reaches them (see `ScriptEvent`). Lines keep their
+    /// numbers.
     public static func prepare(_ script: String) -> String {
         var changed = false
-        let lines = script.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
+        // "\r\n" is a single Character in Swift, so split on it explicitly.
+        let lines = script.split(omittingEmptySubsequences: false,
+                                 whereSeparator: { $0 == "\n" || $0 == "\r\n" }).map { line -> String in
             let words = line.split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\r" })
             if words.count >= 2, words[0] == "suffix", words[1] == "kk" || words[1].hasPrefix("kk#") {
                 changed = true
                 return "# \(line)  (KOKKOS is not in this build)"
+            }
+            if let command = ScriptEvent.command(forDirective: line) {
+                changed = true
+                return command
             }
             return String(line)
         }

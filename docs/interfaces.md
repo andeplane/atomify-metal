@@ -120,6 +120,7 @@ public struct OrbitCamera: Sendable, Equatable {
     public var distance: Float
     public var yaw: Float       // radians
     public var pitch: Float     // radians, clamped
+    public var roll: Float = 0  // radians about the view direction (π: upside down)
     public var fieldOfView: Float = .pi / 4
     public init(target: SIMD3<Float> = .zero, distance: Float = 10, yaw: Float = 0, pitch: Float = 0)
     public mutating func rotate(by delta: SIMD2<Float>)   // radians
@@ -267,13 +268,18 @@ public struct ScriptDirectives: Sendable, Equatable {
     public var bondRules: [BondRule]
     public var camera: CameraHint?
     public var warnings: [String]
-    public static func parse(_ script: String) -> ScriptDirectives
+    public var dialect: ScriptDialect
+    public static func parse(_ script: String, dialect: ScriptDialect = .web) -> ScriptDirectives
 }
-public struct CameraHint: Sendable, Equatable { public var position: SIMD3<Double>?; public var target: SIMD3<Double>? }
+/// .web: the web app's element table, radii × 0.33, palette for other types.
+/// .atomify2: the Qt app's table (Element.atomify2), radii × 0.25, other types colored helium, lithium, ...
+public enum ScriptDialect: String, Sendable, Codable { case web, atomify2 }
+public struct CameraHint: Sendable, Equatable { position?, target?, up?, fieldOfView? (degrees), relativeToBoxCenter }
 public struct AtomStyle: Sendable, Equatable { public var name: String; public var color: RGBColor; public var radius: Double }
 public struct RGBColor: Sendable, Equatable, Hashable { public var red, green, blue: Double  /* sRGB 0...1 */
     public init(hex: UInt32); public init?(hexString: String) }
-public struct Element: Sendable, Equatable { symbol, name, radius (Å vdW), color; static func named(_:) -> Element?; static let all }
+public struct Element: Sendable, Equatable { symbol, name, radius (Å vdW), color; static func named(_:) -> Element?; static let all
+    static let atomify2; static func named(_:dialect:) -> Element? }
 public struct AtomStyleTable: Sendable, Equatable {
     public init(directives: ScriptDirectives, typeCount: Int, units: String)
     public func style(forType type: Int) -> AtomStyle
@@ -294,12 +300,17 @@ inside AtomifyKit the engine type is always written `AtomifyEngine.Observable` a
 public struct ExampleFile: Codable, Sendable, Hashable { fileName, url }      // url relative to the catalog folder
 public struct Example: Codable, Sendable, Identifiable, Hashable {
     id, title, description, imageUrl?, inputScript, keywords?, files: [ExampleFile],
-    author?, authorUrl?, analysisDescription?, analysisScript?
+    author?, authorUrl?, analysisDescription?, analysisScript?, atomifyMetal: ExampleOptions?
     func matches(query: String) -> Bool; func hasKeyword(_: String?) -> Bool
 }
+/// "atomifyMetal" options: skip?, dialect?, stepsPerFrame? (timesteps per frame at 60 fps), camera: ExampleCamera?
+/// (position/target/up arrays, fieldOfView degrees, relativeToBoxCenter), dashboard: [DashboardPanel]? (kind, parameters),
+/// periodicImages: [Int]? (copies along x, y, z; imageCounts).
+public struct ExampleOptions: Codable, Sendable, Hashable
 public enum ExampleCatalogError: Error, Equatable, LocalizedError { case missingFile(String), unsupportedLocation(String), missingInputScript(String) }
 public struct ExampleCatalog: Sendable, Equatable {
     var directory: URL; var title: String?; var examples: [Example]
+    var sections: [ExampleSections.Definition]?   // "atomifyMetalSections" in examples.json
     static func load(from directory: URL) throws -> ExampleCatalog
     static func decode(_ data: Data, directory: URL) throws -> ExampleCatalog
     func example(id:) -> Example?; var keywords: [String]; func filtered(query:keyword:) -> [Example]
@@ -308,7 +319,10 @@ public struct ExampleCatalog: Sendable, Equatable {
     /// (no KOKKOS in this build). The caller removes the folder.
     func workingCopy(of: Example, into scratch: URL = temporaryDirectory) throws -> (folder: URL, script: URL)
 }
+/// Also turns `#/speed N` and `#/label TEXT` into `print "@atomify ..."` lines (same line numbers).
 public enum ScriptPreparation { static func prepare(_ script: String) -> String }
+public enum ScriptEvent: Sendable, Equatable { case speed(Double), label(String) }
+public struct ScriptEventFilter { mutating func filter(_ chunk: String) -> (text, events); mutating func flush() }
 
 /// Plain-value view of a snapshot (shares its arrays) so scene logic is testable without the engine.
 public struct AtomFrame: Sendable {
@@ -401,6 +415,9 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     func load(script: URL, workingDirectory: URL? = nil)
     func restart(); func stop(); func pause(); func resume(); func togglePause(); func enqueue(_ command: String)
     maxStepsPerSecond: Double?   // nil, zero or negative: no limit (static func speedLimit(_:))
+    appliesScriptSpeed: Bool = false   // iOS sets it: follow stepsPerFrame and #/speed; off, the console shows the lines
+    stepsPerFrame: Double? (example, then #/speed), speedFactor: Double (∞: unlimited), scriptLabel: String?
+    effectiveMaxStepsPerSecond: Double?   // min(stepsPerFrame × 60 × speedFactor, maxStepsPerSecond)
     thermostat: Thermostat      // setting it enqueues fix/unfix; off when a run ends or starts
     // view
     scene: SceneData?, camera: OrbitCamera, renderSettings: RenderSettings,

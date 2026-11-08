@@ -197,6 +197,28 @@ public enum SceneBuilder {
     ///
     /// LAMMPS edge vectors: a = (lx, 0, 0), b = (xy, ly, 0), c = (xz, yz, lz)
     /// from boxlo, with tilt = (xy, xz, yz).
+    /// Offsets that draw the box `counts` times along each box vector, as
+    /// Atomify 2's periodic images: copies at −(n−1)/2 ... n/2 (integer
+    /// division), the original (offset zero) first.
+    public static func imageOffsets(counts: SIMD3<Int>, low: SIMD3<Double>, high: SIMD3<Double>,
+                                    tilt: SIMD3<Double>) -> [SIMD3<Float>] {
+        let length = high - low
+        let vectors = [SIMD3<Double>(length.x, 0, 0), SIMD3<Double>(tilt.x, length.y, 0),
+                       SIMD3<Double>(tilt.y, tilt.z, length.z)]
+        guard vectors.allSatisfy({ $0.x.isFinite && $0.y.isFinite && $0.z.isFinite }) else { return [.zero] }
+        let n = SIMD3(max(counts.x, 1), max(counts.y, 1), max(counts.z, 1))
+        var offsets: [SIMD3<Float>] = [.zero]
+        for i in -(n.x - 1) / 2...n.x / 2 {
+            for j in -(n.y - 1) / 2...n.y / 2 {
+                for k in -(n.z - 1) / 2...n.z / 2 where i != 0 || j != 0 || k != 0 {
+                    let offset = Double(i) * vectors[0] + Double(j) * vectors[1] + Double(k) * vectors[2]
+                    offsets.append(SIMD3<Float>(offset))
+                }
+            }
+        }
+        return offsets
+    }
+
     public static func boxCorners(low: SIMD3<Double>, high: SIMD3<Double>, tilt: SIMD3<Double>) -> [SIMD3<Float>] {
         let length = high - low
         let a = SIMD3<Double>(length.x, 0, 0)

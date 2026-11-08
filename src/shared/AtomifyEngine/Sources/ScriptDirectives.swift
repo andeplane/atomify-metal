@@ -17,14 +17,37 @@ public struct BondRule: Sendable, Equatable, Hashable {
     }
 }
 
-/// The initial view a script asks for, in simulation coordinates.
+/// The initial view a script or an example asks for.
 public struct CameraHint: Sendable, Equatable {
+    /// Eye position. In simulation coordinates, or relative to the box
+    /// center with `relativeToBoxCenter`.
     public var position: SIMD3<Double>?
+    /// The point looked at; the box center when nil.
     public var target: SIMD3<Double>?
+    /// Which way is up on screen; +y when nil. Only its part across the
+    /// view direction counts.
+    public var up: SIMD3<Double>?
+    /// Vertical field of view in degrees; the viewer's default when nil.
+    public var fieldOfView: Double?
+    /// `position` and `target` are offsets from the box center, as the
+    /// Atomify 2 apps drew systems centered on the origin.
+    public var relativeToBoxCenter: Bool
 
-    public init(position: SIMD3<Double>? = nil, target: SIMD3<Double>? = nil) {
-        self.position = position; self.target = target
+    public init(position: SIMD3<Double>? = nil, target: SIMD3<Double>? = nil, up: SIMD3<Double>? = nil,
+                fieldOfView: Double? = nil, relativeToBoxCenter: Bool = false) {
+        self.position = position; self.target = target; self.up = up
+        self.fieldOfView = fieldOfView; self.relativeToBoxCenter = relativeToBoxCenter
     }
+}
+
+/// Which Atomify's reading of the `#/atom` directives a script was written
+/// for. They differ in element colors, radii and the colors of types
+/// without a directive.
+public enum ScriptDialect: String, Sendable, Codable, Equatable {
+    /// The Atomify web app (and this app's default).
+    case web
+    /// Atomify 2, the Qt app for desktop and iOS (2016-2017).
+    case atomify2
 }
 
 /// The Atomify comment commands in a LAMMPS input script, as the web app
@@ -45,18 +68,31 @@ public struct ScriptDirectives: Sendable, Equatable {
     public var bondRules: [BondRule]
     public var camera: CameraHint?
     public var warnings: [String]
+    /// How `#/atom` was read, and how types without one are drawn.
+    public var dialect: ScriptDialect
 
     public init(atomStyles: [Int: AtomStyle] = [:], bondRules: [BondRule] = [], camera: CameraHint? = nil,
-                warnings: [String] = []) {
+                warnings: [String] = [], dialect: ScriptDialect = .web) {
         self.atomStyles = atomStyles; self.bondRules = bondRules; self.camera = camera; self.warnings = warnings
+        self.dialect = dialect
     }
 
     /// The web app draws atoms at 0.33 times the radius given in `#/atom`
     /// (van der Waals radius for elements).
     public static let elementRadiusScale = 0.33
+    /// Atomify 2 on iOS drew them at 0.25 times that radius.
+    public static let atomify2RadiusScale = 0.25
 
-    public static func parse(_ script: String) -> ScriptDirectives {
-        var result = ScriptDirectives()
+    /// The radius factor of a dialect.
+    public static func radiusScale(_ dialect: ScriptDialect) -> Double {
+        switch dialect {
+        case .web: elementRadiusScale
+        case .atomify2: atomify2RadiusScale
+        }
+    }
+
+    public static func parse(_ script: String, dialect: ScriptDialect = .web) -> ScriptDirectives {
+        var result = ScriptDirectives(dialect: dialect)
         for rawLine in script.split(whereSeparator: \.isNewline) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             guard line.hasPrefix("#/") else { continue }
@@ -78,15 +114,14 @@ public struct ScriptDirectives: Sendable, Equatable {
             warnings.append("Ignored '\(line)': expected an atom type number.")
             return
         }
-        if args.count == 2, let element = Element.named(args[1]) {
-            atomStyles[type] = AtomStyle(name: element.symbol, color: element.color,
-                                         radius: element.radius * Self.elementRadiusScale)
+        let scale = Self.radiusScale(dialect)
+        if args.count == 2, let element = Element.named(args[1], dialect: dialect) {
+            atomStyles[type] = AtomStyle(name: element.symbol, color: element.color, radius: element.radius * scale)
         } else if args.count == 2 {
             warnings.append("Ignored '\(line)': atom type '\(args[1])' does not exist.")
         } else if args.count == 3, let radius = Double(args[1]), radius > 0, radius.isFinite,
                   args[2].hasPrefix("#"), let color = RGBColor(hexString: args[2]) {
-            atomStyles[type] = AtomStyle(name: "Type \(type)", color: color,
-                                         radius: radius * Self.elementRadiusScale)
+            atomStyles[type] = AtomStyle(name: "Type \(type)", color: color, radius: radius * scale)
         } else {
             warnings.append("Ignored '\(line)': expected an element name, or a radius and #RRGGBB color.")
         }

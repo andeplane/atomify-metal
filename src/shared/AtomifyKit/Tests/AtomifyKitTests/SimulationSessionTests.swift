@@ -1,3 +1,4 @@
+import AtomifyEngine
 import Foundation
 import Testing
 import simd
@@ -167,6 +168,73 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         session.restart()                                // a new run starts without it
         #expect(!session.thermostat.isEnabled)
         #expect(session.thermostat.target == 0.2)        // same units: target kept
+        session.stop()
+    }
+
+    @Test(.timeLimit(.minutes(1))) func atomify2ExamplesPlayAtTheirSpeed() async throws {
+        // The fixture script with Atomify 2 run-time directives before its run.
+        let fixtures = try fixturesDirectory()
+        let scratch = try scratchDirectory()
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        try FileManager.default.createDirectory(at: scratch.appendingPathComponent("lj"),
+                                                withIntermediateDirectories: true)
+        let original = try String(contentsOf: fixtures.appendingPathComponent("lj/lj.in"), encoding: .utf8)
+        let script = original.replacingOccurrences(of: "run 200", with: "#/speed 2\n#/label Warming up\nrun 200")
+        try script.write(to: scratch.appendingPathComponent("lj/lj.in"), atomically: true, encoding: .utf8)
+        try FileManager.default.copyItem(at: fixtures.appendingPathComponent("shared"),
+                                         to: scratch.appendingPathComponent("shared"))
+        let options = ExampleOptions(dialect: .atomify2, stepsPerFrame: 1,
+                                     camera: ExampleCamera(position: [0, 0, 30], up: [0, -1, 0], fieldOfView: 25,
+                                                           relativeToBoxCenter: true))
+        let example = Example(id: "lj2", title: "LJ", description: "", inputScript: "lj.in",
+                              files: [ExampleFile(fileName: "lj.in", url: "lj/lj.in"),
+                                      ExampleFile(fileName: "settings.lmp", url: "shared/settings.lmp")],
+                              atomifyMetal: options)
+        let catalog = ExampleCatalog(directory: scratch, examples: [example])
+
+        // By default (the Mac app) the pacing is ignored and the console shows the directives.
+        let mac = SimulationSession()
+        #expect(!mac.appliesScriptSpeed)
+        mac.load(example, from: catalog)
+        #expect(mac.stepsPerFrame == nil)
+        #expect(mac.effectiveMaxStepsPerSecond == nil)
+        try await waitUntil("label without pacing") { mac.scriptLabel == "Warming up" }
+        #expect(mac.stepsPerFrame == nil)
+        #expect(mac.effectiveMaxStepsPerSecond == nil)
+        try await waitUntil("directives in the console") { mac.console.text.contains("#/label Warming up") }
+        #expect(mac.console.text.contains("#/speed 2"))
+        mac.stop()
+
+        let session = SimulationSession()
+        session.appliesScriptSpeed = true
+        session.continueAfterScript = true
+        session.load(example, from: catalog)
+        #expect(session.stepsPerFrame == 1)
+        #expect(session.effectiveMaxStepsPerSecond == SimulationSession.referenceFrameRate)
+
+        try await waitUntil("label") { session.scriptLabel == "Warming up" }
+        #expect(session.stepsPerFrame == 2)
+        #expect(session.effectiveMaxStepsPerSecond == 2 * SimulationSession.referenceFrameRate)
+        session.speedFactor = 0.5
+        #expect(session.effectiveMaxStepsPerSecond == SimulationSession.referenceFrameRate)
+        session.speedFactor = .infinity
+        #expect(session.effectiveMaxStepsPerSecond == nil)
+
+        try await waitUntil("first scene") { session.scene != nil }
+        let scene = try #require(session.scene)
+        // Atomify 2 draws `#/atom 1 1.0 #ff0000` at a quarter of the radius.
+        #expect(abs(scene.particles.styles[1].radius - 0.25) < 1e-6)
+        // The camera sits 30 in front of the box center, upside down, with a 25 degree view.
+        #expect(abs(session.camera.distance - 30) < 1e-3)
+        #expect(simd_length(session.camera.basis.up - SIMD3(0, -1, 0)) < 1e-4)
+        #expect(abs(session.camera.fieldOfView - 25 * .pi / 180) < 1e-6)
+
+        try await waitUntil("console") { session.console.text.contains("Step") }
+        #expect(!session.console.text.contains("@atomify"))
+        session.restart()
+        #expect(session.scriptLabel == nil)
+        #expect(session.stepsPerFrame == 1)
+        #expect(session.speedFactor == .infinity)          // the user's choice is kept
         session.stop()
     }
 

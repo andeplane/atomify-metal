@@ -11,6 +11,10 @@ public struct OrbitCamera: Sendable, Equatable {
     public var yaw: Float
     /// Radians, clamped to ±`pitchLimit`.
     public var pitch: Float
+    /// Radians the camera turns about the viewing direction, so screen
+    /// right becomes cos(roll)·right + sin(roll)·up; π shows the scene
+    /// upside down.
+    public var roll: Float = 0
     /// Vertical field of view, radians.
     public var fieldOfView: Float = .pi / 4
     /// How close and how far `zoom(by:)` may go. `frame(low:high:)` fits
@@ -95,9 +99,11 @@ public struct OrbitCamera: Sendable, Equatable {
     public var basis: (right: SIMD3<Float>, up: SIMD3<Float>, forward: SIMD3<Float>) {
         let c = cosf(pitch)
         let forward = -SIMD3(c * sinf(yaw), sinf(pitch), c * cosf(yaw))
-        let right = SIMD3(cosf(yaw), 0, -sinf(yaw))
-        let up = simd_cross(right, forward)
-        return (right, up, forward)
+        let level = SIMD3(cosf(yaw), 0, -sinf(yaw))
+        let levelUp = simd_cross(level, forward)
+        guard roll != 0, roll.isFinite else { return (level, levelUp, forward) }
+        let cr = cosf(roll), sr = sinf(roll)
+        return (cr * level + sr * levelUp, cr * levelUp - sr * level, forward)
     }
 
     public var viewMatrix: simd_float4x4 {
@@ -136,7 +142,13 @@ public struct OrbitCamera: Sendable, Equatable {
     /// y down): a drag across the full view height turns a full turn.
     public func rotationDelta(forPointerMove points: SIMD2<Float>, viewHeight: Float) -> SIMD2<Float> {
         let radiansPerPoint = 2 * Float.pi / max(viewHeight, 100)
-        return SIMD2(-points.x, points.y) * radiansPerPoint
+        // With roll, the screen axes are turned against yaw and pitch.
+        var move = points
+        if roll != 0, roll.isFinite {
+            let cr = cosf(roll), sr = sinf(roll)
+            move = SIMD2(cr * points.x + sr * points.y, -sr * points.x + cr * points.y)
+        }
+        return SIMD2(-move.x, move.y) * radiansPerPoint
     }
 
     /// Near and far planes that suit a scene of `radius` around the target
