@@ -1,11 +1,12 @@
-import AtomifyKit
+import AtomifyEngine
+import AtomifyVision
 import Foundation
 import Observation
 
 /// App state shared by the experience carousel, the controls panel and the
 /// immersive lab. Kept free of RealityKit and ARKit so it can be exercised
 /// on a Mac (scripts/check-app-lifecycle.sh).
-@MainActor @Observable
+@MainActor @Observation.Observable
 final class AppModel {
     static let windowID = "main"
     static let controlsWindowID = "lab-controls"
@@ -16,7 +17,7 @@ final class AppModel {
     /// The simulation currently loaded into the lab.
     struct Run {
         let demo: Demo
-        let simulation: LammpsSimulation
+        let simulation: Simulation
         let directives: ScriptDirectives
         let folder: URL
         /// Changes for every load, so the lab can reset its scene.
@@ -145,7 +146,7 @@ final class AppModel {
             preparedFolder = copy.folder
             let script = try String(contentsOf: copy.script, encoding: .utf8)
             let directives = ScriptDirectives.parse(script)
-            let simulation = try LammpsSimulation()
+            let simulation = try Simulation()
             simulation.setBondRules(directives.bondRules)
             simulation.setMaxStepsPerSecond(speed.stepsPerSecond(for: demo))
             simulation.setPublishInterval(1.0 / 90.0)
@@ -160,8 +161,8 @@ final class AppModel {
             lastValidSnapshot = nil
             stats = Stats()
             let id = run.id
-            simulation.start(script: copy.script, directory: copy.folder, continueAfterScript: true,
-                             continuationSteps: 1_000_000_000) { [weak self] outcome in
+            simulation.start(script: copy.script, workingDirectory: copy.folder,
+                             continueAfterScript: true) { [weak self] outcome in
                 try? FileManager.default.removeItem(at: copy.folder)
                 Task { @MainActor [weak self] in self?.finished(id, outcome) }
             }
@@ -172,7 +173,7 @@ final class AppModel {
         }
     }
 
-    private func finished(_ id: UUID, _ outcome: LammpsSimulation.Outcome) {
+    private func finished(_ id: UUID, _ outcome: Simulation.Outcome) {
         guard run?.id == id else { return }
         healthTask?.cancel()
         isStopping = false

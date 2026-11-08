@@ -1,4 +1,5 @@
-import AtomifyKit
+import AtomifyEngine
+import AtomifyVision
 import RealityKit
 import SwiftUI
 import UIKit
