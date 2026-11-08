@@ -16,6 +16,13 @@ final class AppModel {
     /// The example picked in the sidebar; picking one runs it.
     var selectedExampleID: Example.ID?
 
+    /// Render quality for the system size: ambient occlusion and outlines
+    /// on smaller systems, plain impostors on very large ones. The toolbar
+    /// changes its mode.
+    var qualityPolicy = QualityPolicy() {
+        didSet { applyQuality() }
+    }
+
     init(examplesDirectory: URL? = Bundle.module.url(forResource: "Examples", withExtension: nil)) {
         var catalog = ExampleCatalog(directory: URL(fileURLWithPath: "/"), examples: [])
         var catalogError: String?
@@ -41,6 +48,16 @@ final class AppModel {
     func open(_ id: Example.ID?) {
         guard let id, let example = catalog.example(id: id) else { return }
         session.load(example, from: catalog)
+    }
+
+    /// Sets the session's render quality from the policy, the atom count
+    /// and Low Power Mode. Called when any of them changes.
+    func applyQuality() {
+        let constrained = ProcessInfo.processInfo.isLowPowerModeEnabled
+        let quality = qualityPolicy.quality(atomCount: session.stats.atoms, constrained: constrained)
+        if session.renderSettings.quality != quality {
+            session.renderSettings.quality = quality
+        }
     }
 }
 
