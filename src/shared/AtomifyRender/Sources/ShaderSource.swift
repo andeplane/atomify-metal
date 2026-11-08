@@ -726,8 +726,13 @@ enum ShaderSource {
         }
         tangent = normalize(tangent);
         float3 bitangent = cross(n, tangent);
-        float radius = u.params.x;
-        float falloff = u.params.z;
+        // At most a tenth of the view height on screen: close up, a radius
+        // of many atoms spreads 16 samples over hundreds of pixels and
+        // turns into blotches (N8AO wants 16 to 64 pixels).
+        float pixels = u.params.x * u.projection[1][1] / depth * 0.5 * u.screen.y;
+        float shrink = min(1.0, 0.1 * u.screen.y / max(pixels, 1e-6));
+        float radius = u.params.x * shrink;
+        float falloff = u.params.z * shrink;
         // Small: the samples start off the surface along the normal.
         float bias = 0.001 * depth + 0.02 * falloff;
         int count = int(u.params.w);
