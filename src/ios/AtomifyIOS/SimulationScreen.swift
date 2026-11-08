@@ -16,19 +16,24 @@ struct SimulationScreen: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        @Bindable var model = model
         let session = model.session
         ZStack {
             SimulationCanvas(model: model, session: session)
                 .ignoresSafeArea()
+                .modifier(PanelShift(open: model.panel != nil))
 
             if session.scene == nil {
                 Placeholder(model: model, session: session)
+                    .modifier(PanelShift(open: model.panel != nil))
             }
 
             if !model.chromeHidden && !model.showsWelcome {
                 SimulationChrome(model: model, session: session)
                     .transition(.opacity)
+            }
+
+            if let panel = model.panel, !model.showsWelcome {
+                PanelHost(model: model, panel: panel)
             }
 
             if model.showsWelcome {
@@ -38,34 +43,44 @@ struct SimulationScreen: View {
         }
         .animation(.easeInOut(duration: 0.2), value: model.chromeHidden)
         .animation(.easeInOut(duration: 0.25), value: model.showsWelcome)
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: model.panel)
         .background(Color.canvas)
         .readsLayoutMetrics()
         .preferredColorScheme(.dark)
         .persistentSystemOverlays(model.chromeHidden ? .hidden : .automatic)
-        .sheet(item: $model.sheet) { sheet in
-            SheetContent(sheet: sheet, model: model)
-        }
     }
 }
 
-/// The sheet for an `AppSheet`, at medium height so the atoms stay in view
-/// and can still be turned above it.
-private struct SheetContent: View {
-    let sheet: AppSheet
+/// The side panel, along the trailing edge inside the safe area and down
+/// to 8 pt above the bottom of the screen.
+private struct PanelHost: View {
     let model: AppModel
+    let panel: SidePanel
+    @Environment(\.layoutMetrics) private var metrics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            switch sheet {
-            case .view: ViewOptionsSheet(model: model, session: model.session)
-            case .dashboard: DashboardSheet(session: model.session)
-            case .about: ExampleAboutSheet(model: model, session: model.session)
-            }
-        }
-        .environment(model)
-        .presentationDetents([.medium, .large])
-        .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-        .presentationContentInteraction(.scrolls)
+        SidePanelView(model: model, tab: panel)
+            .frame(maxWidth: metrics.overlaysPanel ? .infinity : metrics.panelWidth)
+            .padding(.top, metrics.panelInset)
+            .padding(.bottom, 8)
+            .padding(.horizontal, metrics.panelInset)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+            .ignoresSafeArea(.container, edges: .bottom)
+            .transition(reduceMotion ? .opacity : .move(edge: .trailing).combined(with: .opacity))
+    }
+}
+
+/// Moves the atoms left by half the panel while it is open, so the system
+/// stays centred in the space beside it. (Cheaper than resizing the
+/// drawable; taps follow the offset.)
+private struct PanelShift: ViewModifier {
+    let open: Bool
+    @Environment(\.layoutMetrics) private var metrics
+
+    func body(content: Content) -> some View {
+        let shift = open && !metrics.overlaysPanel ? -(metrics.panelWidth + metrics.panelInset) / 2 : 0
+        content.offset(x: shift)
     }
 }
 
@@ -133,9 +148,13 @@ struct SimulationChrome: View {
         ZStack {
             LeadingCluster(model: model, session: session)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            PanelRail(model: model)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            if model.panel == nil {
+                PanelRail(model: model)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .transition(.opacity)
+            }
             TimeRail(session: session)
+                .offset(x: timeRailShift)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             SelectedAtomCard(model: model, session: session)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
@@ -151,6 +170,13 @@ struct SimulationChrome: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .animation(.snappy(duration: 0.25), value: session.selectedAtom?.tag)
         .animation(.easeInOut(duration: 0.2), value: session.status == .finished)
+    }
+
+    /// With a panel open, the time rail sits 8 pt left of it so Play stays
+    /// in reach.
+    private var timeRailShift: CGFloat {
+        guard model.panel != nil, !metrics.overlaysPanel else { return 0 }
+        return -(metrics.panelWidth + metrics.panelInset + 8 - metrics.margin)
     }
 }
 
@@ -171,7 +197,9 @@ struct LeadingCluster: View {
                 RoundGlassButton(systemImage: "square.grid.2x2", label: "Examples") {
                     model.showGallery()
                 }
-                TitleCapsule(session: session) { model.sheet = .about }
+                TitleCapsule(session: session) {
+                    model.panel = model.panel == .info ? nil : .info
+                }
                 ResetViewButton(session: session)
             }
             // Down to the vertical centre at most: the legend goes first
@@ -200,7 +228,7 @@ struct LeadingCluster: View {
                     .padding(.vertical, 8)
                     .glass(in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .onTapGesture { model.sheet = .view }
+                    .onTapGesture { model.panel = .view }
                     .accessibilityAddTraits(.isButton)
             }
             if showPerformance {
@@ -216,14 +244,14 @@ struct PanelRail: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            RailButton(systemImage: "info.circle", label: "Info", isSelected: model.sheet == .about) {
-                model.sheet = .about
+            RailButton(systemImage: "info.circle", label: "Info", isSelected: model.panel == .info) {
+                model.panel = .info
             }
-            RailButton(systemImage: "chart.xyaxis.line", label: "Dashboard", isSelected: model.sheet == .dashboard) {
-                model.sheet = .dashboard
+            RailButton(systemImage: "chart.xyaxis.line", label: "Dashboard", isSelected: model.panel == .dashboard) {
+                model.panel = .dashboard
             }
-            RailButton(systemImage: "slider.horizontal.3", label: "View", isSelected: model.sheet == .view) {
-                model.sheet = .view
+            RailButton(systemImage: "slider.horizontal.3", label: "View", isSelected: model.panel == .view) {
+                model.panel = .view
             }
         }
         .padding(2)
@@ -329,7 +357,7 @@ struct ResetViewButton: View {
     }
 }
 
-/// What is running, and how it is going. Opens the Info panel.
+/// What is running, and how it is going. Opens and closes the Info panel.
 struct TitleCapsule: View {
     let session: SimulationSession
     let action: () -> Void
