@@ -37,6 +37,21 @@ Leave the other repositories where they are.
 Link to them and read them.
 Do the work in this repository.
 
+## Tests
+
+Aim for about 100% test coverage of the code in this repository.
+New code arrives with tests that cover its branches.
+
+A few kinds of code sit outside that bar:
+
+- App entry points and other thin platform shells.
+- Metal shader source, and GPU-only paths that a unit test cannot run.
+- Code that needs a headset or another device.
+
+Pull logic out of those paths when you can.
+Buffer packing, colors, bonds, camera math, and script directives are ordinary code, and they are covered.
+A file being about rendering is not itself an exception.
+
 LAMMPS is GPLv2.
 An app that links it is GPL.
 The visionOS proof of concept states the same constraint, because its demos also come from GPL projects.
