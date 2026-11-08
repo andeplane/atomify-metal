@@ -105,9 +105,11 @@ public enum SceneBuilder {
     /// The scene for a frame. `typeStyles[t]` is the style of type t (index 0
     /// is the fallback). Bonds are left out when `bondRadius` is 0. In
     /// per-atom mode, atoms keep their type colors until the frame carries
-    /// values of the chosen quantity.
+    /// values of the chosen quantity. In type mode, `colorRamp` shades the
+    /// type colors by position.
     public static func scene(from frame: AtomFrame, typeStyles: [ParticleStyle], colorMode: ColorMode,
-                             selectedTag: Int64?, showBox: Bool, bondRadius: Float) -> SceneData {
+                             selectedTag: Int64?, showBox: Bool, bondRadius: Float,
+                             colorRamp: ColorRamp? = nil) -> SceneData {
         let styles = typeStyles.isEmpty ? [fallbackStyle] : typeStyles
         let styleCount = styles.count
         let styleIndices = frame.types.map { type -> UInt16 in
@@ -119,6 +121,8 @@ public enum SceneBuilder {
         if case .perAtom(let quantity, let colormap, let range) = colorMode, let values = frame.values(for: quantity) {
             let lookup = ColorLookup(colormap: colormap, range: range ?? finiteRange(of: values) ?? 0...1)
             colors = lookup.colors(for: values)
+        } else if case .type = colorMode, let colorRamp {
+            colors = colorRamp.colors(for: frame, styleIndices: styleIndices, styles: styles)
         }
 
         let radii = frame.radii.flatMap { $0.count == frame.count ? $0 : nil }

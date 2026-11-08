@@ -35,15 +35,19 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     /// Copies of the box to draw along x, y and z (Atomify 2's
     /// `periodicImagesX/Y/Z`); one each when nil.
     public var periodicImages: [Int]?
+    /// Atom colors shaded along one axis (Atomify 2's custom color shaders).
+    public var colorRamp: ColorRamp?
 
     public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
-                camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil) {
+                camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil,
+                colorRamp: ColorRamp? = nil) {
         self.skip = skip
         self.dialect = dialect
         self.stepsPerFrame = stepsPerFrame
         self.camera = camera
         self.dashboard = dashboard
         self.periodicImages = periodicImages
+        self.colorRamp = colorRamp
     }
 
     /// `periodicImages` as counts, when it asks for more than one copy.

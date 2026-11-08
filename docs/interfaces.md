@@ -307,7 +307,9 @@ public struct Example: Codable, Sendable, Identifiable, Hashable {
 }
 /// "atomifyMetal" options: skip?, dialect?, stepsPerFrame? (timesteps per frame at 60 fps), camera: ExampleCamera?
 /// (position/target/up arrays, fieldOfView degrees on the shorter side, relativeToBoxCenter), dashboard: [DashboardPanel]? (kind, parameters),
-/// periodicImages: [Int]? (copies along x, y, z; imageCounts).
+/// periodicImages: [Int]? (copies along x, y, z; imageCounts), colorRamp: ColorRamp? (Atomify 2 color shaders).
+/// ColorRamp { axis, from, to, low: [r,g,b], high: [r,g,b] }: type colors × clamp(low + (high − low)·t) in display
+/// space, t = (coordinate from the box center − from) / (to − from); SceneBuilder.scene(…, colorRamp:) in type mode.
 public struct ExampleOptions: Codable, Sendable, Hashable
 public enum ExampleCatalogError: Error, Equatable, LocalizedError { case missingFile(String), unsupportedLocation(String), missingInputScript(String) }
 public struct ExampleCatalog: Sendable, Equatable {
