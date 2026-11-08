@@ -31,6 +31,24 @@ extension View {
     }
 }
 
+extension View {
+    /// The background of text-heavy floating surfaces (panels, the welcome):
+    /// regular Liquid Glass on iOS 26, the regular material before, so
+    /// text stays legible over the atoms.
+    @ViewBuilder
+    func panelBackground(in shape: some Shape) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular, in: shape)
+        } else {
+            self.background(.regularMaterial, in: shape)
+        }
+        #else
+        self.background(.regularMaterial, in: shape)
+        #endif
+    }
+}
+
 /// A round glass button with an SF Symbol, for controls that float over the atoms.
 struct RoundGlassButton: View {
     let systemImage: String
