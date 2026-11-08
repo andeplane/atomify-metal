@@ -1,0 +1,60 @@
+{
+    "baseUrl": "examples",
+    "title": "Fixture examples",
+    "descriptionFile": "examples.md",
+    "examples": [
+        {
+            "id": "lj",
+            "title": "Lennard-Jones liquid",
+            "description": "A small LJ liquid with two atom types.",
+            "analysisDescription": "# About\nNothing to analyse.",
+            "imageUrl": "lj/lj.png",
+            "inputScript": "lj.in",
+            "keywords": ["lennard jones", "Fluid"],
+            "author": "Atomify tests",
+            "authorUrl": "https://example.org",
+            "files": [
+                { "fileName": "lj.in", "url": "lj/lj.in" },
+                { "fileName": "settings.lmp", "url": "shared/settings.lmp" }
+            ]
+        },
+        {
+            "id": "minimal",
+            "title": "Minimal entry",
+            "description": "Only the required fields; reuses the LJ script.",
+            "inputScript": "lj.in",
+            "files": [
+                { "fileName": "lj.in", "url": "lj/lj.in" }
+            ]
+        },
+        {
+            "id": "missing-file",
+            "title": "Missing file",
+            "description": "Lists a file that is not in the catalog.",
+            "inputScript": "gone.in",
+            "keywords": ["lennard jones", "broken"],
+            "files": [
+                { "fileName": "gone.in", "url": "nowhere/gone.in" }
+            ]
+        },
+        {
+            "id": "escaping",
+            "title": "Escaping path",
+            "description": "A file url that leaves the catalog folder.",
+            "imageUrl": "../outside.png",
+            "inputScript": "lj.in",
+            "files": [
+                { "fileName": "lj.in", "url": "../lj/lj.in" }
+            ]
+        },
+        {
+            "id": "no-script",
+            "title": "No input script",
+            "description": "The input script is not among the files.",
+            "inputScript": "run.in",
+            "files": [
+                { "fileName": "lj.in", "url": "lj/lj.in" }
+            ]
+        }
+    ]
+}
