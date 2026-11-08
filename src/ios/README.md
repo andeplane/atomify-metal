@@ -6,7 +6,19 @@ A glass toolbar opens the examples, restarts, plays or pauses, and opens the vie
 
 The app is a thin shell.
 The engine, renderer, catalog and run lifecycle are the shared packages in the root `Package.swift` (AtomifyKit with AtomifyEngine and AtomifyRender), the same ones the Mac app uses.
-The examples are the Mac app's folder, `src/macos/AtomifyMac/Examples`, copied into the app at build time.
+The examples are the App Store app's: the iOS gallery of Atomify 2 (the Qt app), ported into `Examples` with the same sections, scripts, thumbnails, colors, starting cameras and speeds.
+
+## Examples
+
+`Examples/examples.json` is generated from a checkout of [ovilab/atomify](https://github.com/ovilab/atomify) at branch `mobile_5.6` (commit 7828e89), the source of the App Store build:
+
+```sh
+git clone --branch mobile_5.6 https://github.com/ovilab/atomify.git /tmp/atomify2
+python3 src/ios/tools/port_atomify2_examples.py /tmp/atomify2
+```
+
+The script copies the scripts unchanged except for file paths and three LAMMPS renames since 2017, and swaps in the files under `tools/atomify2-replacements` (a restart file regenerated with current LAMMPS); each change is listed per example under `atomifyMetal.changes`. It reads each simulation's QML metadata into `atomifyMetal` options: `dialect: atomify2` (the old element colors and radii), `stepsPerFrame: 1` (one timestep per frame, changed by the scripts' `#/speed` lines), the starting `camera` and the `dashboard` panels.
+Check that every example runs with `src/shared/lammps/check-examples.sh --examples src/ios/Examples`.
 
 ## Build
 

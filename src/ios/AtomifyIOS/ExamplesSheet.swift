@@ -16,7 +16,8 @@ struct ExamplesSheet: View {
                         .foregroundStyle(.red)
                 }
                 if query.isEmpty {
-                    ForEach(ExampleSections.sections(for: model.catalog.examples)) { section in
+                    ForEach(ExampleSections.sections(for: model.catalog.examples,
+                                                         definitions: model.catalog.sections ?? ExampleSections.curated)) { section in
                         Section(section.title) {
                             ForEach(section.examples) { example in
                                 row(example)

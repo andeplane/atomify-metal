@@ -1,0 +1,1714 @@
+{
+  "title": "Atomify",
+  "examples": [
+    {
+      "id": "lammps",
+      "title": "LAMMPS logo",
+      "description": "This 2D simulation of the LAMMPS logo will first dissolve the logo, but then when velocities are reversed, the logo is reconstructed.",
+      "inputScript": "lammps.in",
+      "files": [
+        {
+          "fileName": "lammps.in",
+          "url": "lammps/lammps/lammps.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -45.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "changes": [
+          "lammps.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/lammps/lammps.png"
+    },
+    {
+      "id": "crack",
+      "title": "2D Crack",
+      "description": "This 2D simulation shows how a crack can propagate through a material.\n\n**Things to look for**\n\nNotice how the full system suddenly breaks apart. Can you understand why the temperature and pressure behave like they do?",
+      "inputScript": "crack.in",
+      "files": [
+        {
+          "fileName": "crack.in",
+          "url": "lammps/crack/crack.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -65.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time",
+              "yScale": "1000"
+            }
+          },
+          {
+            "kind": "pressure",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "changes": [
+          "crack.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/crack/crack.png"
+    },
+    {
+      "id": "flow_couette",
+      "title": "Couette flow",
+      "description": "Couette flow happens in a liquid between two walls if the walls don't move with the same velocity. In this simulation, the upper wall is given a velocity.\n\n**Things to look for**\n\nAfter equlibrium is reached, the atoms near the walls almost have the same velocity as the walls.",
+      "inputScript": "flow_couette.in",
+      "files": [
+        {
+          "fileName": "flow_couette.in",
+          "url": "lammps/flow_couette/flow_couette.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            22.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "changes": [
+          "flow_couette.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/flow_couette/flow_couette.png"
+    },
+    {
+      "id": "flow_pois",
+      "title": "Poiseuille flow",
+      "description": "Poiseuille flow is observed when a liquid experiences a pressure drop through a pipe. In this 2D simulation, this effect is mimicked by applying a constant force on all the fluid atoms.\n\n**Things to look for**\n\nAfter equlibrium is reached, we see that the atoms near the wall have a much lower velocity than those in the middle. This gives the famous flow profile from the Poiseuille flow.",
+      "inputScript": "flow_pois.in",
+      "files": [
+        {
+          "fileName": "flow_pois.in",
+          "url": "lammps/flow_pois/flow_pois.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "changes": [
+          "flow_pois.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/flow_pois/flow_pois.png"
+    },
+    {
+      "id": "friction",
+      "title": "Friction",
+      "description": "In this simulation we see friction between two asperities. This illustrates how friction works at the microscopic level.\n\n**Things to look for**\n\nSee how the asperities are damaged after contact. Watch the pressure curve when the asperities make contact.",
+      "inputScript": "friction.in",
+      "files": [
+        {
+          "fileName": "friction.in",
+          "url": "lammps/friction/friction.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            35.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time",
+              "yScale": "1000"
+            }
+          },
+          {
+            "kind": "pressure",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "changes": [
+          "friction.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/friction/friction.png"
+    },
+    {
+      "id": "obstacle",
+      "title": "Obstacle flow",
+      "description": "In this simulation, we apply a force on all atoms so they start to flow. We have also added two regions (obstacles) where the atoms feel a repulsive force, so they will flow around them.",
+      "inputScript": "obstacle.in",
+      "files": [
+        {
+          "fileName": "obstacle.in",
+          "url": "lammps/obstacle/obstacle.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            35.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "changes": [
+          "obstacle.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "lammps/obstacle/obstacle.png"
+    },
+    {
+      "id": "CHO",
+      "title": "Hydrocarbon oxidation",
+      "description": "Hydrocarbons (such as pentane) will at high temperatures react with oxygen and form water, CO, CO₂, HO₂ and OH.",
+      "inputScript": "CHO.in",
+      "files": [
+        {
+          "fileName": "CHO.in",
+          "url": "reaxff/CHO/CHO.in"
+        },
+        {
+          "fileName": "data.CHO",
+          "url": "reaxff/CHO/data.CHO"
+        },
+        {
+          "fileName": "ffield.reax.cho",
+          "url": "reaxff/CHO/ffield.reax.cho"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/CHO/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/CHO/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "CHO.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/CHO/CHO.png"
+    },
+    {
+      "id": "ssz_13",
+      "title": "Zeolite SSZ-13",
+      "description": "This structure is a zeolite called SSZ-13 (or CHA) and has one of the silicon sites replaced with Aluminum and a hydrogen atom.\n\nThis is a very heavy simulation using ReaxFF, so unless your phone/tablet is very new, you must zoom and carefully look for movement.",
+      "inputScript": "ssz_13.in",
+      "files": [
+        {
+          "fileName": "CHA_wAl.data",
+          "url": "reaxff/ssz_13/CHA_wAl.data"
+        },
+        {
+          "fileName": "ffield_Psofogiannakis_CuOH_2015",
+          "url": "reaxff/ssz_13/ffield_Psofogiannakis_CuOH_2015"
+        },
+        {
+          "fileName": "ssz_13.in",
+          "url": "reaxff/ssz_13/ssz_13.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            50.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xRange": "250",
+              "xLabel": "Time [fs]",
+              "yLabel": "Temperature [K]"
+            }
+          }
+        ],
+        "changes": [
+          "ssz_13.in: pair_style reax/c is now reaxff",
+          "ssz_13.in: qeq/reax reads its parameters from reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/ssz_13/ssz_13.png"
+    },
+    {
+      "id": "VOH",
+      "title": "Vanadium Oxide",
+      "description": "In this simulation, we see vanadium oxide being simulated using ReaxFF at high temperature.",
+      "inputScript": "VOH.in",
+      "files": [
+        {
+          "fileName": "VOH.in",
+          "url": "reaxff/VOH/VOH.in"
+        },
+        {
+          "fileName": "data.VOH",
+          "url": "reaxff/VOH/data.VOH"
+        },
+        {
+          "fileName": "ffield.reax.V_O_C_H",
+          "url": "reaxff/VOH/ffield.reax.V_O_C_H"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/VOH/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/VOH/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "VOH.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/VOH/VOH.png"
+    },
+    {
+      "id": "AB",
+      "title": "Ammonia-Borine (AB)",
+      "description": "Combustion of Ammonia-Borine (AB) can be simulated with ReaxFF. Two AB molecules meet and a H₂ molecule is formed.\n\n**Things to look for**\n\nCan you see when the first H₂ molecule forms?",
+      "inputScript": "AB.in",
+      "files": [
+        {
+          "fileName": "AB.in",
+          "url": "reaxff/AB/AB.in"
+        },
+        {
+          "fileName": "data.AB",
+          "url": "reaxff/AB/data.AB"
+        },
+        {
+          "fileName": "ffield.reax.AB",
+          "url": "reaxff/AB/ffield.reax.AB"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/AB/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/AB/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "AB.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/AB/AB.png"
+    },
+    {
+      "id": "FeOH3",
+      "title": "Iron(III) hydroxide",
+      "description": "In this simulation, we see low density Iron(III) hydroxide (Fe(OH)₃) at high temperature.",
+      "inputScript": "FeOH3.in",
+      "files": [
+        {
+          "fileName": "FeOH3.in",
+          "url": "reaxff/FeOH3/FeOH3.in"
+        },
+        {
+          "fileName": "data.FeOH3",
+          "url": "reaxff/FeOH3/data.FeOH3"
+        },
+        {
+          "fileName": "ffield.reax.Fe_O_C_H",
+          "url": "reaxff/FeOH3/ffield.reax.Fe_O_C_H"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/FeOH3/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/FeOH3/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "FeOH3.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/FeOH3/FeOH3.png"
+    },
+    {
+      "id": "RDX",
+      "title": "RDX explosive",
+      "description": "RDX is an organic compound normally used as an explosive, especially in world war II.",
+      "inputScript": "RDX.in",
+      "files": [
+        {
+          "fileName": "RDX.in",
+          "url": "reaxff/RDX/RDX.in"
+        },
+        {
+          "fileName": "data.RDX",
+          "url": "reaxff/RDX/data.RDX"
+        },
+        {
+          "fileName": "ffield.reax.rdx",
+          "url": "reaxff/RDX/ffield.reax.rdx"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/RDX/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/RDX/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "RDX.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/RDX/RDX.png"
+    },
+    {
+      "id": "ZnOH2",
+      "title": "Zn(OH)₂",
+      "description": "In this simulation, we see Zn(OH)₂ at high temperature.",
+      "inputScript": "ZnOH2.in",
+      "files": [
+        {
+          "fileName": "ZnOH2.in",
+          "url": "reaxff/ZnOH2/ZnOH2.in"
+        },
+        {
+          "fileName": "data.ZnOH2",
+          "url": "reaxff/ZnOH2/data.ZnOH2"
+        },
+        {
+          "fileName": "ffield.reax.ZnOH",
+          "url": "reaxff/ZnOH2/ffield.reax.ZnOH"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/ZnOH2/lmp_control"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/ZnOH2/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ],
+        "changes": [
+          "ZnOH2.in: pair_style reax/c is now reaxff"
+        ]
+      },
+      "imageUrl": "reaxff/ZnOH2/ZnOH2.png"
+    },
+    {
+      "id": "simple_diffusion",
+      "title": "Diffusion",
+      "description": "Watch how a liquid mixes due to diffusion. The white particles in the middle will move randomly and mix with the red particles. After some time, you'll see that it is completely mixed.\n\nThink about this the next time you mix a drink.\n\n**A versatile simulation**\n\nThe forces between the particles in this simulation are modeled with a Lennard-Jones potential. This is typically a good model for noble gases and other neutral atoms and molecules. This is in other words a good simulations for diffusion with many different types of particles.",
+      "inputScript": "simple_diffusion.in",
+      "files": [
+        {
+          "fileName": "simple_diffusion.in",
+          "url": "diffusion/simple_diffusion/simple_diffusion.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            50.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xScale": "341.53026",
+              "yScale": "119.6",
+              "xLabel": "Time [fs]",
+              "yLabel": "Temperature [K]",
+              "xRange": "250"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "unitScale": "119.6",
+              "minimumValue": "1.0",
+              "maximumValue": "500.0",
+              "temperatureDampening": "0.1"
+            }
+          }
+        ],
+        "changes": [
+          "simple_diffusion.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "diffusion/simple_diffusion/simple_diffusion.png"
+    },
+    {
+      "id": "diffusion_coefficient",
+      "title": "Diffusion coefficient",
+      "description": "The diffusion coefficient can be measured as the slope of the mean square displacement r^2(t) (MSD).\n\nThe MSD is defined as the average distance atoms have to their original position a time t earlier.\n\n**Things to look for**\n\nIn the beginning of the MSD measurement, on a short time scale, the atoms move more or less in a straight line giving rise to the non-linear ballistic regime. The system then goes over to the linear regime where we can read out the diffusion coefficient.",
+      "inputScript": "diffusion_coefficient.in",
+      "files": [
+        {
+          "fileName": "diffusion_coefficient.in",
+          "url": "diffusion/diffusion_coefficient/diffusion_coefficient.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            20.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "diffusionCoefficient",
+            "parameters": {
+              "xScale": "341.53026",
+              "xRange": "1000",
+              "msdCompute": "msd.compute"
+            }
+          },
+          {
+            "kind": "meanSquareDisplacement",
+            "parameters": {
+              "xScale": "341.53026",
+              "yScale": "11.594025",
+              "xLabel": "Time [fs]"
+            }
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xScale": "341.53026",
+              "yScale": "119.6",
+              "xRange": "1000",
+              "xLabel": "Time [fs]",
+              "yLabel": "Temperature [K]"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "unitScale": "119.6",
+              "minimumValue": "1.0",
+              "maximumValue": "500.0",
+              "temperatureDampening": "0.1"
+            }
+          }
+        ],
+        "changes": [
+          "diffusion_coefficient.in: OPT package style replaced by the plain one"
+        ]
+      },
+      "imageUrl": "diffusion/diffusion_coefficient/diffusion_coefficient.png"
+    },
+    {
+      "id": "sica_sheet",
+      "title": "Curly SiC nanosheet",
+      "description": "Silicon carbide nanosheets is a new exciting material like graphene. If it has free ends and not on a substrate, it will curl into a ball.\n\n**What to look for**\n\nIf you look carefully, you can see the atomic configuration going towards a diamond crystal. What happens if you change the temperature?",
+      "inputScript": "sica_sheet.in",
+      "files": [
+        {
+          "fileName": "SiC.vashishta",
+          "url": "potentialparameters/SiC.vashishta"
+        },
+        {
+          "fileName": "sica_sheet.in",
+          "url": "new/sica_sheet/sica_sheet.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            46.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "minimumValue": "10",
+              "maximumValue": "3000",
+              "temperatureDampening": "0.2"
+            }
+          }
+        ]
+      },
+      "imageUrl": "new/sica_sheet/sica_sheet.png"
+    },
+    {
+      "id": "abstract_translocation",
+      "title": "Abstract translocation",
+      "description": "In this simulation we see a polymer that eventually goes through the hole. It can take quite a lot of time, but the wait might be worth it!",
+      "inputScript": "abstract_translocation.in",
+      "files": [
+        {
+          "fileName": "abstract_translocation.in",
+          "url": "new/abstract_translocation/abstract_translocation.in"
+        },
+        {
+          "fileName": "rotate.in",
+          "url": "new/abstract_translocation/rotate.in"
+        },
+        {
+          "fileName": "system.data",
+          "url": "new/abstract_translocation/system.data"
+        },
+        {
+          "fileName": "system.in",
+          "url": "new/abstract_translocation/system.in"
+        },
+        {
+          "fileName": "system.in.init",
+          "url": "new/abstract_translocation/system.in.init"
+        },
+        {
+          "fileName": "system.in.settings",
+          "url": "new/abstract_translocation/system.in.settings"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            30.0,
+            0.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ]
+      },
+      "imageUrl": "new/abstract_translocation/abstract_translocation.png"
+    },
+    {
+      "id": "cmap",
+      "title": "Polymer",
+      "description": "This is just a beautiful polymer that probably has a meaning. I think the name is glycylanalylglycylglycine, but not sure :D",
+      "inputScript": "cmap.in",
+      "files": [
+        {
+          "fileName": "charmm22.cmap",
+          "url": "new/cmap/charmm22.cmap"
+        },
+        {
+          "fileName": "cmap.in",
+          "url": "new/cmap/cmap.in"
+        },
+        {
+          "fileName": "gagg.data",
+          "url": "new/cmap/gagg.data"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            10.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "250"
+            }
+          }
+        ]
+      },
+      "imageUrl": "new/cmap/cmap.png"
+    },
+    {
+      "id": "sica_sheet_melt",
+      "title": "SiC nanosheet melting",
+      "description": "Silicon carbide nanosheets is a new exciting material like graphene. It is a very stable sheet with high melting temperature. The structure does not get destroyed even at 2000 kelvins. It does, of course, melt eventually.\n\n**What to look for**\n\nAt initial temperature T=2000K, it is not melting. It does, however, have a lot of defects that appears and disappears quickly. Also look at the system from the side. It looks flat from the top, but from the side we can clearly see the bulky surface. Try increasing the temperature to see what happens when it melts.",
+      "inputScript": "sica_sheet_melt.in",
+      "files": [
+        {
+          "fileName": "SiC.vashishta",
+          "url": "potentialparameters/SiC.vashishta"
+        },
+        {
+          "fileName": "sica_sheet_melt.in",
+          "url": "new/sica_sheet_melt/sica_sheet_melt.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            75.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "minimumValue": "10",
+              "maximumValue": "3000",
+              "temperatureDampening": "0.2"
+            }
+          }
+        ]
+      },
+      "imageUrl": "new/sica_sheet_melt/sica_sheet_melt.png"
+    },
+    {
+      "id": "ice_crystal",
+      "title": "Ice crystal",
+      "description": "This is an ice crystal. Notice how locked the water molecules are.",
+      "inputScript": "ice_crystal.in",
+      "files": [
+        {
+          "fileName": "ice_crystal.in",
+          "url": "new/ice_crystal/ice_crystal.in"
+        },
+        {
+          "fileName": "run.in.npt",
+          "url": "new/ice_crystal/run.in.npt"
+        },
+        {
+          "fileName": "system.data",
+          "url": "new/ice_crystal/system.data"
+        },
+        {
+          "fileName": "system.in",
+          "url": "new/ice_crystal/system.in"
+        },
+        {
+          "fileName": "system.in.init",
+          "url": "new/ice_crystal/system.in.init"
+        },
+        {
+          "fileName": "system.in.settings",
+          "url": "new/ice_crystal/system.in.settings"
+        },
+        {
+          "fileName": "system_after_npt.data",
+          "url": "new/ice_crystal/system_after_npt.data"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            10.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "pressure",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "minimumValue": "10",
+              "maximumValue": "500",
+              "temperatureDampening": "25"
+            }
+          }
+        ]
+      },
+      "imageUrl": "new/ice_crystal/ice_crystal.png"
+    },
+    {
+      "id": "singlewater",
+      "title": "Water molecule",
+      "description": "In this simulation, a single water molecule jiggles around on its own. There are no external forces, making the molecule only subject to its internal bonds.\n\n**Things to look for**\n\nYou can observe that there is a preferred angle between the hydrogen atoms and the oxygen atoms. Also, see if you can find the different vibrational modes: The H₂O molecule has a symmetric and antisymmetric stretch of the OH bonds and a scissoring bend of the H-O-H angle.",
+      "inputScript": "singlewater.in",
+      "files": [
+        {
+          "fileName": "singlewater.data",
+          "url": "water/singlewater/singlewater.data"
+        },
+        {
+          "fileName": "H2O.vashishta",
+          "url": "potentialparameters/H2O.vashishta"
+        },
+        {
+          "fileName": "singlewater.in",
+          "url": "water/singlewater/singlewater.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            6.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "angle",
+            "parameters": {
+              "atom1": "1",
+              "atom2": "2",
+              "atom3": "3",
+              "xRange": "100.0",
+              "xScale": "1000",
+              "xLabel": "t [fs]",
+              "title": "The experimental value is about 105 degrees."
+            }
+          }
+        ],
+        "changes": [
+          "singlewater.qml: camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"
+        ]
+      },
+      "imageUrl": "water/singlewater/singlewater.png"
+    },
+    {
+      "id": "vapor",
+      "title": "Water vapor",
+      "description": "Here we see 3000 water molecules with an average distance of 2 nanometers at temperature equal to 300 Kelvin. This is water vapor at a molecular level.\n\n**Things to look for**\n\nNotice how water molecules can bind to each other temporarily through hydrogen bonds before they break apart again. Try to raise and lower the temperature to see if clusters of water molecules form.",
+      "inputScript": "vapor.in",
+      "files": [
+        {
+          "fileName": "vapor.data",
+          "url": "water/vapor/vapor.data"
+        },
+        {
+          "fileName": "H2O.vashishta",
+          "url": "potentialparameters/H2O.vashishta"
+        },
+        {
+          "fileName": "vapor.in",
+          "url": "water/vapor/vapor.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            21.0025,
+            -63.4384,
+            40.7256
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.530134,
+            0.575353,
+            0.622839
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "t [fs]",
+              "xScale": "1000",
+              "xRange": "250"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "nvtEnabled": "true",
+              "minimumValue": "10",
+              "maximumValue": "600",
+              "targetTemperature": "300",
+              "temperatureDampening": "0.05"
+            }
+          }
+        ]
+      },
+      "imageUrl": "water/vapor/vapor.png"
+    },
+    {
+      "id": "nanotube",
+      "title": "Water through nanotube",
+      "description": "This simulation shows water flow through a carbon nanotube under extreme pressure.\n\n**What to look for?**\n\nNotice how the H₂O form a crystal structure (ice).",
+      "inputScript": "nanotube.in",
+      "files": [
+        {
+          "fileName": "nanotube.in",
+          "url": "water/nanotube/nanotube.in"
+        },
+        {
+          "fileName": "system.data",
+          "url": "water/nanotube/system.data"
+        },
+        {
+          "fileName": "system.in",
+          "url": "water/nanotube/system.in"
+        },
+        {
+          "fileName": "system.in.init",
+          "url": "water/nanotube/system.in.init"
+        },
+        {
+          "fileName": "system.in.settings",
+          "url": "water/nanotube/system.in.settings"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            -42.5741,
+            -5.20759,
+            -12.4129
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "gravity",
+            "parameters": {
+              "minimumValue": "-1",
+              "maximumValue": "1.0",
+              "initialValue": "0.1",
+              "enabled": "true"
+            }
+          }
+        ]
+      },
+      "imageUrl": "water/nanotube/nanotube.png"
+    },
+    {
+      "id": "gas_hydrates",
+      "title": "Gas hydrates",
+      "description": "Gas hydrate is a solid ice-like form of water that contains gas molecules in its molecular cavities. In this simulation, we have methane inside the ice cage.",
+      "inputScript": "gas_hydrates.in",
+      "files": [
+        {
+          "fileName": "water_methane_hydrate.sw",
+          "url": "potentialparameters/water_methane_hydrate.sw"
+        },
+        {
+          "fileName": "gas_hydrates.in",
+          "url": "new/gas_hydrates/gas_hydrates.in"
+        },
+        {
+          "fileName": "methane_hydrate_SI_UA_charge.data",
+          "url": "new/gas_hydrates/methane_hydrate_SI_UA_charge.data"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            30.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ]
+      },
+      "imageUrl": "new/gas_hydrates/gas_hydrates.png"
+    },
+    {
+      "id": "patterns",
+      "title": "Patterns",
+      "description": "When granular materials (such as sand and marbles) are stacked on a vibrating plate, they can end up producing standing wave patterns.\n\nWe only need to tune the vibrational frequency and amplitude to certain values.\n\nIt takes quite some time to reach a stable pattern, so check out 'Pattern final' if you don't want to wait.",
+      "inputScript": "patterns.in",
+      "files": [
+        {
+          "fileName": "patterns.in",
+          "url": "granular/patterns/patterns.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            50.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "notPorted": [
+          "customColorShaderCode"
+        ]
+      },
+      "imageUrl": "granular/patterns/patterns.png"
+    },
+    {
+      "id": "patterns_final",
+      "title": "Patterns final",
+      "description": "Same as the system called 'Patterns', but thermalized so you can see the final pattern without waiting.",
+      "inputScript": "patterns_final.in",
+      "files": [
+        {
+          "fileName": "patterns_final.bin",
+          "url": "granular/patterns_final/patterns_final.bin"
+        },
+        {
+          "fileName": "patterns_final.in",
+          "url": "granular/patterns_final/patterns_final.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            50.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "notPorted": [
+          "customColorShaderCode"
+        ],
+        "changes": [
+          "patterns_final.bin: restart file regenerated with current LAMMPS by running granular/patterns to its end (the 2017 binary restart format is no longer readable)"
+        ]
+      },
+      "imageUrl": "granular/patterns_final/patterns_final.png"
+    },
+    {
+      "id": "maxwell",
+      "title": "Maxwell's demon",
+      "description": "In this simulation we have two boxes that particles can be in. We have a vibrating plate at the bottom making the particles collide and jump.\n\nThe second law of thermodynamics says that entropy tends to increase (I like to add 'except when it doesn't). This would mean that the particles are evenly distributed in the left and the right box.\n\nIn this simulation we will see that the entropy actually decreases, where all particles end up being on the same side.\n\nWhat happens is that energy is added in the bottom of the system and needs to be transported through collisions, so a lot on the energy gets dissipated away before the topmost particles get energy. The more particles the less likely it is to have huge jumps to the other side.\n\nThis does not violate the second law of thermodynamics since we add energy to the system through the bottom plate.",
+      "inputScript": "maxwell.in",
+      "files": [
+        {
+          "fileName": "maxwell.in",
+          "url": "granular/maxwell/maxwell.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            -20.0,
+            0.0,
+            -2.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "target": [
+            0.0,
+            0.0,
+            -13.0
+          ],
+          "up": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "atomPosition",
+            "parameters": {
+              "yScale": "100",
+              "yLabel": "Fraction %",
+              "colors": "[\"blue\", \"red\"]"
+            }
+          }
+        ],
+        "notPorted": [
+          "customColorShaderCode"
+        ]
+      },
+      "imageUrl": "granular/maxwell/maxwell.png"
+    },
+    {
+      "id": "betacristobalite",
+      "title": "Silica beta cristobalite",
+      "description": "Silica is stable in many different crystal structures. It is also known as silicon dioxide with the chemical formula SiO₂.\n\nIn this simulation, we explore a beta cristobalite structure, which is a mineral found in acidic volcanic rocks and converted diatomaceous deposits.\n\n**What to look for**\n\nYou will be able to see the corner-bonded SiO₄ tetrahedra that are characteristic for this structure.",
+      "inputScript": "betacristobalite.in",
+      "files": [
+        {
+          "fileName": "betacristobalite.data",
+          "url": "silica/betacristobalite/betacristobalite.data"
+        },
+        {
+          "fileName": "SiO2.vashishta",
+          "url": "potentialparameters/SiO2.vashishta"
+        },
+        {
+          "fileName": "betacristobalite.in",
+          "url": "silica/betacristobalite/betacristobalite.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            46.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "pressure",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000",
+              "xRange": "1000"
+            }
+          },
+          {
+            "kind": "thermostat",
+            "parameters": {
+              "minimumValue": "10",
+              "maximumValue": "2500",
+              "temperatureDampening": "0.2"
+            }
+          }
+        ]
+      },
+      "imageUrl": "silica/betacristobalite/betacristobalite.png"
+    },
+    {
+      "id": "generate_nanoporous",
+      "title": "Nanoporous glass",
+      "description": "In this simulation we show how to generate a nanoporous silica structure (amorphous glass) by regulating the temperature and volume.\n\n**What is happening?**\n\nWe first heat the system to 4500 Kelvin before we expand the system to a lower density. We can then quickly decrease the temperature (quench the system) to reach a nice, nanoporous glass structure.",
+      "inputScript": "generate_nanoporous.in",
+      "files": [
+        {
+          "fileName": "betacristobalite.data",
+          "url": "silica/generate_nanoporous/betacristobalite.data"
+        },
+        {
+          "fileName": "SiO2.vashishta",
+          "url": "potentialparameters/SiO2.vashishta"
+        },
+        {
+          "fileName": "generate_nanoporous.in",
+          "url": "silica/generate_nanoporous/generate_nanoporous.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            66.0,
+            -31.0,
+            85.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "target": [
+            21.0,
+            21.0,
+            21.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000"
+            }
+          },
+          {
+            "kind": "volume",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000",
+              "yScale": "8"
+            }
+          },
+          {
+            "kind": "pressure",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xScale": "1000"
+            }
+          }
+        ],
+        "periodicImages": [
+          2,
+          2,
+          2
+        ]
+      },
+      "imageUrl": "silica/generate_nanoporous/generate_nanoporous.png"
+    }
+  ],
+  "atomifyMetalSections": [
+    {
+      "id": "lammps-examples",
+      "title": "LAMMPS Examples",
+      "exampleIDs": [
+        "lammps",
+        "crack",
+        "flow_couette",
+        "flow_pois",
+        "friction",
+        "obstacle"
+      ]
+    },
+    {
+      "id": "reaxff",
+      "title": "ReaxFF",
+      "exampleIDs": [
+        "CHO",
+        "ssz_13",
+        "VOH",
+        "AB",
+        "FeOH3",
+        "RDX",
+        "ZnOH2"
+      ]
+    },
+    {
+      "id": "diffusion",
+      "title": "Diffusion",
+      "exampleIDs": [
+        "simple_diffusion",
+        "diffusion_coefficient"
+      ]
+    },
+    {
+      "id": "miscellaneous",
+      "title": "Miscellaneous",
+      "exampleIDs": [
+        "sica_sheet",
+        "abstract_translocation",
+        "cmap",
+        "sica_sheet_melt",
+        "ice_crystal"
+      ]
+    },
+    {
+      "id": "water",
+      "title": "Water",
+      "exampleIDs": [
+        "singlewater",
+        "vapor",
+        "nanotube",
+        "gas_hydrates"
+      ]
+    },
+    {
+      "id": "granular-materials",
+      "title": "Granular materials",
+      "exampleIDs": [
+        "patterns",
+        "patterns_final",
+        "maxwell"
+      ]
+    },
+    {
+      "id": "nanoporous-media",
+      "title": "Nanoporous media",
+      "exampleIDs": [
+        "betacristobalite",
+        "generate_nanoporous",
+        "ssz_13"
+      ]
+    }
+  ]
+}

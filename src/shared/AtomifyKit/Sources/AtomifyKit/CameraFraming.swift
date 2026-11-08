@@ -33,6 +33,7 @@ public enum CameraFraming {
             && abs(a.pitch - b.pitch) <= tolerance
             && abs(a.roll - b.roll) <= tolerance
             && a.fieldOfView == b.fieldOfView
+            && a.fitsShorterSide == b.fitsShorterSide
     }
 
     /// The eye position for orbit parameters (the inverse of `orbit`).
@@ -47,8 +48,12 @@ public enum CameraFraming {
         var camera = base
         camera.roll = 0
         camera.fieldOfView = OrbitCamera().fieldOfView
+        camera.fitsShorterSide = false
         if let degrees = hint?.fieldOfView, degrees.isFinite, degrees > 0, degrees < 180 {
+            // A hinted field of view comes from Atomify 2, which ran in
+            // landscape: it spans the shorter side.
             camera.fieldOfView = Float(degrees * .pi / 180)
+            camera.fitsShorterSide = true
         }
         let bounds = SceneBuilder.bounds(low: boxLow, high: boxHigh, tilt: tilt)
         if bounds.low.x.isFinite, bounds.high.x.isFinite, bounds.low.y.isFinite, bounds.high.y.isFinite,

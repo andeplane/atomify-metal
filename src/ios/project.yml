@@ -31,8 +31,9 @@ targets:
     deploymentTarget: "18.0"
     sources:
       - path: AtomifyIOS
-      # The same bundled examples as the Mac app, copied into the app as a folder.
-      - path: ../macos/AtomifyMac/Examples
+      # The App Store app's examples, ported from Atomify 2 (see tools/port_atomify2_examples.py),
+      # copied into the app as a folder.
+      - path: Examples
         type: folder
         buildPhase: resources
     dependencies:
