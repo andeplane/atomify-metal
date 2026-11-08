@@ -1,4 +1,5 @@
 import AtomifyVision
+import CompositorServices
 import SwiftUI
 
 @main
@@ -36,10 +37,13 @@ struct AtomifyApp: App {
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
 
+        // The lab: Metal through a compositor layer, both eyes at once,
+        // over passthrough with the wearer's hands and arms visible.
         ImmersiveSpace(id: AppModel.labSpaceID) {
-            LabView()
-                .environment(model)
-                .modifier(LabPresentationLifecycle(model: model))
+            CompositorLayer(configuration: LabLayerConfiguration()) { [model] layerRenderer in
+                let layer = LabLayer(renderer: layerRenderer)
+                Task { @MainActor in LabSpace.start(layer, model: model) }
+            }
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed)
         .upperLimbVisibility(.visible)
@@ -83,35 +87,12 @@ struct ContentView: View {
             model.stop()
             return
         }
+        model.restoreLibrary = {
+            openWindow(id: AppModel.windowID)
+            dismissWindow(id: AppModel.controlsWindowID)
+        }
         if !arguments.contains("-AtomifyHidePanel") { openWindow(id: AppModel.controlsWindowID) }
         dismissWindow(id: AppModel.windowID)
     }
     #endif
-}
-
-/// One exit path for Back to Experiences, the Digital Crown and system
-/// dismissal: stop the run, reopen the experiences, close the panel.
-private struct LabPresentationLifecycle: ViewModifier {
-    @Environment(\.openWindow) private var openWindow
-    @Environment(\.dismissWindow) private var dismissWindow
-    var model: AppModel
-    @State private var id = UUID()
-
-    func body(content: Content) -> some View {
-        content
-            .onAppear {
-                model.openLabs += 1
-                model.activeLabPresentation = id
-            }
-            .onDisappear {
-                model.openLabs = max(0, model.openLabs - 1)
-                // A late disappearance of an earlier presentation must not
-                // stop the run that replaced it.
-                guard model.activeLabPresentation == id else { return }
-                model.activeLabPresentation = nil
-                model.stop()
-                openWindow(id: AppModel.windowID)
-                dismissWindow(id: AppModel.controlsWindowID)
-            }
-    }
 }

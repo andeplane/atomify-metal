@@ -1,52 +1,39 @@
-import ARKit
+import AtomifyEngine
 import AtomifyVision
-import RealityKit
 import SwiftUI
+import simd
 
-/// The immersive lab: a live simulation about a metre in front of you.
+/// Pinches on the experiment, from the compositor layer's spatial events.
 /// One hand pinches an atom to pull it; two hands pinch to move, turn and
-/// resize the experiment. Hands and forearms also push atoms.
-struct LabView: View {
-    @Environment(AppModel.self) private var model
-    @State private var scene = MoleculeScene()
-    @State private var driver = LabDriver()
-    @State private var interaction = LabInteraction()
-    /// Resets when the gesture ends or is cancelled, which `onEnded` alone
-    /// does not report.
-    @GestureState private var isGesturing = false
+/// resize the experiment. A pinch counts when it starts on the content (the
+/// gaze ray through it, or the hand inside it) and stays until it ends.
+@MainActor
+final class LabInput {
+    private let model: AppModel
+    private let scene: LabScene
+    private let driver: LabDriver
+    private let interaction: LabInteraction
+    /// Pinches that started on the content and have not ended.
+    private var accepted: Set<Int> = []
+    /// The content's target is this much larger than what is drawn, so a
+    /// pinch at the edge still lands.
+    private static let targetMargin: Float = 1.1
+    private static let directReach: Float = 0.05
 
-    var body: some View {
-        RealityView { content in
-            content.add(scene.root)
-            content.add(scene.tipAnchor)
-            scene.tipView.components.set(ViewAttachmentComponent(rootView: LabTipView(model: model)))
-        }
-        .task(id: model.run?.id) {
-            await driver.run(model: model, scene: scene, interaction: interaction)
-        }
-        .gesture(
-            SpatialEventGesture()
-                .targetedToEntity(scene.root)
-                .updating($isGesturing) { _, active, _ in active = true }
-                .onChanged { value in route(value) }
-                .onEnded { value in
-                    route(value)
-                    endGesture()
-                }
-        )
-        .onChange(of: isGesturing) { _, active in if !active { endGesture() } }
-        .onChange(of: model.recenterRequests) { _, _ in driver.recenter() }
-        .onWorldRecenter { phase in if phase == .ended { driver.recenter() } }
-        // Rolling the wrists while holding the experiment would otherwise
-        // bring up the hand menu.
-        .persistentSystemOverlays(interaction.isGripping ? .hidden : .automatic)
+    init(model: AppModel, scene: LabScene, driver: LabDriver, interaction: LabInteraction) {
+        self.model = model
+        self.scene = scene
+        self.driver = driver
+        self.interaction = interaction
     }
 
-    /// Turns the pinches in one gesture update into router input and acts
-    /// on what it decides.
-    private func route(_ value: EntityTargetValue<SpatialEventCollection>) {
+    func receive(_ events: SpatialEventCollection) {
+        guard scene.isPlaced, let extent = scene.contentExtent else {
+            end()
+            return
+        }
         var samples: [PinchSample] = []
-        for event in value.gestureValue {
+        for event in events {
             let kind: PinchSample.Kind
             switch event.kind {
             case .directPinch: kind = .direct
@@ -55,22 +42,48 @@ struct LabView: View {
             }
             let id = event.id.hashValue
             let pose = event.inputDevicePose?.pose3D
-            let position = value.convert(pose?.position ?? event.location3D, from: .local, to: .scene)
+            let position = Self.vector(pose?.position ?? event.location3D)
+            var ray: PinchSample.Ray?
+            if kind == .indirect, let selection = event.selectionRay {
+                ray = PinchSample.Ray(origin: Self.vector(selection.origin), direction: Self.vector(selection.direction))
+            }
+            let ended = event.phase != .active
+            if !accepted.contains(id) {
+                guard !ended, targetsContent(kind: kind, position: position, ray: ray, extent: extent) else { continue }
+                accepted.insert(id)
+            }
+            if ended { accepted.remove(id) }
             let tracked = event.chirality.flatMap { chirality in
                 driver.handOrientation(chirality == .left ? .left : .right)
             }
-            let system = pose.map { value.convert($0.rotation, from: .local, to: .scene) }
+            let system = pose.map { simd_quatf(vector: SIMD4<Float>($0.rotation.quaternion.vector)) }
             let orientation = interaction.orientation(for: id, tracked: tracked, system: system)
-            var ray: PinchSample.Ray?
-            if kind == .indirect, let selection = event.selectionRay {
-                ray = PinchSample.Ray(origin: value.convert(selection.origin, from: .local, to: .scene),
-                                      direction: value.convert(selection.direction, from: .local, to: .scene))
-            }
             samples.append(PinchSample(id: id, kind: kind, position: position, orientation: orientation,
-                                       ray: ray, ended: event.phase != .active))
+                                       ray: ray, ended: ended))
         }
+        guard !samples.isEmpty else { return }
         interaction.keepOrientations(for: Set(samples.filter { !$0.ended }.map(\.id)))
         apply(interaction.router.update(samples, placement: scene.placement))
+        if accepted.isEmpty { end() }
+    }
+
+    /// Ends every pinch: the gesture finished, was cancelled or the lab closed.
+    func end() {
+        accepted = []
+        interaction.reset()
+        scene.isBoxBeingMoved = false
+    }
+
+    private func targetsContent(kind: PinchSample.Kind, position: SIMD3<Float>, ray: PinchSample.Ray?,
+                                extent: SIMD3<Float>) -> Bool {
+        switch kind {
+        case .direct:
+            return scene.placement.contains(position, extent: extent * Self.targetMargin, reach: Self.directReach)
+        case .indirect:
+            guard let ray else { return false }
+            return scene.placement.intersects(rayOrigin: ray.origin, direction: ray.direction, extent: extent,
+                                              margin: Self.targetMargin)
+        }
     }
 
     private func apply(_ output: PinchRouter.Output) {
@@ -97,6 +110,7 @@ struct LabView: View {
     private func beginGrab(_ pinch: PinchSample) {
         guard model.canInteract, scene.isPlaced, let snapshot = scene.currentSnapshot,
               let metersPerUnit = scene.worldMetersPerSimulationUnit, metersPerUnit > 1e-8 else { return }
+        let scene = scene
         let radius: (Int) -> Float = { scene.drawnRadius($0, in: snapshot) }
         let index: Int?
         switch pinch.kind {
@@ -116,25 +130,11 @@ struct LabView: View {
         interaction.link.begin(AtomGrab(tag: snapshot.tags[index], atomPosition: atom, pinch: pinch))
     }
 
-    private func endGesture() {
-        interaction.reset()
-        scene.isBoxBeingMoved = false
+    private static func vector(_ point: Point3D) -> SIMD3<Float> {
+        SIMD3(Float(point.x), Float(point.y), Float(point.z))
     }
-}
 
-/// The in-context tip under the experiment: one short line on glass.
-struct LabTipView: View {
-    var model: AppModel
-
-    var body: some View {
-        if let tip = model.tips.current, model.run != nil {
-            Label(tip.text, systemImage: tip.systemImage)
-                .font(.title)
-                .padding(.horizontal, 36)
-                .padding(.vertical, 22)
-                .glassBackgroundEffect()
-                .transition(.opacity)
-                .id(tip.text)
-        }
+    private static func vector(_ vector: Vector3D) -> SIMD3<Float> {
+        SIMD3(Float(vector.x), Float(vector.y), Float(vector.z))
     }
 }

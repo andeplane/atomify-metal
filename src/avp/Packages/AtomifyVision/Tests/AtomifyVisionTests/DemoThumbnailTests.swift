@@ -1,5 +1,6 @@
-import AtomifyEngine
 #if canImport(Metal) && canImport(ImageIO)
+import AtomifyEngine
+import AtomifyKit
 import Foundation
 import ImageIO
 import Metal
@@ -9,7 +10,7 @@ import simd
 @testable import AtomifyVision
 
 /// Renders the picture on each demo's library card: runs the demo for a few
-/// seconds and draws the newest snapshot with the billboard renderer into
+/// seconds and draws the newest snapshot with the shared particle renderer into
 /// Demos/<folder>/thumbnail.jpg. Runs only when asked:
 ///
 ///     ATOMIFY_THUMBNAILS=1 swift test -c release -Xswiftc -enable-testing --filter DemoThumbnail
@@ -17,7 +18,9 @@ import simd
 /// ATOMIFY_THUMBNAIL_ONLY=<demo id> renders just one.
 struct DemoThumbnailTests {
     static let environment = ProcessInfo.processInfo.environment
-    static let demos = RenderPreviewTests.demos
+    static let demos = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Demos")
 
     @Test(.enabled(if: environment["ATOMIFY_THUMBNAILS"] != nil && MTLCreateSystemDefaultDevice() != nil),
           .timeLimit(.minutes(30)))
@@ -61,16 +64,14 @@ struct DemoThumbnailTests {
         let snapshot = try #require(latest, "\(demo.id) produced no atoms")
 
         let styles = AtomStyleTable(directives: directives, typeCount: snapshot.typeCount, units: snapshot.units)
-        let frame = ImpostorFrame.build(snapshot: snapshot, styles: styles, atomScale: 1,
-                                        bondRadius: InstanceBuilder.bondRadius(styles: styles, atomScale: 1),
-                                        includeBonds: true,
-                                        ambient: ImpostorFrame.ambientOcclusion(snapshot: snapshot, styles: styles))
+        var scene = LabContent.scene(snapshot: snapshot, styles: styles, showsBox: false, highlight: nil)
+        let largestRadius = snapshot.radii?.max() ?? Float(styles.styles.values.map(\.radius).max() ?? 0)
 
         // Framed on the atoms, not the box: many demos hold a small molecule
         // or particle in a large box. The outermost 2 percent on each
         // axis is left out so a few stray atoms (vapor, sputtered atoms)
         // don't shrink the system to a dot.
-        var (low, high) = Self.bounds(of: snapshot.positions, padding: frame.atoms.map { $0.centerRadius.w }.max() ?? 0)
+        var (low, high) = Self.bounds(of: snapshot.positions, padding: largestRadius)
         // Periodic copies around the box, as the app draws them.
         let copies = max(demo.copies ?? 1, 1)
         let shifts = (-(copies - 1) / 2)...(copies / 2)
@@ -97,7 +98,8 @@ struct DemoThumbnailTests {
         var translate = matrix_identity_float4x4
         translate.columns.3 = SIMD4(-center, 1)
         let output = Self.demos.appendingPathComponent(demo.folder).appendingPathComponent("thumbnail.jpg")
-        try render(frame, images: images, worldFromSimulation: box.worldFromLocal * translate, to: output)
+        scene.images = images
+        try render(scene, worldFromSimulation: box.worldFromLocal * translate, to: output)
         print("THUMBNAIL \(demo.id): \(snapshot.atomCount) atoms at step \(snapshot.timestep)")
     }
 
@@ -117,11 +119,11 @@ struct DemoThumbnailTests {
 
     /// 640 x 400, 50 degree vertical field of view, 4x multisampled, over a
     /// dark grey.
-    private func render(_ frame: ImpostorFrame, images: [SIMD3<Float>], worldFromSimulation: simd_float4x4, to output: URL) throws {
+    private func render(_ scene: SceneData, worldFromSimulation: simd_float4x4, to output: URL) throws {
         let device = try #require(MTLCreateSystemDefaultDevice())
         let width = 640, height = 400, samples = 4
-        let renderer = try ImpostorRenderer(device: device, colorFormat: .rgba8Unorm_srgb, depthFormat: .depth32Float,
-                                            sampleCount: samples)
+        let renderer = try ParticleRenderer(device: device, colorFormat: .rgba8Unorm_srgb,
+                                            depthFormat: .depth32Float, sampleCount: samples, reverseZ: true)
         func texture(_ format: MTLPixelFormat, multisample: Bool) -> any MTLTexture {
             let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: format, width: width,
                                                                       height: height, mipmapped: false)
@@ -149,11 +151,14 @@ struct DemoThumbnailTests {
         let projection = simd_float4x4(columns: (SIMD4(f * Float(height) / Float(width), 0, 0, 0), SIMD4(0, f, 0, 0),
                                                  SIMD4(0, 0, 0, -1), SIMD4(0, 0, near, 0)))
         // Every atom of every copy: a still picture has time to spare.
-        renderer.atomBudget = .max
+        renderer.particleBudget = .max
+        renderer.modelMatrix = worldFromSimulation
+        renderer.update(scene)
         let commands = device.makeCommandQueue()!.makeCommandBuffer()!
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass)!
-        renderer.encode(ImpostorRenderer.makeBuffers(frame, device: device, images: images), worldFromSimulation: worldFromSimulation,
-                        viewFromWorld: matrix_identity_float4x4, projection: projection, into: encoder)
+        renderer.encode(into: encoder, views: [RenderView(viewMatrix: matrix_identity_float4x4, projectionMatrix: projection,
+                                                          viewportSize: SIMD2(Float(width), Float(height)))],
+                        commandBuffer: commands)
         encoder.endEncoding()
         let readback = device.makeBuffer(length: width * height * 4, options: .storageModeShared)!
         let blit = commands.makeBlitCommandEncoder()!

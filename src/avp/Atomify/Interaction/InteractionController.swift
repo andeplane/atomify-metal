@@ -10,7 +10,7 @@ import simd
 final class InteractionController {
     private var isPushing = false
 
-    func update(hands: [HandAnchor.Chirality: HandTracker.Hand], scene: MoleculeScene,
+    func update(hands: [HandAnchor.Chirality: HandTracker.Hand], scene: LabScene,
                 simulation: Simulation) {
         guard let snapshot = scene.currentSnapshot, !snapshot.minimizing,
               let metersPerUnit = scene.worldMetersPerSimulationUnit, metersPerUnit.isFinite, metersPerUnit > 1e-8 else {

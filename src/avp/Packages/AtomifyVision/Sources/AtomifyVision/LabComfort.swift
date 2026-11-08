@@ -23,10 +23,12 @@ public enum LabComfort {
     /// origin-from-device transform (the device looks along its -z). Only
     /// the heading counts: the content turns about the vertical to face the
     /// wearer and is never tilted with the head. Scale is 1. An unknown or
-    /// implausible pose gives the fallback position.
-    public static func placement(head: simd_float4x4?) -> BoxPlacement {
+    /// implausible pose gives the fallback position. `trustsHeight` accepts
+    /// any eye height: for the pose the frame is rendered from (the
+    /// compositor's), content in front of it is in view wherever it is.
+    public static func placement(head: simd_float4x4?, trustsHeight: Bool = false) -> BoxPlacement {
         guard let head, let forward = heading(of: head),
-              plausibleEyeHeight.contains(head.columns.3.y) else {
+              trustsHeight || plausibleEyeHeight.contains(head.columns.3.y) else {
             return BoxPlacement(position: fallbackPosition)
         }
         let eye = SIMD3<Float>(head.columns.3.x, head.columns.3.y, head.columns.3.z)

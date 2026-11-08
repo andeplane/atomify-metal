@@ -59,6 +59,13 @@ struct LabComfortTests {
         #expect(LabComfort.placement(head: head(at: [0, 3.2, 0])).position == LabComfort.fallbackPosition)
     }
 
+    @Test func theRenderedCameraIsTrustedAtAnyHeight() {
+        // The compositor draws from this pose, so the content goes in front of it.
+        let placed = LabComfort.placement(head: head(at: .zero), trustsHeight: true)
+        #expect(simd_distance(placed.position, [0, -LabComfort.belowEyeLevel, -LabComfort.viewingDistance]) < 1e-5)
+        #expect(LabComfort.placement(head: nil, trustsHeight: true).position == LabComfort.fallbackPosition)
+    }
+
     @Test func tipSitsUnderTheContentHoweverItIsTurnedOrSized() {
         let extent = SIMD3<Float>(0.55, 0.3, 0.4)
         let level = BoxPlacement(position: [0, 1.4, -1])

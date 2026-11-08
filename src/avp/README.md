@@ -25,12 +25,22 @@ xcodebuild -project src/avp/Atomify.xcodeproj -scheme Atomify -destination 'gene
 Debug builds accept `-AtomifyAutostart <demo id>` (for example `water`) to open an experience at launch,
 `-AtomifyPanelAhead` to put the controls straight ahead and `-AtomifyHidePanel` to leave them closed.
 
+## The lab
+
+The immersive lab is a `CompositorLayer` in a mixed `ImmersiveSpace` with the wearer's hands and arms
+visible. A render thread (`Lab/LabRenderer.swift`) draws with AtomifyRender's `ParticleRenderer`: ray-cast
+sphere and bond impostors with real depth, reverse Z, both eyes in one pass with vertex amplification when
+the layer is layered (one pass per eye otherwise), foveated, 4x multisampled until frames run over budget.
+The scene for each snapshot is built in the background with AtomifyKit's `SceneBuilder`
+(`LabContent` in AtomifyVision). Pinches arrive as the layer's spatial events (`Lab/LabInput.swift`); hand
+pushing and head pose come from ARKit. The library's card previews are still RealityKit.
+
 ## Layout
 
 | Path | What |
 | --- | --- |
 | `Packages/AtomifyVision/` | visionOS-only logic on top of `AtomifyEngine`, with its tests |
-| `Atomify/` | visionOS app: experience carousel (`Library/`), controls panel (`Controls/`), immersive lab with instanced rendering and gestures (`Lab/`, `Interaction/`) |
+| `Atomify/` | visionOS app: experience carousel (`Library/`), controls panel (`Controls/`), immersive lab drawn with Metal through CompositorServices, and hand interaction (`Lab/`, `Interaction/`) |
 | `Demos/` | Bundled simulations and `demos.json` |
 | `validation/` | Real-engine checks of the demos (C++ probes against the shared bridge) |
 

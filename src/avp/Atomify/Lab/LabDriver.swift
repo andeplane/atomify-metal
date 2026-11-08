@@ -1,6 +1,5 @@
 import ARKit
 import AtomifyVision
-import RealityKit
 import simd
 
 /// Runs a simulation in the lab at display rate: draws the newest snapshot,
@@ -12,11 +11,12 @@ final class LabDriver {
     private let hands = HandTracker()
     private let pushing = InteractionController()
     private let head = HeadTracker()
+    private let cue = GrabCue()
     private var activeID: UUID?
     /// When a placement in front of the wearer was asked for.
     private var placementRequested: ContinuousClock.Instant?
     /// How long to wait for a head pose before using the fallback position.
-    private let headPoseWait: Duration = .seconds(1.5)
+    private let headPoseWait: Duration = .seconds(4)
 
     /// The tracked hand's world orientation, when known.
     func handOrientation(_ chirality: HandAnchor.Chirality) -> simd_quatf? {
@@ -30,7 +30,7 @@ final class LabDriver {
     }
 
     /// Returns when the task is cancelled (the run changed or the lab closed).
-    func run(model: AppModel, scene: MoleculeScene, interaction: LabInteraction) async {
+    func run(model: AppModel, scene: LabScene, interaction: LabInteraction) async {
         guard let run = model.run else {
             _ = scene.update(run: nil, hasFinished: false, highlight: nil)
             return
@@ -45,20 +45,26 @@ final class LabDriver {
         if let provider = hands.prepareProvider() { providers.append(provider) }
         head.start(additionalProviders: providers)
         if !scene.isPlaced { placementRequested = .now }
-        var highlight: MoleculeScene.Highlight?
+        var highlight: LabHighlight?
+        var recenterRequests = model.recenterRequests
 
         while !Task.isCancelled && activeID == driverID {
             if let snapshot = scene.update(run: run, hasFinished: model.hasFinished, highlight: highlight) {
                 model.report(snapshot)
             }
+            if model.recenterRequests != recenterRequests {
+                recenterRequests = model.recenterRequests
+                recenter()
+            }
             placeIfRequested(scene: scene, interaction: interaction)
-            scene.updateTip(visible: model.tips.current != nil)
 
             let canInteract = model.canInteract && scene.isPlaced && scene.currentSnapshot != nil
             hold(run: run, scene: scene, interaction: interaction,
                  canHold: canInteract && !interaction.isGripping)
             if let tag = interaction.link.takeBegan() {
-                scene.playGrabCue(tag: tag)
+                if let atom = scene.worldPosition(ofAtom: tag) {
+                    cue.play(at: atom, listener: scene.mailbox.currentViewerPose() ?? head.pose())
+                }
                 model.atomPulled()
             }
             if canInteract && !interaction.isPinching && !interaction.isGripping && !scene.isBoxBeingMoved {
@@ -81,7 +87,7 @@ final class LabDriver {
 
     /// Refreshes the held atom's target in the engine every frame (the
     /// engine lets go of grabs that are not refreshed), or releases it.
-    private func hold(run: AppModel.Run, scene: MoleculeScene, interaction: LabInteraction, canHold: Bool) {
+    private func hold(run: AppModel.Run, scene: LabScene, interaction: LabInteraction, canHold: Bool) {
         switch interaction.link.frame(canHold: canHold) {
         case .hold(let tag, let target):
             guard let snapshot = scene.currentSnapshot else { return }
@@ -98,21 +104,23 @@ final class LabDriver {
     }
 
     /// Puts the experiment in front of the wearer once it is framed and the
-    /// head pose is known (or after a short wait without one).
-    private func placeIfRequested(scene: MoleculeScene, interaction: LabInteraction) {
+    /// compositor's head pose is known: that is the camera the lab is drawn
+    /// from. Without it after a wait, ARKit's pose or the fallback position.
+    private func placeIfRequested(scene: LabScene, interaction: LabInteraction) {
         guard let requested = placementRequested, scene.contentExtent != nil else { return }
-        let pose = head.pose()
-        guard pose != nil || !WorldTrackingProvider.isSupported || ContinuousClock.now - requested > headPoseWait else { return }
+        let compositorPose = scene.mailbox.currentViewerPose()
+        guard compositorPose != nil || ContinuousClock.now - requested > headPoseWait else { return }
+        let pose = compositorPose ?? head.pose()
         placementRequested = nil
         interaction.reset()
         scene.isBoxBeingMoved = false
-        scene.place(LabComfort.placement(head: pose))
+        scene.place(LabComfort.placement(head: pose, trustsHeight: compositorPose != nil))
     }
 
     /// The held atom; otherwise the one atom nearest a hand's pinch point
     /// within direct reach, while no pinch is down.
-    private func nextHighlight(scene: MoleculeScene, interaction: LabInteraction,
-                               canInteract: Bool) -> MoleculeScene.Highlight? {
+    private func nextHighlight(scene: LabScene, interaction: LabInteraction,
+                               canInteract: Bool) -> LabHighlight? {
         if let grab = interaction.link.grab { return .init(tag: grab.tag, kind: .held) }
         guard canInteract, !interaction.isPinching, let snapshot = scene.currentSnapshot,
               let metersPerUnit = scene.worldMetersPerSimulationUnit, metersPerUnit > 1e-8 else { return nil }
