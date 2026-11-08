@@ -15,7 +15,7 @@ struct InfoPanel: View {
                     Text(example.title)
                         .font(.title3.bold())
                         .accessibilityAddTraits(.isHeader)
-                    source(example)
+                    ExampleSource(model: model, example: example, prefix: "Atomify 2 example")
                 }
                 DescriptionText(text: example.description)
                 if let analysis = example.analysisDescription, !analysis.isEmpty {
@@ -45,27 +45,6 @@ struct InfoPanel: View {
                         }
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private func source(_ example: Example) -> some View {
-        if let author = example.author {
-            if let url = example.authorUrl.flatMap({ URL(string: $0) }) {
-                Link(destination: url) {
-                    Text("By \(author) \(Image(systemName: "arrow.up.right"))")
-                }
-                .font(.footnote)
-            } else {
-                Text("By \(author)")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        } else {
-            let section = model.sections.first { $0.examples.contains { $0.id == example.id } }?.title
-            Text(["Atomify 2 example", section].compactMap { $0 }.joined(separator: " · "))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
         }
     }
 

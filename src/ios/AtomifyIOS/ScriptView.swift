@@ -31,6 +31,7 @@ struct ScriptView: View {
                     .fixedSize()
                     .padding(16)
                 }
+                .safeAreaPadding(.horizontal, 12)
             }
         }
         .navigationTitle(example.inputScript)
