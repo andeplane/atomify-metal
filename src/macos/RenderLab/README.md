@@ -72,5 +72,5 @@ Frame times are capped by vsync; compare CPU and GPU times between configuration
 | `Scenes/PickedParticle.swift`, `SceneBounds.swift`, `LabElement.swift`, `LabRandom.swift`, `LabOptions.swift` | Selection details, bounds and periodic offsets, element styles, the seeded random generator, option enums. |
 | `App/` | SwiftUI and AppKit: the app, `LabModel`, the lab `MTKView` host and its coordinator, controls and overlays. |
 
-The code under `Scenes/` is ordinary logic and should be covered by unit tests.
-`Package.swift` has no test target for RenderLab yet; one would be `.testTarget(name: "RenderLabTests", dependencies: ["RenderLab"], path: "src/macos/RenderLabTests")`, using `@testable import RenderLab`.
+The code under `Scenes/` is ordinary logic and is covered by Swift Testing tests in `src/macos/RenderLabTests` (`@testable import RenderLab`): `swift test --filter RenderLabTests`, or ⌘U in Xcode.
+The `App/` files are the thin SwiftUI, AppKit and Metal shell.

@@ -17,7 +17,7 @@ enum ThermalJitter {
             output = [SIMD3<Float>](repeating: .zero, count: count)
         }
         guard count > 0 else { return }
-        let key = LabHash.mix(frame &+ 0x2545_F491_4F6C_DD1D)
+        let frameKey = Self.key(frame: frame)
         let chunk = chunkSize
         let chunks = (count + chunk - 1) / chunk
         base.withUnsafeBufferPointer { source in
@@ -28,7 +28,8 @@ enum ThermalJitter {
                     let start = c * chunk
                     let end = min(start + chunk, count)
                     for i in start..<end {
-                        pointers.destination[i] = pointers.source[i] + amplitude * offset(index: UInt64(i), key: key)
+                        let noise = ThermalJitter.offset(index: UInt64(i), key: frameKey)
+                        pointers.destination[i] = pointers.source[i] + amplitude * noise
                     }
                 }
                 if chunks == 1 {
@@ -38,6 +39,11 @@ enum ThermalJitter {
                 }
             }
         }
+    }
+
+    /// The noise key of one frame.
+    static func key(frame: UInt64) -> UInt64 {
+        LabHash.mix(frame &+ 0x2545_F491_4F6C_DD1D)
     }
 
     /// A pseudo-random vector in [−1, 1)³ for particle `index`.

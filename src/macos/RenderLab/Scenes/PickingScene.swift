@@ -56,7 +56,10 @@ enum PickingScene {
         styleIndices.reserveCapacity(clusterCount)
         let r = clusterRadius
         while positions.count < clusterCount {
-            let p = SIMD3(rng.uniform(-r, r), rng.uniform(-r, r), rng.uniform(-r, r))
+            let x = rng.uniform(-r, r)
+            let y = rng.uniform(-r, r)
+            let z = rng.uniform(-r, r)
+            let p = SIMD3<Float>(x, y, z)
             guard simd_length(p) <= r else { continue }
             positions.append(p)
             styleIndices.append(UInt16(rng.next() % UInt64(clusterStyles.count)))
@@ -78,7 +81,9 @@ enum PickingScene {
             for j in 0..<n {
                 for i in 0..<n {
                     let index = positions.count
-                    positions.append(SIMD3(Float(i) * slabSpacing + shift, Float(j) * slabSpacing + shift, z))
+                    let x = Float(i) * slabSpacing + shift
+                    let y = Float(j) * slabSpacing + shift
+                    positions.append(SIMD3<Float>(x, y, z))
                     styleIndices.append(UInt16(layer))
                     if layer == 0, i > 0 {
                         pairs.append(SIMD2(UInt32(index - 1), UInt32(index)))

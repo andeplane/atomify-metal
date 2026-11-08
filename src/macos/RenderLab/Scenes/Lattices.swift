@@ -68,10 +68,11 @@ struct ZincblendeLattice: Sendable, Equatable {
         for z in 0..<cells {
             for y in 0..<cells {
                 for x in 0..<cells {
-                    let origin = SIMD3(x, y, z) &* 4
                     for site in Self.basis {
-                        let g = origin &+ site
-                        result.append(SIMD3(Float(g.x), Float(g.y), Float(g.z)) * quarter)
+                        let gx = Float(4 * x + site.x)
+                        let gy = Float(4 * y + site.y)
+                        let gz = Float(4 * z + site.z)
+                        result.append(SIMD3(gx, gy, gz) * quarter)
                     }
                 }
             }
@@ -99,14 +100,16 @@ struct ZincblendeLattice: Sendable, Equatable {
         for z in 0..<cells {
             for y in 0..<cells {
                 for x in 0..<cells {
-                    let cell = SIMD3(x, y, z)
-                    let origin = cell &* 4
+                    let cell = SIMD3<Int>(x, y, z)
                     for b in 4..<8 {
-                        let site = origin &+ Self.basis[b]
+                        let site = Self.basis[b]
                         let atom = UInt32(index(cell: cell, basis: b))
                         for direction in Self.bondDirections {
-                            if let neighbour = siteIndex(grid: site &+ direction) {
-                                result.append(SIMD2(atom, UInt32(neighbour)))
+                            let gx = 4 * x + site.x + direction.x
+                            let gy = 4 * y + site.y + direction.y
+                            let gz = 4 * z + site.z + direction.z
+                            if let neighbour = siteIndex(grid: SIMD3<Int>(gx, gy, gz)) {
+                                result.append(SIMD2<UInt32>(atom, UInt32(neighbour)))
                             }
                         }
                     }
