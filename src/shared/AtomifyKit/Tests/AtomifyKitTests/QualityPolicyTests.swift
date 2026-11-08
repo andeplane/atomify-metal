@@ -5,8 +5,8 @@ import Testing
     @Test func automaticFollowsSystemSize() {
         let policy = QualityPolicy()
         #expect(policy.quality(atomCount: 0) == .high)
-        #expect(policy.quality(atomCount: 49_999) == .high)
-        #expect(policy.quality(atomCount: 50_000) == .fast)
+        #expect(policy.quality(atomCount: 299_999) == .high)
+        #expect(policy.quality(atomCount: 300_000) == .fast)
         #expect(policy.quality(atomCount: 1_000_000) == .fast)
     }
 

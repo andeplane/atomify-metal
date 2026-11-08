@@ -7,6 +7,8 @@
 //   swift run -c release atomify-render-bench --shots DIR     # PNGs, fast and high
 // Options: --size 2560x1600  --frames 240  --in-flight 1  --scenes water,sic,lj,sic1m,sic1m-zoom
 //          --label NAME (PNG suffix)  --msaa 4
+//          --ao-strength S  --ao-radius R (scene units; 0 = automatic)
+// Extra scenes: silica, silica-zoom (β-cristobalite SiO2, 192,000 atoms).
 // Each timed run turns the camera once around the scene. With one frame in
 // flight (the default) GPU time is the frame's own; more frames in flight
 // measure throughput.
@@ -24,6 +26,8 @@ struct Options {
     var shotsDirectory: String?
     var label = ""
     var scenes = ["water", "sic", "lj", "sic1m", "sic1m-zoom"]
+    var aoStrength: Float?
+    var aoRadius: Float?
 
     init(_ arguments: [String]) {
         var it = arguments.dropFirst().makeIterator()
@@ -37,6 +41,8 @@ struct Options {
             case "--msaa": msaa = Int(it.next() ?? "") ?? msaa
             case "--shots": shotsDirectory = it.next()
             case "--label": label = it.next() ?? ""
+            case "--ao-strength": aoStrength = Float(it.next() ?? "")
+            case "--ao-radius": aoRadius = Float(it.next() ?? "")
             case "--scenes": scenes = (it.next() ?? "").split(separator: ",").map(String.init)
             default:
                 FileHandle.standardError.write(Data("unknown option \(argument)\n".utf8))
@@ -68,6 +74,34 @@ create_box 2 box
 create_atoms 1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
 mass 1 28.0855
 mass 2 12.011
+pair_style zero 3.0
+pair_coeff * *
+run 0
+"""
+
+/// β-cristobalite SiO2 (idealized Fd-3m, a = 7.16 Å, Si–O 1.55 Å) in 20³
+/// cells: 192,000 atoms. A large dense crystal, where ambient occlusion
+/// should show the cavities between the tetrahedra.
+let silicaScript = """
+#/atom 1 silicon
+#/atom 2 oxygen
+#/bond 1 2 2.0
+units metal
+boundary p p p
+lattice custom 7.16 a1 1 0 0 a2 0 1 0 a3 0 0 1 &
+    basis 0 0 0 basis 0 0.5 0.5 basis 0.5 0 0.5 basis 0.5 0.5 0 &
+    basis 0.25 0.25 0.25 basis 0.25 0.75 0.75 basis 0.75 0.25 0.75 basis 0.75 0.75 0.25 &
+    basis 0.125 0.125 0.125 basis 0.125 0.375 0.375 basis 0.375 0.125 0.375 basis 0.375 0.375 0.125 &
+    basis 0.125 0.625 0.625 basis 0.125 0.875 0.875 basis 0.375 0.625 0.875 basis 0.375 0.875 0.625 &
+    basis 0.625 0.125 0.625 basis 0.625 0.375 0.875 basis 0.875 0.125 0.875 basis 0.875 0.375 0.625 &
+    basis 0.625 0.625 0.125 basis 0.625 0.875 0.375 basis 0.875 0.625 0.375 basis 0.875 0.875 0.125
+region box block 0 20 0 20 0 20
+create_box 2 box
+create_atoms 1 box &
+    basis 9 2 basis 10 2 basis 11 2 basis 12 2 basis 13 2 basis 14 2 basis 15 2 basis 16 2 &
+    basis 17 2 basis 18 2 basis 19 2 basis 20 2 basis 21 2 basis 22 2 basis 23 2 basis 24 2
+mass 1 28.0855
+mass 2 15.999
 pair_style zero 3.0
 pair_coeff * *
 run 0
@@ -122,6 +156,21 @@ func loadScenes(_ names: [String]) async throws -> [BenchScene] {
             // Turned so three faces show.
             scene.camera.yaw += 0.6
             scene.camera.pitch = 0.45
+        case "silica":
+            scene = try await capture(example: nil, script: silicaScript, minimumStep: 0)
+            scene.camera.yaw += 0.6
+            scene.camera.pitch = 0.45
+        case "silica-zoom":
+            if let full = scenes.first(where: { $0.name == "silica" }) {
+                scene = full
+            } else {
+                scene = try await capture(example: nil, script: silicaScript, minimumStep: 0)
+                scene.camera.yaw += 0.6
+                scene.camera.pitch = 0.45
+            }
+            var camera = scene.camera
+            camera.distance *= 0.35
+            scene = BenchScene(name: name, scene: scene.scene, camera: camera, settings: scene.settings)
         case "sic1m-zoom":
             // The same crystal seen from close by: most of it is out of view.
             if let full = scenes.first(where: { $0.name == "sic1m" }) {
@@ -223,17 +272,20 @@ func percentile(_ values: [Double], _ p: Double) -> Double {
     return sorted[min(sorted.count - 1, Int((Double(sorted.count - 1) * p / 100).rounded()))]
 }
 
-func makeRenderer(_ offscreen: Offscreen, _ scene: BenchScene, quality: RenderQuality) throws -> ParticleRenderer {
+func makeRenderer(_ offscreen: Offscreen, _ scene: BenchScene, quality: RenderQuality,
+                  options: Options) throws -> ParticleRenderer {
     let renderer = try ParticleRenderer(device: offscreen.device, colorFormat: .bgra8Unorm_srgb,
                                         depthFormat: .depth32Float, sampleCount: offscreen.msaa, reverseZ: true)
     renderer.settings = scene.settings
     renderer.settings.quality = quality
+    if let strength = options.aoStrength { renderer.settings.ambientOcclusionStrength = strength }
+    if let radius = options.aoRadius { renderer.settings.ambientOcclusionRadius = radius }
     renderer.update(scene.scene)
     return renderer
 }
 
 func time(_ scene: BenchScene, quality: RenderQuality, offscreen: Offscreen, options: Options) throws -> String {
-    let renderer = try makeRenderer(offscreen, scene, quality: quality)
+    let renderer = try makeRenderer(offscreen, scene, quality: quality, options: options)
     var camera = scene.camera
     let startYaw = camera.yaw
     let clear = renderer.settings.background
@@ -289,8 +341,9 @@ func time(_ scene: BenchScene, quality: RenderQuality, offscreen: Offscreen, opt
                   Double(options.frames) / seconds, mean(cpu))
 }
 
-func shoot(_ scene: BenchScene, quality: RenderQuality, offscreen: Offscreen, path: String) throws {
-    let renderer = try makeRenderer(offscreen, scene, quality: quality)
+func shoot(_ scene: BenchScene, quality: RenderQuality, offscreen: Offscreen, path: String,
+           options: Options) throws {
+    let renderer = try makeRenderer(offscreen, scene, quality: quality, options: options)
     // A few frames so per-frame state (occlusion refresh) settles.
     for _ in 0..<10 {
         let commandBuffer = offscreen.queue.makeCommandBuffer()!
@@ -315,7 +368,7 @@ func main() async throws {
         for scene in scenes {
             for quality in RenderQuality.allCases {
                 try shoot(scene, quality: quality, offscreen: offscreen,
-                          path: "\(directory)/\(scene.name)-\(quality.rawValue)\(suffix).png")
+                          path: "\(directory)/\(scene.name)-\(quality.rawValue)\(suffix).png", options: options)
             }
         }
         return

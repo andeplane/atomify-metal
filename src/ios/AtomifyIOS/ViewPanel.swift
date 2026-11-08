@@ -100,7 +100,7 @@ struct ViewPanel: View {
     }
 
     private var rendering: some View {
-        ViewSection("Rendering", footer: "Automatic adds shadows and outlines below 50,000 atoms.") {
+        ViewSection("Rendering", footer: "Automatic adds ambient occlusion and outlines below 300,000 atoms.") {
             Picker("Quality", selection: $model.qualityPolicy.mode) {
                 ForEach(QualityPolicy.Mode.allCases) { mode in
                     Text(mode.title).tag(mode)

@@ -30,7 +30,7 @@ public struct QualityPolicy: Sendable, Equatable {
     /// Pixels per point for very large systems.
     public var reducedContentScale: Double
 
-    public init(mode: Mode = .automatic, highQualityAtomLimit: Int = 50_000, reducedScaleAtomCount: Int = 300_000,
+    public init(mode: Mode = .automatic, highQualityAtomLimit: Int = 300_000, reducedScaleAtomCount: Int = 300_000,
                 reducedContentScale: Double = 2) {
         self.mode = mode
         self.highQualityAtomLimit = highQualityAtomLimit
