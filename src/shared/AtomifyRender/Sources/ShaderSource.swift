@@ -9,8 +9,9 @@
 /// Particles are camera-facing squares sized to cover the sphere's
 /// silhouette; the fragment shader casts a ray against the sphere and
 /// writes the hit point's depth, so spheres intersect each other and bonds
-/// correctly. Bonds are boxes around a cylinder, ray-cast the same way,
-/// built in the vertex shader from the two particles' positions. Everything
+/// correctly. Bonds are cylinders trimmed to the part between the two
+/// spheres, ray-cast the same way through one rectangle in front of them
+/// (`BondProxy`), built in the vertex shader from the two particles' positions. Everything
 /// happens in view space with the eye at the origin (perspective only).
 ///
 /// Every proxy lies in front of the surface it stands for, so the depth a
@@ -23,11 +24,6 @@
 /// multisample mask. Without multisampling, fragments under half coverage
 /// are dropped.
 enum ShaderSource {
-    /// Corners of the box around a bond as one 14-vertex triangle strip
-    /// covering all six faces. Corner k is (bit 0, bit 1, bit 2) of k mapped
-    /// to −1/+1 along (axis, side, other). Drawn without culling.
-    static let cubeStrip: [UInt16] = [3, 2, 7, 6, 4, 2, 0, 3, 1, 7, 5, 4, 1, 0]
-
     /// Buffer indices shared with the shader source.
     enum BufferIndex {
         static let particles = 0
@@ -329,9 +325,8 @@ enum ShaderSource {
     """
 
     static var bonds: String {
-        let strip = cubeStrip.map(String.init).joined(separator: ", ")
-        return """
-        constant ushort cubeStrip[\(cubeStrip.count)] = { \(strip) };
+        """
+        // The bond proxy: see BondProxy.swift, which does the same in Swift.
 
         struct BondVaryings {
             float4 position [[position]];
@@ -347,6 +342,11 @@ enum ShaderSource {
             float endAmbient [[flat]];
             uint viewIndex [[flat]];
         };
+
+        /// How far into a sphere the cylinder runs before its surface leaves it.
+        static float insideDepth(float sphereRadius, float bondRadius) {
+            return sphereRadius > bondRadius ? sqrt(sphereRadius * sphereRadius - bondRadius * bondRadius) : 0.0;
+        }
 
         vertex BondVaryings bondVertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
                                        const device Particle *particles [[buffer(0)]],
@@ -367,7 +367,9 @@ enum ShaderSource {
             float3 a = (view.modelView * float4(pa.center + draw.offset.xyz, 1.0)).xyz;
             float3 b = (view.modelView * float4(pb.center + draw.offset.xyz, 1.0)).xyz;
             float scale = view.params.x;
-            float radius = frame.bond.x * scale * min(nearFadeFactor(a, frame), nearFadeFactor(b, frame));
+            float fadeA = nearFadeFactor(a, frame);
+            float fadeB = nearFadeFactor(b, frame);
+            float radius = frame.bond.x * scale * min(fadeA, fadeB);
             float sceneLength = length(pb.center - pa.center);
             float3 d = b - a;
             float axisLength = length(d);
@@ -377,7 +379,7 @@ enum ShaderSource {
             out.viewPosition = a;
             out.start = a;
             out.axis = float3(0.0, 1.0, 0.0);
-            out.axisLength = axisLength;
+            out.axisLength = 0.0;
             out.radius = radius;
             out.split = 0.5;
             bool useBondColor = frame.options.z != 0u;
@@ -389,24 +391,75 @@ enum ShaderSource {
             out.viewIndex = viewIndex;
             bool hidden = ((pa.flags | pb.flags) & flagHidden) != 0u;
             if (hidden || sceneLength > frame.bond.y || axisLength < 1e-6 || !(radius > 0.0)) {
+                return out;    // all four corners coincide: nothing is drawn
+            }
+            // Only the part between the two sphere surfaces can be seen.
+            float ra = pa.radius * draw.offset.w * scale * fadeA;
+            float rb = pb.radius * draw.offset.w * scale * fadeB;
+            float3 axis = d / axisLength;
+            float s0 = insideDepth(ra, radius);
+            float s1 = axisLength - insideDepth(rb, radius);
+            if (s1 <= s0) {
                 return out;
+            }
+            float3 p0 = a + axis * s0;
+            float3 p1 = a + axis * s1;
+            // Half the box around the cylinder, with a margin of a few pixels
+            // for the antialiased edge.
+            float margin = radius + 0.003 * length(0.5 * (p0 + p1));
+            // Keep the whole box in front of the near plane.
+            float minimumDepth = view.params.y * 1.001 + 1.5 * margin;
+            float depth0 = -p0.z, depth1 = -p1.z;
+            if (depth0 < minimumDepth && depth1 < minimumDepth) {
+                return out;
+            }
+            if (depth0 < minimumDepth) {
+                p0 = mix(p0, p1, (minimumDepth - depth0) / (depth1 - depth0));
+            } else if (depth1 < minimumDepth) {
+                p1 = mix(p0, p1, (minimumDepth - depth0) / (depth1 - depth0));
             }
             // The color changes halfway along the visible part, between the
             // two spheres' surfaces.
-            float ra = pa.radius * draw.offset.w * scale;
-            float rb = pb.radius * draw.offset.w * scale;
-            out.split = saturate((ra + 0.5 * (axisLength - ra - rb)) / axisLength);
+            float start = dot(p0 - a, axis);
+            float segmentLength = dot(p1 - a, axis) - start;
+            if (!(segmentLength > 1e-6)) {
+                return out;
+            }
+            float splitDistance = ra + 0.5 * (axisLength - ra - rb);
+            out.split = saturate((splitDistance - start) / segmentLength);
 
-            float3 axis = d / axisLength;
+            // Project the box's 8 corners from the eye onto the plane of the
+            // nearest corner, and cover them with a rectangle aligned with
+            // the projected axis.
             float3 helper = abs(axis.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
-            float3 side = normalize(cross(helper, axis));
-            float3 other = cross(axis, side);
-            uint corner = uint(cubeStrip[vertexID]);
-            float3 c = float3(float(corner & 1u), float((corner >> 1) & 1u), float((corner >> 2) & 1u)) * 2.0 - 1.0;
-            // A margin of a few pixels for the antialiased edge.
-            float margin = radius + 0.003 * length(a + d * 0.5);
-            float3 p = a + axis * (axisLength * (c.x * 0.5 + 0.5)) + side * (margin * c.y) + other * (margin * c.z);
+            float3 side = normalize(cross(helper, axis)) * margin;
+            float3 other = cross(axis, normalize(cross(helper, axis))) * margin;
+            float3 corners[8] = {
+                p0 - side - other, p0 + side - other, p0 - side + other, p0 + side + other,
+                p1 - side - other, p1 + side - other, p1 - side + other, p1 + side + other };
+            float planeDepth = -corners[0].z;
+            for (uint i = 1; i < 8; i++) {
+                planeDepth = min(planeDepth, -corners[i].z);
+            }
+            float2 q0 = p0.xy * (planeDepth / -p0.z);
+            float2 q1 = p1.xy * (planeDepth / -p1.z);
+            float2 alongAxis = q1 - q0;
+            float alongLength = length(alongAxis);
+            float2 along = alongLength > 1e-9 ? alongAxis / alongLength : float2(1.0, 0.0);
+            float2 across = float2(-along.y, along.x);
+            float2 low = float2(INFINITY), high = float2(-INFINITY);
+            for (uint i = 0; i < 8; i++) {
+                float2 q = corners[i].xy * (planeDepth / -corners[i].z);
+                float2 uv = float2(dot(q, along), dot(q, across));
+                low = min(low, uv);
+                high = max(high, uv);
+            }
+            float u = (vertexID & 1u) != 0u ? high.x : low.x;
+            float v = (vertexID & 2u) != 0u ? high.y : low.y;
+            float3 p = float3(along * u + across * v, -planeDepth);
+            out.start = p0;
             out.axis = axis;
+            out.axisLength = segmentLength;
             out.viewPosition = p;
             out.position = view.projection * float4(p, 1.0);
             return out;

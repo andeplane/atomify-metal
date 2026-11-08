@@ -352,7 +352,7 @@ public final class ParticleRenderer {
             for image in fullDetailImages.sorted() {
                 setDraw(offset: slot.images[image], radiusFactor: radiusScale)
                 encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0,
-                                       vertexCount: ShaderSource.cubeStrip.count, instanceCount: slot.bondCount)
+                                       vertexCount: 4, instanceCount: slot.bondCount)
                 bondsDrawn += slot.bondCount
             }
         }
