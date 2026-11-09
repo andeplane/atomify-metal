@@ -368,6 +368,8 @@ public final class SimulationSession {
     @ObservationIgnored private var pendingOutput = ""
     @ObservationIgnored private var frameMeter = RateMeter()
     @ObservationIgnored private var pollTask: Task<Void, Never>?
+    @ObservationIgnored private var ticker: DisplayTicker?
+    @ObservationIgnored private var lastGrant: ContinuousClock.Instant?
     private let clock = ContinuousClock()
     private let origin = ContinuousClock.now
     @ObservationIgnored private var lastRefresh = ContinuousClock.now
@@ -404,8 +406,7 @@ public final class SimulationSession {
         run.simulation.cancel()
         retiring[run.id] = run.simulation
         self.run = nil
-        pollTask?.cancel()
-        pollTask = nil
+        stopPolling()
         storedThermostat.isEnabled = false
         storedGravity?.isEnabled = false
         if status.isActive { status = .idle }
@@ -490,7 +491,7 @@ public final class SimulationSession {
             self.run = run
             applyBondSettings()
             simulation.setPublishInterval(publishInterval)
-            simulation.setMaxStepsPerSecond(effectiveMaxStepsPerSecond)
+            applySpeed()
             simulation.setPerAtomQuantity(storedColorQuantity)
             status = .running
             let id = run.id
@@ -566,12 +567,28 @@ public final class SimulationSession {
         storedGravity?.isEnabled = false
         if case .failed(let message) = outcome { errorMessage = message }
         self.run = nil
+        stopPolling()
+    }
+
+    private func stopPolling() {
         pollTask?.cancel()
         pollTask = nil
+        ticker?.stop()
+        ticker = nil
     }
 
     private func startPolling() {
-        pollTask?.cancel()
+        stopPolling()
+        // On the display's own clock where there is one, so every displayed
+        // frame gets its share of the steps.
+        if let ticker = DisplayTicker(tick: { [weak self] in
+            guard let self else { return false }
+            self.tick()
+            return true
+        }) {
+            self.ticker = ticker
+            return
+        }
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
@@ -585,7 +602,10 @@ public final class SimulationSession {
     /// One display tick: take output and the newest snapshot, refresh the
     /// slower state when due.
     func tick() {
-        if let run { drain(run) }
+        if let run {
+            grantSteps(run)
+            drain(run)
+        }
         if clock.now - lastRefresh >= refreshInterval { publish() }
     }
 
@@ -682,8 +702,36 @@ public final class SimulationSession {
         }
     }
 
+    /// A speed limit paces the engine by frames: every tick grants the steps
+    /// due since the last one, as Atomify 2 ran its steps per frame, so each
+    /// displayed scene moves on by the same amount. Without a limit it runs
+    /// as fast as it can.
     private func applySpeed() {
-        run?.simulation.setMaxStepsPerSecond(effectiveMaxStepsPerSecond)
+        guard let run else { return }
+        run.simulation.setMaxStepsPerSecond(nil)
+        run.simulation.setFramePaced(effectiveMaxStepsPerSecond != nil)
+        lastGrant = nil
+    }
+
+    /// Grants a frame-paced run the steps due since the last tick.
+    private func grantSteps(_ run: Run) {
+        let now = clock.now
+        defer { lastGrant = now }
+        guard status == .running, let rate = effectiveMaxStepsPerSecond else { return }
+        guard let last = lastGrant else { return }
+        let grant = Self.stepGrant(rate: rate, elapsed: now - last)
+        if grant.steps > 0 { run.simulation.grantSteps(grant.steps, maxBudget: grant.maxBudget) }
+    }
+
+    /// Steps for one tick at `rate` steps per second: the elapsed time's
+    /// worth, at most two reference frames', and never more pending than two
+    /// reference frames' (at least one step), so a run that falls behind
+    /// does not race to catch up after a hitch.
+    nonisolated static func stepGrant(rate: Double, elapsed: Duration) -> (steps: Double, maxBudget: Double) {
+        let frames = 2.0 / referenceFrameRate
+        let seconds = min(max(Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) * 1e-18,
+                              0), frames)
+        return (rate * seconds, max(1, rate * frames))
     }
 
     private func applyBondSettings() {

@@ -176,6 +176,20 @@ public final class Simulation: @unchecked Sendable {
         withHandle { atomify_sim_set_max_steps_per_second($0, steps ?? 0) }
     }
 
+    /// Frame pacing, as Atomify 2 stepped: while on, the run takes only the
+    /// timesteps granted with `grantSteps` and publishes a snapshot whenever
+    /// the grant runs out, so every frame shows the same advance;
+    /// `setMaxStepsPerSecond` does not apply then.
+    public func setFramePaced(_ paced: Bool) {
+        withHandle { atomify_sim_set_frame_paced($0, paced ? 1 : 0) }
+    }
+
+    /// Adds timesteps for a frame-paced run; the grant never exceeds
+    /// `maxBudget` (at least 1), so a run that falls behind does not race.
+    public func grantSteps(_ steps: Double, maxBudget: Double) {
+        withHandle { atomify_sim_grant_steps($0, steps, maxBudget) }
+    }
+
     /// Wall clock seconds between published snapshots (default 1/90).
     public func setPublishInterval(_ seconds: Double) {
         withHandle { atomify_sim_set_publish_interval($0, seconds) }

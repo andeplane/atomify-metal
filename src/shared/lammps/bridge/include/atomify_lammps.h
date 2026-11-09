@@ -213,6 +213,15 @@ int atomify_sim_is_cancelled(atomify_sim *sim);
 double atomify_sim_seconds_since_progress(atomify_sim *sim);
 void atomify_sim_set_max_steps_per_second(atomify_sim *sim, double steps); // <= 0: unlimited
 void atomify_sim_set_publish_interval(atomify_sim *sim, double seconds);
+// Frame pacing, as Atomify 2 stepped: while on, the run takes only the
+// timesteps granted with atomify_sim_grant_steps (the app grants a share on
+// every displayed frame) and publishes a snapshot whenever the grant runs out,
+// so every frame shows the same advance. The time limit above does not apply
+// then. Off (the default), the run is limited by time only.
+void atomify_sim_set_frame_paced(atomify_sim *sim, int paced);
+// Adds timesteps to the grant, which never exceeds max_budget (at least 1),
+// so a run that falls behind does not race to catch up.
+void atomify_sim_grant_steps(atomify_sim *sim, double steps, double max_budget);
 // How often observables are sampled (wall clock); <= 0 samples for every
 // published snapshot. Each sample makes LAMMPS tally energy and virial on
 // one step. Default 0.05 s.

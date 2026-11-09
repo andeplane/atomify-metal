@@ -188,6 +188,8 @@ public final class Simulation: @unchecked Sendable {
     public func cancel()
     public var isRunning: Bool { get }
     public func setMaxStepsPerSecond(_ steps: Double?)
+    // Frame pacing: only granted steps run; a snapshot is published whenever the grant runs out.
+    public func setFramePaced(_ paced: Bool); public func grantSteps(_ steps: Double, maxBudget: Double)
     public func setPublishInterval(_ seconds: Double)
 
     // Bonds
@@ -442,6 +444,8 @@ public struct SessionStats: Equatable, Sendable { atoms, bonds, timestep, time, 
     appliesScriptSpeed: Bool = false   // iOS sets it: follow stepsPerFrame and #/speed; off, the console shows the lines
     stepsPerFrame: Double? (example, then #/speed), speedFactor: Double (∞: unlimited), scriptLabel: String?
     effectiveMaxStepsPerSecond: Double?   // min(stepsPerFrame × 60 × speedFactor, maxStepsPerSecond)
+    // With a limit the engine is frame paced: each tick (the display link on iOS/visionOS) grants
+    // limit × elapsed steps, so every displayed scene advances by the same amount.
     thermostat: Thermostat      // setting it enqueues fix/unfix; off when a run ends or starts
     // dashboard: the example's panels (or DashboardLayout.fallback); the thermostat and gravity panels
     // switch on as configured once there are atoms

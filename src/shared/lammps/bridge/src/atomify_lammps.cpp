@@ -693,6 +693,27 @@ void atomify_sim_set_max_steps_per_second(atomify_sim *sim, double steps)
   sim->shared->max_steps_per_second = std::isfinite(steps) && steps > 0.0 ? steps : 0.0;
 }
 
+void atomify_sim_set_frame_paced(atomify_sim *sim, int paced)
+{
+  {
+    std::lock_guard<std::mutex> lock(sim->shared->control_mutex);
+    sim->shared->frame_paced = paced != 0;
+    sim->shared->step_budget = 0.0;
+  }
+  sim->shared->control_cv.notify_all();
+}
+
+void atomify_sim_grant_steps(atomify_sim *sim, double steps, double max_budget)
+{
+  if (!std::isfinite(steps) || steps <= 0.0) return;
+  const double cap = std::isfinite(max_budget) ? std::max(max_budget, 1.0) : 1.0;
+  {
+    std::lock_guard<std::mutex> lock(sim->shared->control_mutex);
+    sim->shared->step_budget = std::min(sim->shared->step_budget + steps, cap);
+  }
+  sim->shared->control_cv.notify_all();
+}
+
 void atomify_sim_set_publish_interval(atomify_sim *sim, double seconds)
 {
   std::lock_guard<std::mutex> lock(sim->shared->control_mutex);

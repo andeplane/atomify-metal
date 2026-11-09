@@ -85,6 +85,20 @@ import simd
         #expect(S.effectiveLimit(stepsPerFrame: 10, speedFactor: 1, maxStepsPerSecond: 500) == 500)
         #expect(S.effectiveLimit(stepsPerFrame: 1, speedFactor: 1, maxStepsPerSecond: 500) == 60)
     }
+
+    @Test func eachTickGrantsTheStepsDueSinceTheLast() {
+        typealias S = SimulationSession
+        // One step per frame at 60 frames per second, ticked at 120 Hz: half a step a tick.
+        let half = S.stepGrant(rate: 60, elapsed: .microseconds(8333))
+        #expect(abs(half.steps - 0.5) < 1e-3)
+        #expect(half.maxBudget == 2)
+        // A hitch grants at most two reference frames' worth.
+        #expect(abs(S.stepGrant(rate: 600, elapsed: .seconds(1)).steps - 20) < 1e-9)
+        #expect(S.stepGrant(rate: 600, elapsed: .seconds(1)).maxBudget == 20)
+        #expect(S.stepGrant(rate: 600, elapsed: .zero).steps == 0)
+        // Slow speeds still let a whole step through.
+        #expect(S.stepGrant(rate: 15, elapsed: .milliseconds(16)).maxBudget == 1)
+    }
 }
 
 @Suite struct ExampleOptionsTests {

@@ -238,6 +238,16 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
 
         try await waitUntil("console") { session.console.text.contains("Step") }
         #expect(!session.console.text.contains("@atomify"))
+
+        // Frame paced at two steps per frame: about 120 steps a second
+        // (stats refresh every 0.2 s, hence the wide margin).
+        session.speedFactor = 1
+        try await Task.sleep(for: .milliseconds(300))
+        let before = session.stats.timestep
+        try await Task.sleep(for: .seconds(2))
+        let rate = Double(session.stats.timestep - before) / 2
+        #expect(rate > 90 && rate < 150, "steps per second \(rate)")
+        session.speedFactor = .infinity
         session.restart()
         #expect(session.scriptLabel == nil)
         #expect(session.stepsPerFrame == 1)
