@@ -21,7 +21,7 @@ struct GalleryScreen: View {
     var body: some View {
         NavigationStack(path: $model.galleryPath) {
             GalleryContent(model: model, query: query)
-                .navigationTitle("Examples")
+                .navigationTitle("Simulations")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
