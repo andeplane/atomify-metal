@@ -19,7 +19,7 @@
           "position": [
             0.0,
             0.0,
-            -45.0
+            -49.5
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -35,7 +35,8 @@
           }
         ],
         "changes": [
-          "lammps.in: OPT package style replaced by the plain one"
+          "lammps.in: OPT package style replaced by the plain one",
+          "lammps.qml: camera moved back 1.1x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/lammps/lammps.png"
@@ -58,7 +59,7 @@
           "position": [
             0.0,
             0.0,
-            -65.0
+            -208.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -87,7 +88,8 @@
           }
         ],
         "changes": [
-          "crack.in: OPT package style replaced by the plain one"
+          "crack.in: OPT package style replaced by the plain one",
+          "crack.qml: camera moved back 3.2x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/crack/crack.png"
@@ -110,7 +112,7 @@
           "position": [
             0.0,
             0.0,
-            22.0
+            55.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -126,7 +128,8 @@
           }
         ],
         "changes": [
-          "flow_couette.in: OPT package style replaced by the plain one"
+          "flow_couette.in: OPT package style replaced by the plain one",
+          "flow_couette.qml: camera moved back 2.5x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/flow_couette/flow_couette.png"
@@ -149,7 +152,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            50.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -165,7 +168,8 @@
           }
         ],
         "changes": [
-          "flow_pois.in: OPT package style replaced by the plain one"
+          "flow_pois.in: OPT package style replaced by the plain one",
+          "flow_pois.qml: camera moved back 2.5x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/flow_pois/flow_pois.png"
@@ -188,7 +192,7 @@
           "position": [
             0.0,
             0.0,
-            35.0
+            91.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -217,7 +221,8 @@
           }
         ],
         "changes": [
-          "friction.in: OPT package style replaced by the plain one"
+          "friction.in: OPT package style replaced by the plain one",
+          "friction.qml: camera moved back 2.6x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/friction/friction.png"
@@ -240,7 +245,7 @@
           "position": [
             0.0,
             0.0,
-            35.0
+            80.5
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -256,7 +261,8 @@
           }
         ],
         "changes": [
-          "obstacle.in: OPT package style replaced by the plain one"
+          "obstacle.in: OPT package style replaced by the plain one",
+          "obstacle.qml: camera moved back 2.3x so the whole system is in view"
         ]
       },
       "imageUrl": "lammps/obstacle/obstacle.png"
@@ -295,7 +301,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -318,7 +324,8 @@
           }
         ],
         "changes": [
-          "CHO.in: pair_style reax/c is now reaxff"
+          "CHO.in: pair_style reax/c is now reaxff",
+          "CHO.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/CHO/CHO.png"
@@ -349,7 +356,7 @@
           "position": [
             0.0,
             0.0,
-            50.0
+            65.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -374,7 +381,8 @@
         ],
         "changes": [
           "ssz_13.in: pair_style reax/c is now reaxff",
-          "ssz_13.in: qeq/reax reads its parameters from reaxff"
+          "ssz_13.in: qeq/reax reads its parameters from reaxff",
+          "ssz_13.qml: camera moved back 1.3x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/ssz_13/ssz_13.png"
@@ -413,7 +421,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -436,7 +444,8 @@
           }
         ],
         "changes": [
-          "VOH.in: pair_style reax/c is now reaxff"
+          "VOH.in: pair_style reax/c is now reaxff",
+          "VOH.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/VOH/VOH.png"
@@ -475,7 +484,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -498,7 +507,8 @@
           }
         ],
         "changes": [
-          "AB.in: pair_style reax/c is now reaxff"
+          "AB.in: pair_style reax/c is now reaxff",
+          "AB.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/AB/AB.png"
@@ -537,7 +547,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -560,7 +570,8 @@
           }
         ],
         "changes": [
-          "FeOH3.in: pair_style reax/c is now reaxff"
+          "FeOH3.in: pair_style reax/c is now reaxff",
+          "FeOH3.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/FeOH3/FeOH3.png"
@@ -599,7 +610,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -622,7 +633,8 @@
           }
         ],
         "changes": [
-          "RDX.in: pair_style reax/c is now reaxff"
+          "RDX.in: pair_style reax/c is now reaxff",
+          "RDX.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/RDX/RDX.png"
@@ -661,7 +673,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -684,7 +696,8 @@
           }
         ],
         "changes": [
-          "ZnOH2.in: pair_style reax/c is now reaxff"
+          "ZnOH2.in: pair_style reax/c is now reaxff",
+          "ZnOH2.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "reaxff/ZnOH2/ZnOH2.png"
@@ -707,7 +720,7 @@
           "position": [
             0.0,
             0.0,
-            50.0
+            75.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -742,7 +755,8 @@
           }
         ],
         "changes": [
-          "simple_diffusion.in: OPT package style replaced by the plain one"
+          "simple_diffusion.in: OPT package style replaced by the plain one",
+          "simple_diffusion.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
       "imageUrl": "diffusion/simple_diffusion/simple_diffusion.png"
@@ -765,7 +779,7 @@
           "position": [
             0.0,
             0.0,
-            20.0
+            52.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -816,7 +830,8 @@
           }
         ],
         "changes": [
-          "diffusion_coefficient.in: OPT package style replaced by the plain one"
+          "diffusion_coefficient.in: OPT package style replaced by the plain one",
+          "diffusion_coefficient.qml: camera moved back 2.6x so the whole system is in view"
         ]
       },
       "imageUrl": "diffusion/diffusion_coefficient/diffusion_coefficient.png"
@@ -843,7 +858,7 @@
           "position": [
             0.0,
             0.0,
-            46.0
+            73.6
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -873,6 +888,9 @@
               "temperatureDampening": "0.2"
             }
           }
+        ],
+        "changes": [
+          "sica_sheet.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
       "imageUrl": "new/sica_sheet/sica_sheet.png"
@@ -914,7 +932,7 @@
         "camera": {
           "position": [
             0.0,
-            30.0,
+            60.0,
             0.0
           ],
           "fieldOfView": 25.0,
@@ -936,6 +954,9 @@
               "xRange": "250"
             }
           }
+        ],
+        "changes": [
+          "abstract_translocation.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "new/abstract_translocation/abstract_translocation.png"
@@ -966,7 +987,7 @@
           "position": [
             0.0,
             0.0,
-            10.0
+            28.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -987,6 +1008,9 @@
               "xRange": "250"
             }
           }
+        ],
+        "changes": [
+          "cmap.qml: camera moved back 2.8x so the whole system is in view"
         ]
       },
       "imageUrl": "new/cmap/cmap.png"
@@ -1013,7 +1037,7 @@
           "position": [
             0.0,
             0.0,
-            75.0
+            112.5
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1043,6 +1067,9 @@
               "temperatureDampening": "0.2"
             }
           }
+        ],
+        "changes": [
+          "sica_sheet_melt.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
       "imageUrl": "new/sica_sheet_melt/sica_sheet_melt.png"
@@ -1089,7 +1116,7 @@
           "position": [
             0.0,
             0.0,
-            10.0
+            40.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1125,6 +1152,9 @@
               "temperatureDampening": "25"
             }
           }
+        ],
+        "changes": [
+          "ice_crystal.qml: camera moved back 4x so the whole system is in view"
         ]
       },
       "imageUrl": "new/ice_crystal/ice_crystal.png"
@@ -1282,9 +1312,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            -42.5741,
-            -5.20759,
-            -12.4129
+            -68.1186,
+            -8.3321,
+            -19.8606
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1307,6 +1337,9 @@
               "enabled": "true"
             }
           }
+        ],
+        "changes": [
+          "nanotube.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
       "imageUrl": "water/nanotube/nanotube.png"
@@ -1337,7 +1370,7 @@
           "position": [
             0.0,
             0.0,
-            30.0
+            60.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1351,6 +1384,9 @@
           {
             "kind": "summary"
           }
+        ],
+        "changes": [
+          "gas_hydrates.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "new/gas_hydrates/gas_hydrates.png"
@@ -1373,62 +1409,7 @@
           "position": [
             0.0,
             0.0,
-            50.0
-          ],
-          "fieldOfView": 25.0,
-          "relativeToBoxCenter": true,
-          "up": [
-            0.0,
-            1.0,
-            0.0
-          ]
-        },
-        "dashboard": [
-          {
-            "kind": "summary"
-          }
-        ],
-        "colorRamp": {
-          "axis": 2,
-          "from": -7.5,
-          "to": -2.5,
-          "low": [
-            0.2,
-            0.2,
-            0.2
-          ],
-          "high": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        }
-      },
-      "imageUrl": "granular/patterns/patterns.png"
-    },
-    {
-      "id": "patterns_final",
-      "title": "Patterns final",
-      "description": "Same as the system called 'Patterns', but thermalized so you can see the final pattern without waiting.",
-      "inputScript": "patterns_final.in",
-      "files": [
-        {
-          "fileName": "patterns_final.bin",
-          "url": "granular/patterns_final/patterns_final.bin"
-        },
-        {
-          "fileName": "patterns_final.in",
-          "url": "granular/patterns_final/patterns_final.in"
-        }
-      ],
-      "atomifyMetal": {
-        "dialect": "atomify2",
-        "stepsPerFrame": 1,
-        "camera": {
-          "position": [
-            0.0,
-            0.0,
-            50.0
+            100.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1459,7 +1440,66 @@
           ]
         },
         "changes": [
-          "patterns_final.bin: restart file regenerated with current LAMMPS by running granular/patterns to its end (the 2017 binary restart format is no longer readable)"
+          "patterns.qml: camera moved back 2x so the whole system is in view"
+        ]
+      },
+      "imageUrl": "granular/patterns/patterns.png"
+    },
+    {
+      "id": "patterns_final",
+      "title": "Patterns final",
+      "description": "Same as the system called 'Patterns', but thermalized so you can see the final pattern without waiting.",
+      "inputScript": "patterns_final.in",
+      "files": [
+        {
+          "fileName": "patterns_final.bin",
+          "url": "granular/patterns_final/patterns_final.bin"
+        },
+        {
+          "fileName": "patterns_final.in",
+          "url": "granular/patterns_final/patterns_final.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 1,
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            100.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          }
+        ],
+        "colorRamp": {
+          "axis": 2,
+          "from": -7.5,
+          "to": -2.5,
+          "low": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "high": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "changes": [
+          "patterns_final.bin: restart file regenerated with current LAMMPS by running granular/patterns to its end (the 2017 binary restart format is no longer readable)",
+          "patterns_final.qml: camera moved back 2x so the whole system is in view"
         ]
       },
       "imageUrl": "granular/patterns_final/patterns_final.png"
@@ -1480,21 +1520,21 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            -20.0,
+            -28.0,
             0.0,
-            -2.0
+            -14.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
           "target": [
             0.0,
             0.0,
-            -13.0
+            -18.0
           ],
           "up": [
             0.0,
             0.0,
-            -1.0
+            1.0
           ]
         },
         "dashboard": [
@@ -1526,7 +1566,8 @@
           ]
         },
         "changes": [
-          "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added"
+          "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added",
+          "maxwell.qml: camera turned right side up and moved back to show both chambers from the side"
         ]
       },
       "imageUrl": "granular/maxwell/maxwell.png"
@@ -1557,7 +1598,7 @@
           "position": [
             0.0,
             0.0,
-            46.0
+            73.6
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1595,6 +1636,9 @@
               "temperatureDampening": "0.2"
             }
           }
+        ],
+        "changes": [
+          "betacristobalite.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
       "imageUrl": "silica/betacristobalite/betacristobalite.png"
@@ -1623,9 +1667,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            66.0,
-            -31.0,
-            85.0
+            99.0,
+            -46.5,
+            127.5
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1671,6 +1715,9 @@
           2,
           2,
           2
+        ],
+        "changes": [
+          "generate_nanoporous.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
       "imageUrl": "silica/generate_nanoporous/generate_nanoporous.png"
