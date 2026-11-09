@@ -1,0 +1,4 @@
+# Seconds each example runs before its picture (default 8 in capture_thumbnails.sh).
+betacristobalite 16
+generate_nanoporous 14
+crack 25
