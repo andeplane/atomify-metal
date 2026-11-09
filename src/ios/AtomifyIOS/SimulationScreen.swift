@@ -198,7 +198,7 @@ struct SimulationChrome: View {
     }
 }
 
-/// Top leading: Examples, what is running, Reset View; under them the
+/// Top leading: Simulations (the gallery), what is running, Reset View; under them the
 /// script's label, warnings and errors, the color legend and the
 /// performance numbers.
 struct LeadingCluster: View {
@@ -212,7 +212,7 @@ struct LeadingCluster: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             HStack(alignment: .top, spacing: 8) {
-                RoundGlassButton(systemImage: "square.grid.2x2", label: "Examples") {
+                LabeledGlassButton(systemImage: "square.grid.2x2", title: "Simulations") {
                     model.showGallery()
                 }
                 TitleCapsule(session: session) {

@@ -68,6 +68,27 @@ struct RoundGlassButton: View {
     }
 }
 
+/// A 44 pt high glass capsule with a symbol and a short title, for the one
+/// control a newcomer has to find (the simulation gallery).
+struct LabeledGlassButton: View {
+    let systemImage: String
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .labelStyle(.titleAndIcon)
+                .padding(.horizontal, 14)
+                .frame(height: 44)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .glass(in: Capsule())
+    }
+}
+
 /// A 44 pt symbol button inside a glass rail, with a soft disc behind it
 /// while what it opens is showing.
 struct RailButton: View {
