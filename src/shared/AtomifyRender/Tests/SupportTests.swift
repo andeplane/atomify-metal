@@ -348,4 +348,32 @@ final class ParticleViewMathTests: XCTestCase {
         XCTAssertFalse(ParticleViewMath.shouldReport(now: 1, last: 0.9))
         XCTAssertTrue(ParticleViewMath.shouldReport(now: 0, last: 5))
     }
+
+    func testClickActions() {
+        func action(_ count: Int, drag: Float = 0, doubles: Bool = true, interval: Double = 0.4)
+            -> ParticleViewMath.ClickAction {
+            ParticleViewMath.clickAction(clickCount: count, dragDistance: drag, handlesDoubleClick: doubles,
+                                         doubleClickInterval: interval)
+        }
+        // Without a double-click action, a click picks at once.
+        XCTAssertEqual(action(1, doubles: false), .pick(delay: 0))
+        XCTAssertEqual(action(2, doubles: false), .none)
+        // With one, the first click waits; the second reframes instead.
+        XCTAssertEqual(action(1), .pick(delay: 0.4))
+        XCTAssertEqual(action(2), .doubleClick)
+        XCTAssertEqual(action(3), .none)
+        XCTAssertEqual(action(0), .pick(delay: 0.4))
+        XCTAssertEqual(action(1, interval: -1), .pick(delay: 0))
+        // A drag is never a click.
+        XCTAssertEqual(action(1, drag: 10), .none)
+        XCTAssertEqual(action(2, drag: 10), .none)
+    }
+
+    func testFrameRateFromCountedFrames() {
+        XCTAssertEqual(ParticleViewMath.frameRate(frames: 15, elapsed: 0.25), 60, accuracy: 1e-9)
+        XCTAssertEqual(ParticleViewMath.frameRate(frames: 0, elapsed: 0.25), 0)
+        XCTAssertEqual(ParticleViewMath.frameRate(frames: 3, elapsed: 0), 0)
+        XCTAssertEqual(ParticleViewMath.frameRate(frames: 3, elapsed: .infinity), 0)
+        XCTAssertEqual(RenderStats(framesPerSecond: 60).framesPerSecond, 60)
+    }
 }

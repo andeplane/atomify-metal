@@ -15,8 +15,9 @@ import UIKit
 /// With `pacing`, the view draws only as often as the pacing allows and
 /// stops while nothing changes; without it, it draws continuously at up to
 /// 120 frames per second. `contentScaleLimit` caps the pixels per point
-/// (iOS), for very large systems. `onDoubleTap` (iOS) receives one-finger
-/// double taps; a single-tap pick then waits until it is not a double tap.
+/// (iOS), for very large systems. `onDoubleTap` receives one-finger double
+/// taps (iOS) and double clicks (macOS); a single-tap or single-click pick
+/// then waits until it is not the first half of a double.
 public struct ParticleView: View {
     private let scene: SceneData?
     @Binding private var camera: OrbitCamera
@@ -69,6 +70,7 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
     private var commandQueue: (any MTLCommandQueue)?
     private var uploadedScene: SceneData?
     private var lastStatsTime: Double = 0
+    private var framesSinceStats = 0
     private var lastInteraction = -Double.infinity
     private var lastChange = -Double.infinity
     private var drawnCamera: OrbitCamera?
@@ -212,10 +214,16 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
         commandBuffer.present(drawable)
         commandBuffer.commit()
 
+        // The overlay's frame rate counts drawn frames, not reports, which
+        // come at most four times a second.
         let now = CACurrentMediaTime()
+        framesSinceStats += 1
         if let onStats, ParticleViewMath.shouldReport(now: now, last: lastStatsTime) {
+            var stats = renderer.lastFrameStats
+            stats.framesPerSecond = ParticleViewMath.frameRate(frames: framesSinceStats, elapsed: now - lastStatsTime)
             lastStatsTime = now
-            onStats(renderer.lastFrameStats)
+            framesSinceStats = 0
+            onStats(stats)
         }
         if options.pacing != nil { updatePacing() }
     }
@@ -242,6 +250,12 @@ final class ParticleViewCoordinator: NSObject, MTKViewDelegate {
         var camera = self.camera.wrappedValue
         camera.zoom(by: factor)
         self.camera.wrappedValue = camera
+    }
+
+    /// Double tap (iOS) or double click (macOS).
+    func doubleTapped() {
+        noteInteraction()
+        onDoubleTap?()
     }
 
     /// Picks at a point in view coordinates (top-left origin).
@@ -274,13 +288,17 @@ final class InteractiveMTKView: MTKView {
     var onPan: (@MainActor (SIMD2<Float>) -> Void)?
     var onZoom: (@MainActor (Float) -> Void)?
     var onClick: (@MainActor (SIMD2<Float>) -> Void)?
+    /// Double click; while set, single clicks wait to see whether a second follows.
+    var onDoubleClick: (@MainActor () -> Void)?
     private var dragDistance: Float = 0
+    private var pendingPick: DispatchWorkItem?
 
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
     override func mouseDown(with event: NSEvent) {
         dragDistance = 0
+        if event.clickCount >= 2 { cancelPendingPick() }
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -294,9 +312,36 @@ final class InteractiveMTKView: MTKView {
     }
 
     override func mouseUp(with event: NSEvent) {
-        if ParticleViewMath.isClick(dragDistance: dragDistance) {
-            onClick?(topLeftPoint(event))
+        let action = ParticleViewMath.clickAction(clickCount: event.clickCount, dragDistance: dragDistance,
+                                                  handlesDoubleClick: onDoubleClick != nil,
+                                                  doubleClickInterval: NSEvent.doubleClickInterval)
+        switch action {
+        case .none:
+            break
+        case .doubleClick:
+            cancelPendingPick()
+            onDoubleClick?()
+        case .pick(let delay):
+            let point = topLeftPoint(event)
+            guard delay > 0 else {
+                onClick?(point)
+                return
+            }
+            cancelPendingPick()
+            let work = DispatchWorkItem { [weak self] in
+                MainActor.assumeIsolated {
+                    self?.pendingPick = nil
+                    self?.onClick?(point)
+                }
+            }
+            pendingPick = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         }
+    }
+
+    private func cancelPendingPick() {
+        pendingPick?.cancel()
+        pendingPick = nil
     }
 
     override func rightMouseDragged(with event: NSEvent) {
@@ -345,11 +390,23 @@ struct ParticleViewRepresentable: NSViewRepresentable {
         view.onPan = { [weak coordinator] in coordinator?.pan(pointerDelta: $0) }
         view.onZoom = { [weak coordinator] in coordinator?.zoom(by: $0) }
         view.onClick = { [weak coordinator] in coordinator?.pick(atPoint: $0) }
+        setDoubleClick(on: view, coordinator: coordinator)
         return view
     }
 
     func updateNSView(_ view: InteractiveMTKView, context: Context) {
         apply(to: context.coordinator)
+        setDoubleClick(on: view, coordinator: context.coordinator)
+    }
+
+    private func setDoubleClick(on view: InteractiveMTKView, coordinator: ParticleViewCoordinator) {
+        let handles = onDoubleTap != nil
+        guard handles != (view.onDoubleClick != nil) else { return }
+        if handles {
+            view.onDoubleClick = { [weak coordinator] in coordinator?.doubleTapped() }
+        } else {
+            view.onDoubleClick = nil
+        }
     }
 
     private func apply(to coordinator: ParticleViewCoordinator) {
@@ -384,8 +441,7 @@ extension ParticleViewCoordinator: UIGestureRecognizerDelegate {
     }
 
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
-        noteInteraction()
-        onDoubleTap?()
+        doubleTapped()
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
