@@ -1,0 +1,6 @@
+// Update the existing Atomify App Store record (934441274).
+// Pass with xcodebuild -xcconfig src/ios/Config/AppStore.xcconfig.
+ATOMIFY_BUNDLE_ID = com.compphys.atomify
+DEVELOPMENT_TEAM = 4XKET6P69R
+CODE_SIGN_STYLE = Automatic
+
