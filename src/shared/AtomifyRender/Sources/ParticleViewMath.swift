@@ -46,8 +46,44 @@ public enum ParticleViewMath {
         distance < 4
     }
 
+    /// What a released mouse press means.
+    public enum ClickAction: Equatable, Sendable {
+        /// A drag, or a third or later click of a series: nothing.
+        case none
+        /// A single click: pick, after `delay` seconds when a second click
+        /// could still make it a double click (cancelled if it does).
+        case pick(delay: Double)
+        /// The second click of a double click: only the double-click action,
+        /// and the pending pick of the first click is cancelled.
+        case doubleClick
+    }
+
+    /// The action for a press released after `clickCount` clicks and
+    /// `dragDistance` points of movement. With `handlesDoubleClick`, a single
+    /// click waits `doubleClickInterval` so the two clicks of a double click
+    /// do not also pick (toggle the controls, or deselect an atom).
+    public static func clickAction(clickCount: Int, dragDistance: Float, handlesDoubleClick: Bool,
+                                   doubleClickInterval: Double) -> ClickAction {
+        guard isClick(dragDistance: dragDistance) else { return .none }
+        switch clickCount {
+        case ...1:
+            return .pick(delay: handlesDoubleClick ? max(doubleClickInterval, 0) : 0)
+        case 2:
+            return handlesDoubleClick ? .doubleClick : .none
+        default:
+            return .none
+        }
+    }
+
     /// Whether enough time passed since the last report to report again.
     public static func shouldReport(now: Double, last: Double, interval: Double = 0.25) -> Bool {
         now - last >= interval || now < last
+    }
+
+    /// Frames per second from `frames` drawn over `elapsed` seconds, 0 when
+    /// the interval is not usable.
+    public static func frameRate(frames: Int, elapsed: Double) -> Double {
+        guard frames > 0, elapsed.isFinite, elapsed > 0 else { return 0 }
+        return Double(frames) / elapsed
     }
 }

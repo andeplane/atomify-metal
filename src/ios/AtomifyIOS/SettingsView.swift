@@ -10,6 +10,70 @@ struct SettingsView: View {
     @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
+        #if os(macOS)
+        macBody
+        #else
+        touchBody
+        #endif
+    }
+
+    #if os(macOS)
+    /// One centred column on Mac: who made Atomify, then the settings,
+    /// in a single scrolling form.
+    private var macBody: some View {
+        Form {
+            Section {
+                AboutColumn()
+                    .padding(.vertical, 6)
+            }
+            simulationSection
+            Section("About") {
+                LabeledContent("Welcome") {
+                    Button("Show") { showWelcome() }
+                }
+                NavigationLink("Acknowledgements", value: ExampleRoute.acknowledgements)
+            }
+        }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .centredScrollContent(maxWidth: 640, margin: metrics.margin)
+        .contentMargins(.top, 8, for: .scrollContent)
+        .contentMargins(.bottom, 24, for: .scrollContent)
+        .navigationTitle("Settings")
+        .inlineNavigationTitle()
+    }
+    #endif
+
+    private var simulationSection: some View {
+        Section {
+            Picker(
+                "Playback speed",
+                selection: Binding(
+                    get: { SpeedMenu.choices.firstIndex { $0.factor == model.session.speedFactor } ?? 2 },
+                    set: { model.session.speedFactor = SpeedMenu.choices[$0].factor }
+                )
+            ) {
+                ForEach(SpeedMenu.choices.indices, id: \.self) { index in
+                    Text(SpeedMenu.choices[index].label).tag(index)
+                }
+            }
+            .pickerStyle(.menu)
+            Toggle("Performance overlay", isOn: $showPerformance)
+        } header: {
+            Text("Simulation")
+        } footer: {
+            Text("Speed is relative to each example's own pace, as in Atomify 2.")
+        }
+    }
+
+    private func showWelcome() {
+        model.showsWelcome = true
+        model.returnToSimulation()
+    }
+
+    /// iPhone and iPad: who made Atomify on the leading side, the settings
+    /// on the trailing side.
+    private var touchBody: some View {
         HStack(alignment: .top, spacing: 24) {
             ScrollView {
                 AboutColumn()
@@ -22,31 +86,9 @@ struct SettingsView: View {
             .ignoresSafeArea(.container, edges: .bottom)
 
             Form {
-                Section {
-                    Picker(
-                        "Playback speed",
-                        selection: Binding(
-                            get: { SpeedMenu.choices.firstIndex { $0.factor == model.session.speedFactor } ?? 2 },
-                            set: { model.session.speedFactor = SpeedMenu.choices[$0].factor }
-                        )
-                    ) {
-                        ForEach(SpeedMenu.choices.indices, id: \.self) { index in
-                            Text(SpeedMenu.choices[index].label).tag(index)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    Toggle("Performance overlay", isOn: $showPerformance)
-                } header: {
-                    Text("Simulation")
-                } footer: {
-                    Text("Speed is relative to each example's own pace, as in Atomify 2.")
-                }
-
+                simulationSection
                 Section("About") {
-                    Button("Show Welcome") {
-                        model.showsWelcome = true
-                        model.returnToSimulation()
-                    }
+                    Button("Show Welcome") { showWelcome() }
                     NavigationLink("Acknowledgements", value: ExampleRoute.acknowledgements)
                 }
             }

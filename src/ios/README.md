@@ -7,6 +7,7 @@ The gallery has a row of cards per topic as in Atomify 2; a card shows the examp
 
 The app is a thin shell.
 The engine, renderer, catalog and run lifecycle are the shared packages in the root `Package.swift` (AtomifyKit with AtomifyEngine and AtomifyRender), the same ones the Mac app uses.
+Atomify for Mac (`src/macos/Atomify`) compiles the sources in `AtomifyIOS` too, so a change to these views must keep building for macOS (see `Platform.swift` for the few places the two differ).
 The examples are the App Store app's: the iOS gallery of Atomify 2 (the Qt app), ported into `Examples` with the same sections, scripts, thumbnails, colors, starting cameras and speeds.
 
 ## Examples

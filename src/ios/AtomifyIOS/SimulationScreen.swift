@@ -125,7 +125,7 @@ struct SimulationCanvas: View {
                 model.applyQuality()
             }
             .accessibilityLabel(session.title.map { "Simulation of \($0)" } ?? "Simulation")
-            .accessibilityHint("Drag to rotate, pinch to zoom, tap an atom to inspect it.")
+            .accessibilityHint(Platform.canvasGestureHint)
     }
 }
 

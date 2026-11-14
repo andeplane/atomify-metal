@@ -1,4 +1,5 @@
 import AtomifyEngine
+import AtomifyRender
 import Foundation
 import Testing
 import simd
@@ -132,6 +133,10 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
 
         session.recordFrame(particlesDrawn: 256, gpuTimeMs: 1)
         session.recordFrame(particlesDrawn: 256, gpuTimeMs: 1)
+        session.recordRenderStats(RenderStats(particlesDrawn: 256, gpuTimeMs: 1))
+        session.recordRenderStats(RenderStats(particlesDrawn: 256, gpuTimeMs: 2, framesPerSecond: 59))
+        try await waitUntil("frame rate") { session.stats.framesPerSecond == 59 }
+        #expect(session.stats.gpuTimeMs == 2)
         session.resetCamera()
 
         // Restart runs the original files again.

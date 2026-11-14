@@ -326,10 +326,14 @@ public struct RenderStats: Sendable, Equatable {
     public var bondsDrawn: Int
     /// GPU time of the last completed `encodeFrame` command buffer.
     public var gpuTimeMs: Double
+    /// Frames the view drew per second since its previous report, or 0 when
+    /// the reporter does not count frames.
+    public var framesPerSecond: Double
 
-    public init(particlesDrawn: Int = 0, bondsDrawn: Int = 0, gpuTimeMs: Double = 0) {
+    public init(particlesDrawn: Int = 0, bondsDrawn: Int = 0, gpuTimeMs: Double = 0, framesPerSecond: Double = 0) {
         self.particlesDrawn = particlesDrawn
         self.bondsDrawn = bondsDrawn
         self.gpuTimeMs = gpuTimeMs
+        self.framesPerSecond = framesPerSecond
     }
 }

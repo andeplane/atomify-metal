@@ -366,6 +366,10 @@ public final class SimulationSession {
     @ObservationIgnored private var retiring: [UUID: Simulation] = [:]
     @ObservationIgnored private var history = ObservableHistory()
     @ObservationIgnored private var frame: AtomFrame?
+    /// Snapshots taken from the engine and turned into scenes since the
+    /// session was created: a headless measure of how often the picture
+    /// can change.
+    @ObservationIgnored public private(set) var scenesShown = 0
     @ObservationIgnored private var pendingStats = SessionStats()
     @ObservationIgnored private var styleTable: AtomStyleTable?
     @ObservationIgnored private var styleKey: StyleKey?
@@ -601,6 +605,9 @@ public final class SimulationSession {
         stopPolling()
     }
 
+    /// Whether ticks follow the display's refresh (else a timer).
+    var usesDisplayTicker: Bool { ticker != nil }
+
     private func stopPolling() {
         pollTask?.cancel()
         pollTask = nil
@@ -658,6 +665,7 @@ public final class SimulationSession {
         historyChanged = true
         let frame = AtomFrame(snapshot)
         self.frame = frame
+        scenesShown += 1
         if !effects.isEmpty { effects.record(frame) }
 
         pendingStats.atoms = snapshot.atomCount
@@ -968,8 +976,17 @@ public final class SimulationSession {
     // MARK: Renderer feedback
 
     /// Call with every frame's statistics (ParticleView's `onStats`).
+    /// Takes the view's periodic report. A view that counts its frames
+    /// gives the rate; otherwise each report counts as one frame.
     public func recordRenderStats(_ renderStats: RenderStats) {
-        recordFrame(particlesDrawn: renderStats.particlesDrawn, gpuTimeMs: renderStats.gpuTimeMs)
+        guard renderStats.framesPerSecond > 0 else {
+            recordFrame(particlesDrawn: renderStats.particlesDrawn, gpuTimeMs: renderStats.gpuTimeMs)
+            return
+        }
+        pendingStats.framesPerSecond = renderStats.framesPerSecond
+        pendingStats.gpuTimeMs = renderStats.gpuTimeMs
+        pendingStats.particlesDrawn = renderStats.particlesDrawn
+        if run == nil, clock.now - lastRefresh >= refreshInterval { publish() }
     }
 
     /// Counts one drawn frame for the overlay's frame rate.

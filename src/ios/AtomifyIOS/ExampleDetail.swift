@@ -25,6 +25,18 @@ struct ExampleDetail: View {
     let example: Example
     @Environment(\.layoutMetrics) private var metrics
 
+    /// The picture and text panes together on Mac, where a window can be
+    /// much wider than reads well.
+    static let pageWidth: CGFloat = 1060
+
+    private static func textWidth(_ metrics: LayoutMetrics) -> CGFloat {
+        #if os(iOS)
+        metrics.isWide ? 560 : .infinity
+        #else
+        .infinity
+        #endif
+    }
+
     private var isLoaded: Bool {
         model.session.example?.id == example.id && model.session.status != .idle
     }
@@ -45,12 +57,12 @@ struct ExampleDetail: View {
             }
             .contentMargins(.bottom, 24, for: .scrollContent)
             .scrollIndicatorsFlash(onAppear: true)
-            .frame(maxWidth: metrics.isWide ? 560 : .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: Self.textWidth(metrics), maxHeight: .infinity, alignment: .topLeading)
             .ignoresSafeArea(.container, edges: .bottom)
         }
         .padding(.top, 8)
         .safeAreaPadding(.horizontal, metrics.margin)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .centredPage(maxWidth: Self.pageWidth + 2 * metrics.margin)
         .navigationTitle(example.title)
         .inlineNavigationTitle()
         .toolbar {
