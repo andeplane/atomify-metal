@@ -1,0 +1,113 @@
+# XcodeGen spec for Atomify for Mac: the same app as on iPhone and iPad.
+# It compiles the iOS app's views (src/ios/AtomifyIOS, all but its @main
+# AtomifyApp.swift) and bundles the same Examples, with a small Mac shell.
+# Generate with `xcodegen generate --spec src/macos/Atomify/project.yml`;
+# the generated Atomify.xcodeproj is not committed. See ../README.md.
+name: Atomify
+
+options:
+  deploymentTarget:
+    macOS: "15.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "3.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  # The root Package.swift: AtomifyKit with AtomifyEngine, AtomifyRender and CLammps.
+  AtomifyMetal:
+    path: ../../..
+
+targets:
+  Atomify:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Sources
+      # The iOS app's views and model, shared as they are.
+      - path: ../../ios/AtomifyIOS
+        excludes:
+          - AtomifyApp.swift
+          - PrivacyInfo.xcprivacy
+      # The Mac app icon (the iOS one, in the macOS shape; tools/make-icon.swift).
+      - path: Assets.xcassets
+      # The iOS app's examples, copied into the app as a folder.
+      - path: ../../ios/Examples
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: AtomifyMetal
+        product: AtomifyKit
+    settings:
+      base:
+        PRODUCT_NAME: Atomify
+        # Apple silicon only: CLammps.xcframework has a macos-arm64 slice.
+        ARCHS: arm64
+        PRODUCT_BUNDLE_IDENTIFIER: $(ATOMIFY_BUNDLE_ID)
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Atomify
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+        INFOPLIST_KEY_NSHumanReadableCopyright: "GPL. LAMMPS is GPLv2; the examples come from Atomify."
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: MacAppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+
+  # Draws the screens to PNGs offscreen, for checking layouts without a
+  # window (never activates; see Snapshots/main.swift). Not installed.
+  AtomifySnapshots:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Snapshots
+      - path: Sources
+        excludes:
+          - AtomifyMacApp.swift
+      - path: ../../ios/AtomifyIOS
+        excludes:
+          - AtomifyApp.swift
+          - PrivacyInfo.xcprivacy
+      - path: Assets.xcassets
+      - path: ../../ios/Examples
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: AtomifyMetal
+        product: AtomifyKit
+    settings:
+      base:
+        PRODUCT_NAME: AtomifySnapshots
+        PRODUCT_BUNDLE_IDENTIFIER: no.uio.atomify.mac.snapshots
+        ARCHS: arm64
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        ENABLE_HARDENED_RUNTIME: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: MacAppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+schemes:
+  Atomify:
+    build:
+      targets:
+        Atomify: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release
+  AtomifySnapshots:
+    build:
+      targets:
+        AtomifySnapshots: all

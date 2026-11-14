@@ -25,6 +25,20 @@ extension Image {
     }
 }
 
+enum Platform {
+    /// The side of a floating control: a 44 pt touch target on iOS, a
+    /// smaller one for the Mac's pointer.
+    #if os(iOS)
+    static let controlSide: CGFloat = 44
+    #else
+    static let controlSide: CGFloat = 36
+    #endif
+
+    /// Off only in the Mac's offscreen screenshot tool: Liquid Glass draws
+    /// on screen only, so offscreen pictures use the material fallback.
+    nonisolated(unsafe) static var allowsLiquidGlass = true
+}
+
 extension ToolbarItemPlacement {
     /// The leading end of the navigation bar (the window's toolbar on Mac).
     static var barLeading: ToolbarItemPlacement {
@@ -86,6 +100,53 @@ extension View {
         #endif
     }
 
+    /// A light wash over a control while the pointer is on it (Mac only;
+    /// touch has no hover).
+    func pointerHighlight(in shape: some Shape) -> some View {
+        #if os(iOS)
+        self
+        #else
+        modifier(PointerHighlight(shape: AnyShape(shape)))
+        #endif
+    }
+
+    /// The window's main button on Mac: its title shown beside the symbol
+    /// (toolbars show symbols only) and Return pressing it. As is on iOS.
+    @ViewBuilder
+    func defaultActionLabel() -> some View {
+        #if os(iOS)
+        self
+        #else
+        labelStyle(.titleAndIcon)
+            .keyboardShortcut(.defaultAction)
+        #endif
+    }
+
+    /// A list as a centred column of readable width with inset rows on
+    /// Mac, where a window can be very wide. As is on iOS.
+    @ViewBuilder
+    func readingColumn() -> some View {
+        #if os(iOS)
+        self
+        #else
+        listStyle(.inset)
+            .scrollContentBackground(.hidden)
+            .contentMargins(.vertical, 16, for: .scrollContent)
+            .frame(maxWidth: 720)
+            .frame(maxWidth: .infinity)
+        #endif
+    }
+
+    /// A tooltip for the pointer on Mac; nothing on iOS.
+    @ViewBuilder
+    func tooltip(_ text: String) -> some View {
+        #if os(iOS)
+        self
+        #else
+        help(text)
+        #endif
+    }
+
     /// A screen over everything else in the window: a full-screen cover on
     /// iOS; on Mac a layer over the whole window, drawn by the nearest
     /// `hostsFullWindowCovers()` above (a sheet would be a small window).
@@ -121,6 +182,18 @@ extension View {
 }
 
 #if os(macOS)
+private struct PointerHighlight: ViewModifier {
+    let shape: AnyShape
+    @State private var hovering = false
+
+    func body(content: Content) -> some View {
+        content
+            .background(shape.fill(.white.opacity(hovering ? 0.12 : 0)))
+            .onHover { hovering = $0 }
+            .animation(.easeOut(duration: 0.12), value: hovering)
+    }
+}
+
 struct FullWindowCover: Identifiable {
     let id: UUID
     let content: AnyView

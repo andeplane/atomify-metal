@@ -145,6 +145,7 @@ struct AcknowledgementsView: View {
                     + "LAMMPS potentials folder and the papers cited in each file.",
                 link: nil)
         }
+        .readingColumn()
         .navigationTitle("Acknowledgements")
         .inlineNavigationTitle()
     }

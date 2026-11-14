@@ -5,7 +5,7 @@ extension View {
     @ViewBuilder
     func glass(in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, macOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *), Platform.allowsLiquidGlass {
             self.glassEffect(.regular, in: shape)
         } else {
             self.background(.ultraThinMaterial, in: shape)
@@ -20,7 +20,7 @@ extension View {
     @ViewBuilder
     func tintedGlass(_ tint: Color, in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, macOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *), Platform.allowsLiquidGlass {
             self.glassEffect(.regular.tint(tint).interactive(), in: shape)
         } else {
             self.background(tint, in: shape)
@@ -38,7 +38,7 @@ extension View {
     @ViewBuilder
     func panelBackground(in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, macOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *), Platform.allowsLiquidGlass {
             self.glassEffect(.regular, in: shape)
         } else {
             self.background(.regularMaterial, in: shape)
@@ -59,16 +59,18 @@ struct RoundGlassButton: View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.body.weight(.medium))
-                .frame(width: 44, height: 44)
+                .frame(width: Platform.controlSide, height: Platform.controlSide)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Circle())
         .glass(in: Circle())
         .accessibilityLabel(label)
+        .tooltip(label)
     }
 }
 
-/// A 44 pt high glass capsule with a symbol and a short title, for the one
+/// A `Platform.controlSide` high glass capsule with a symbol and a short title, for the one
 /// control a newcomer has to find (the simulation gallery).
 struct LabeledGlassButton: View {
     let systemImage: String
@@ -81,15 +83,16 @@ struct LabeledGlassButton: View {
                 .font(.subheadline.weight(.semibold))
                 .labelStyle(.titleAndIcon)
                 .padding(.horizontal, 14)
-                .frame(height: 44)
+                .frame(height: Platform.controlSide)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Capsule())
         .glass(in: Capsule())
     }
 }
 
-/// A 44 pt symbol button inside a glass rail, with a soft disc behind it
+/// A `Platform.controlSide` symbol button inside a glass rail, with a soft disc behind it
 /// while what it opens is showing.
 struct RailButton: View {
     let systemImage: String
@@ -102,7 +105,7 @@ struct RailButton: View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.body.weight(.medium))
-                .frame(width: 44, height: 44)
+                .frame(width: Platform.controlSide, height: Platform.controlSide)
                 .background {
                     if isSelected {
                         Circle().fill(.white.opacity(0.2))
@@ -111,8 +114,10 @@ struct RailButton: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Circle())
         .opacity(isEnabled ? 1 : 0.4)
         .accessibilityLabel(label)
+        .tooltip(label)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -131,7 +136,12 @@ struct LayoutMetrics: Equatable {
     }
 
     /// Between the safe area and the floating controls.
+    #if os(iOS)
     var margin: CGFloat { isWide ? 24 : 12 }
+    #else
+    /// A Mac window is never phone-narrow.
+    var margin: CGFloat { 24 }
+    #endif
     var panelWidth: CGFloat { isWide ? 400 : 340 }
     /// Between a side panel and the window's edges.
     var panelInset: CGFloat { isWide ? 16 : 8 }

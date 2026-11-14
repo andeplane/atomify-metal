@@ -236,7 +236,7 @@ struct LeadingCluster: View {
             .containerRelativeFrame(.vertical, alignment: .topLeading) { height, _ in
                 max(height / 2 - 64, 0)
             }
-            .padding(.top, 52)
+            .padding(.top, Platform.controlSide + 8)
         }
         .onChange(of: session.title) { dismissedWarnings = [] }
     }
@@ -286,8 +286,8 @@ struct PanelRail: View {
 /// Bottom trailing: speed, Restart and Play or Pause, one glass capsule.
 struct TimeRail: View {
     let session: SimulationSession
-    /// Three 44 pt buttons and the capsule's 2 pt padding.
-    static let width: CGFloat = 48
+    /// Three buttons and the capsule's 2 pt padding.
+    static let width: CGFloat = Platform.controlSide + 4
 
     var body: some View {
         VStack(spacing: 0) {
@@ -325,12 +325,14 @@ struct SpeedMenu: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .foregroundStyle(.primary)
-                .frame(width: 44, height: 44)
+                .frame(width: Platform.controlSide, height: Platform.controlSide)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Circle())
         .disabled(session.stepsPerFrame == nil)
         .accessibilityLabel("Speed")
+        .tooltip("Playback speed")
         .accessibilityValue(Self.label(for: factor))
         .popover(isPresented: $showsChoices, attachmentAnchor: .rect(.bounds), arrowEdge: .trailing) {
             choiceList(selected: factor)
@@ -438,7 +440,7 @@ struct TitleCapsule: View {
             }
             .padding(.leading, 16)
             .padding(.trailing, 36)
-            .frame(height: 44)
+            .frame(height: Platform.controlSide)
             .overlay(alignment: .trailing) {
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -448,6 +450,7 @@ struct TitleCapsule: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Capsule())
         .glass(in: Capsule())
         .widthCap(300)
         .disabled(session.title == nil)
@@ -499,10 +502,11 @@ struct PlayPauseButton: View {
                 .font(.body.weight(.semibold))
                 .foregroundStyle(.white)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
+                .frame(width: Platform.controlSide, height: Platform.controlSide)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .pointerHighlight(in: Circle())
         .tintedGlass(.accentColor, in: Circle())
         .accessibilityLabel(running ? "Pause" : session.status == .paused ? "Resume" : "Run Again")
         .disabled(session.title == nil)

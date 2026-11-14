@@ -32,10 +32,13 @@ struct GalleryScreen: View {
                                 .lineLimit(1)
                         }
                         .accessibilityHint("Returns to the simulation.")
+                        .tooltip("Back to the running simulation")
                     }
+                    #if os(iOS)
                     ToolbarItem(placement: .barTrailing) {
                         GallerySearchField(text: $query)
                     }
+                    #endif
                     ToolbarItem(placement: .barTrailing) {
                         NavigationLink(value: ExampleRoute.settings) {
                             Image(systemName: "gearshape")
@@ -46,6 +49,9 @@ struct GalleryScreen: View {
                 .navigationDestination(for: ExampleRoute.self) { route in
                     ExampleRouteView(model: model, route: route)
                 }
+                #if os(macOS)
+                .searchable(text: $query, placement: .toolbar, prompt: "Search simulations")
+                #endif
         }
         .readsLayoutMetrics()
     }
@@ -57,10 +63,16 @@ private struct GalleryContent: View {
     let query: String
     @Environment(\.layoutMetrics) private var metrics
 
+    #if os(iOS)
+    private static let sectionSpacing: CGFloat = 14
+    #else
+    private static let sectionSpacing: CGFloat = 32
+    #endif
+
     var body: some View {
         let sections = visibleSections
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 14) {
+            LazyVStack(alignment: .leading, spacing: Self.sectionSpacing) {
                 if let error = model.catalogError {
                     Label(error, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.red)
@@ -70,8 +82,17 @@ private struct GalleryContent: View {
                     SectionRow(model: model, section: section)
                 }
             }
+            #if os(iOS)
             .padding(.top, 6)
             .padding(.bottom, 12)
+            #else
+            // A page of sections, as wide as reads well on a large display.
+            .padding(.horizontal, 28)
+            .padding(.top, 16)
+            .padding(.bottom, 28)
+            .frame(maxWidth: 1400)
+            .frame(maxWidth: .infinity)
+            #endif
         }
         .scrollIndicatorsFlash(onAppear: true)
         .overlay {
@@ -93,6 +114,7 @@ private struct GalleryContent: View {
     }
 }
 
+#if os(iOS)
 /// Search in the bar: a small glass field, since `.searchable` turns into
 /// a bar over the cards at the bottom of the screen on iOS 26.
 private struct GallerySearchField: View {
@@ -127,6 +149,9 @@ private struct GallerySearchField: View {
     }
 }
 
+#endif
+
+#if os(iOS)
 /// One section: its title and a horizontally scrolling row of cards.
 private struct SectionRow: View {
     let model: AppModel
@@ -156,6 +181,81 @@ private struct SectionRow: View {
     }
 }
 
+#else
+/// One section on Mac: its title over a grid of cards that fills the
+/// window's width and scrolls with the page (a sideways row is for touch).
+private struct SectionRow: View {
+    let model: AppModel
+    let section: ExampleSection
+
+    private let columns = [GridItem(.adaptive(minimum: 220, maximum: 300), spacing: 20, alignment: .top)]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(section.title)
+                .font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 22) {
+                ForEach(section.examples) { example in
+                    NavigationLink(value: ExampleRoute.detail(example)) {
+                        MacGalleryCard(model: model, example: example)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+/// An example in a Mac grid: a 16:10 picture, the title and a line of its
+/// description, lifted a little under the pointer.
+private struct MacGalleryCard: View {
+    let model: AppModel
+    let example: Example
+    @State private var hovering = false
+
+    var body: some View {
+        let running = model.session.example?.id == example.id && model.session.title != nil
+        VStack(alignment: .leading, spacing: 6) {
+            Color.clear
+                .aspectRatio(16 / 10, contentMode: .fit)
+                .overlay {
+                    ExampleThumbnail(url: model.catalog.imageURL(for: example), cornerRadius: 10)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(.white.opacity(hovering ? 0.35 : 0.08), lineWidth: 1)
+                }
+                .overlay(alignment: .topLeading) {
+                    if running {
+                        RunningBadge()
+                            .padding(6)
+                    }
+                }
+                .shadow(color: .black.opacity(hovering ? 0.45 : 0), radius: 10, y: 4)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(example.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(ExampleText.summary(of: example.description))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 2)
+        }
+        .scaleEffect(hovering ? 1.015 : 1)
+        .animation(.easeOut(duration: 0.15), value: hovering)
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .pointerStyle(.link)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(running ? "Running" : "")
+    }
+}
+#endif
+
+#if os(iOS)
 /// An example in a section row: its picture and title.
 private struct GalleryCard: View {
     let model: AppModel
@@ -185,6 +285,8 @@ private struct GalleryCard: View {
     }
 }
 
+#endif
+
 /// Marks the example that is loaded in the simulation.
 private struct RunningBadge: View {
     var body: some View {
@@ -210,6 +312,18 @@ enum ExampleText {
     enum Block: Equatable {
         case heading(String)
         case paragraph(String)
+    }
+
+    /// The first paragraph of a description as plain text on one line,
+    /// for a card's subtitle.
+    static func summary(of description: String) -> String {
+        for block in blocks(of: description) {
+            if case .paragraph(let text) = block {
+                return String(Markdown.inline(text).characters)
+                    .replacingOccurrences(of: "\n", with: " ")
+            }
+        }
+        return ""
     }
 
     /// A description split on blank lines. Markdown heading lines (`#`)
