@@ -120,3 +120,33 @@ release QA. Normal launches retain their existing behavior.
   Submission: `bedfe1ba-b980-4d4c-9409-99074c504645`.
   [Review submission](https://appstoreconnect.apple.com/apps/934441274/distribution/reviewsubmissions/details/bedfe1ba-b980-4d4c-9409-99074c504645).
   This is submission confirmation, not Apple approval or public release.
+
+
+## Replacement from latest main — November 14, 2026
+
+The first 3.0 (2) archive came from `35094de5` and missed merged PR #59.
+Its submission was withdrawn and App Store Connect showed it as Removed.
+It is superseded by **3.0 (3)**, archived from
+`41d4308a734d2836e644cb0a9a0e187c291addcb`, including PR #59's orbit camera,
+moving granular walls and periodic-image box fixes. GitHub main was fetched
+again immediately before submission; no newer commits were present.
+
+The native LAMMPS bridge was rebuilt for macOS, iOS and iOS Simulator.
+The signed archive embeds its exact revision as `AtomifySourceRevision`.
+Archive, simulator build, upload and Apple processing passed. Native bridge
+tests passed, including moving granular walls; all 34 iOS examples passed
+with no failures or timeouts. The app/session suite passed all 149 tests in
+an uninstrumented diagnostic run. Renderer (128 XCTest and 116 Swift tests),
+example (2), and engine (50) groups passed. Combined runs intermittently
+timed out in `runsAnExampleEndToEnd` waiting for plot data, while the isolated
+test passed. This remains a validation limitation; no speculative test or
+app changes were retained. Logs and framework hashes are under ignored
+`build/app-store/3.0/build3/`.
+
+Existing screenshots, both previews, metadata, privacy responses and automatic
+release settings were retained. Apple confirmed **1 Item Submitted** for the
+replacement on November 14, 2026. This confirms submission, not approval.
+
+- Build ID: `41b58f8f-d0d2-4220-8c66-cb529c70712d`
+- Submission ID: `9dcf0315-9445-4202-a735-a6608a27a903`
+- [Replacement review submission](https://appstoreconnect.apple.com/apps/934441274/distribution/reviewsubmissions/details/9dcf0315-9445-4202-a735-a6608a27a903)
