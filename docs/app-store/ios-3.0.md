@@ -108,12 +108,15 @@ release QA. Normal launches retain their existing behavior.
 - Release history verified in App Store Connect: 1.0, 1.1, 2.0, 2.01, 2.10.
   The next major version is 3.0. The initial unsubmitted 5.0 candidate was
   superseded; its version came from the old project configuration.
-- Corrected candidate: 3.0 (2). Archive passed; upload and selection are
-  tracked separately in the local release-state record.
+- Corrected release: **3.0 (2)**. Archive, upload and Apple processing passed.
+  The matching build was selected and saved to the version.
 - The privacy policy is publicly accessible (HTTP 200). The no-data-collection
   responses were published after the user explicitly approved Apple's final
   privacy accuracy/update declaration.
 - The updated age questionnaire calculates 4+; there are no loot boxes,
   advertising, social features, health advice or mature content.
-- Resolve final validation and record actual submission status; preparation
-  and successful upload are not review approval or public release.
+- **Submitted to App Review** November 14, 2026. App Store Connect confirmed
+  **1 Item Submitted** for iOS App 3.0 (2).
+  Submission: `bedfe1ba-b980-4d4c-9409-99074c504645`.
+  [Review submission](https://appstoreconnect.apple.com/apps/934441274/distribution/reviewsubmissions/details/bedfe1ba-b980-4d4c-9409-99074c504645).
+  This is submission confirmation, not Apple approval or public release.
