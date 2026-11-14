@@ -35,6 +35,6 @@ fix_modify      cmap energy yes
 read_data       gagg.data fix cmap crossterm CMAP
 special_bonds   charmm
 fix             1 all nve
-velocity        all create 0.0 12345678 dist uniform
+velocity        all create 300.0 12345678 dist uniform
 timestep        2.0
 thermo 100000

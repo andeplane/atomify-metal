@@ -56,6 +56,26 @@ COMPATIBILITY = [
 ]
 # Lines added to single scripts, keyed by their path: (pattern, replacement, note).
 SCRIPT_FIXES = {
+    "diffusion/diffusion_coefficient/diffusion_coefficient.in": [
+        (r"^(create_box\s+)1(\s+box)$", r"\g<1>2\2",
+         "a second atom type, so a few atoms can be followed"),
+        (r"^(mass\s+1 1\.0)$", "\\1\nmass\t\t2 1.0",
+         "type 2 has the same mass as type 1"),
+        (r"^(create_atoms\s+1 box)$", "\\1\nset\t\ttype 1 type/fraction 2 0.02 4711",
+         "2% of the atoms become type 2 (the red atoms the script already colors), identical to the others, so you can follow single atoms; the measured diffusion is the same"),
+        (r"^(pair_coeff\s+)1 1( 1\.0 1\.0 2\.5)$", r"\g<1>* *\2",
+         "both types interact the same way"),
+    ],
+    "new/cmap/cmap.in": [
+        (r"^(velocity\s+all create\s+)0\.0(\s+12345678.*)$", r"\g<1>300.0\2",
+         "starts at 300 K instead of at rest, so the chain moves from the first second"),
+    ],
+    "lammps/lammps/lammps.in": [
+        (r"^(#/label Logo is intact\nrun\s+)100$", r"\g<1>400",
+         "the intact logo is held 400 steps instead of 100, long enough to see it"),
+        (r"^(#/label Tada :D\nrun\s+)100$", r"\g<1>300",
+         "the restored logo is held 300 steps instead of 100"),
+    ],
     "granular/maxwell/maxwell.in": [(
         r"^(thermo_style custom step v_atomify_left v_atomify_right)$",
         "# Atomify 2's counter panel defined these; the script needs them on its own.\n"
@@ -76,7 +96,7 @@ REPLACEMENTS = {
 # center like Atomify 2's. Tuned by eye with tools/capture_thumbnails.sh.
 CAMERA_FIXES = {
     "singlewater": ({"position": [0.0, 0.0, 6.0]}, "camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"),
-    "lammps": ({"position": [0.0, 0.0, -49.5]}, "camera moved back 1.1x so the whole system is in view"),
+    "lammps": ({"position": [0.0, 0.0, -85.0]}, "camera moved back 1.9x so the whole logo is in view clear of the controls"),
     "crack": ({"position": [0.0, 0.0, -208.0]}, "camera moved back 3.2x so the whole system is in view"),
     "flow_couette": ({"position": [0.0, 0.0, 70.0]}, "camera moved back 3.2x so both walls clear the controls"),
     "flow_pois": ({"position": [0.0, 0.0, 64.0]}, "camera moved back 3.2x so both walls clear the controls"),
@@ -93,7 +113,7 @@ CAMERA_FIXES = {
     "diffusion_coefficient": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 2.6x so the whole system is in view"),
     "sica_sheet": ({"position": [0.0, 0.0, 125.0]}, "camera moved back 2.7x so the whole sheet is in view while it curls"),
     "abstract_translocation": ({"position": [0.0, 60.0, 0.0]}, "camera moved back 2x so the whole system is in view"),
-    "cmap": ({"position": [0.0, 0.0, 28.0]}, "camera moved back 2.8x so the whole system is in view"),
+    "cmap": ({"position": [0.0, 0.0, 48.0]}, "camera moved back 4.8x so the whole chain stays in view while it moves"),
     "sica_sheet_melt": ({"position": [0.0, -70.0, 140.0]}, "camera moved back 1.9x and tilted so the sheet’s ripples show"),
     "ice_crystal": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 5.2x so the whole crystal is in view"),
     "nanotube": ({"position": [-99.0, -12.1, -28.9]}, "camera moved back 2.3x so the whole system is in view"),

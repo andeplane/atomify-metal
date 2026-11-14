@@ -19,7 +19,7 @@
           "position": [
             0.0,
             0.0,
-            -49.5
+            -85.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -36,7 +36,9 @@
         ],
         "changes": [
           "lammps.in: OPT package style replaced by the plain one",
-          "lammps.qml: camera moved back 1.1x so the whole system is in view"
+          "lammps.in: the intact logo is held 400 steps instead of 100, long enough to see it",
+          "lammps.in: the restored logo is held 300 steps instead of 100",
+          "lammps.qml: camera moved back 1.9x so the whole logo is in view clear of the controls"
         ]
       },
       "imageUrl": "lammps/lammps/lammps.jpg"
@@ -838,6 +840,10 @@
         ],
         "changes": [
           "diffusion_coefficient.in: OPT package style replaced by the plain one",
+          "diffusion_coefficient.in: a second atom type, so a few atoms can be followed",
+          "diffusion_coefficient.in: type 2 has the same mass as type 1",
+          "diffusion_coefficient.in: 2% of the atoms become type 2 (the red atoms the script already colors), identical to the others, so you can follow single atoms; the measured diffusion is the same",
+          "diffusion_coefficient.in: both types interact the same way",
           "diffusion_coefficient.qml: camera moved back 2.6x so the whole system is in view"
         ]
       },
@@ -995,7 +1001,7 @@
           "position": [
             0.0,
             0.0,
-            28.0
+            48.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1018,7 +1024,8 @@
           }
         ],
         "changes": [
-          "cmap.qml: camera moved back 2.8x so the whole system is in view"
+          "cmap.in: starts at 300 K instead of at rest, so the chain moves from the first second",
+          "cmap.qml: camera moved back 4.8x so the whole chain stays in view while it moves"
         ]
       },
       "imageUrl": "new/cmap/cmap.jpg"
