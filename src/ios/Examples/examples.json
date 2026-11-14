@@ -112,7 +112,7 @@
           "position": [
             0.0,
             0.0,
-            55.0
+            70.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -129,7 +129,7 @@
         ],
         "changes": [
           "flow_couette.in: OPT package style replaced by the plain one",
-          "flow_couette.qml: camera moved back 2.5x so the whole system is in view"
+          "flow_couette.qml: camera moved back 3.2x so both walls clear the controls"
         ]
       },
       "imageUrl": "lammps/flow_couette/flow_couette.jpg"
@@ -152,7 +152,7 @@
           "position": [
             0.0,
             0.0,
-            50.0
+            64.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -169,7 +169,7 @@
         ],
         "changes": [
           "flow_pois.in: OPT package style replaced by the plain one",
-          "flow_pois.qml: camera moved back 2.5x so the whole system is in view"
+          "flow_pois.qml: camera moved back 3.2x so both walls clear the controls"
         ]
       },
       "imageUrl": "lammps/flow_pois/flow_pois.jpg"
@@ -296,12 +296,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -325,7 +325,8 @@
         ],
         "changes": [
           "CHO.in: pair_style reax/c is now reaxff",
-          "CHO.qml: camera moved back 2x so the whole system is in view"
+          "CHO.qml: camera moved back 3.1x so the whole box is in view",
+          "CHO.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/CHO/CHO.jpg"
@@ -356,7 +357,7 @@
           "position": [
             0.0,
             0.0,
-            65.0
+            85.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -382,7 +383,7 @@
         "changes": [
           "ssz_13.in: pair_style reax/c is now reaxff",
           "ssz_13.in: qeq/reax reads its parameters from reaxff",
-          "ssz_13.qml: camera moved back 1.3x so the whole system is in view"
+          "ssz_13.qml: camera moved back 1.7x so the whole cell is in view"
         ]
       },
       "imageUrl": "reaxff/ssz_13/ssz_13.jpg"
@@ -416,12 +417,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -445,7 +446,8 @@
         ],
         "changes": [
           "VOH.in: pair_style reax/c is now reaxff",
-          "VOH.qml: camera moved back 2x so the whole system is in view"
+          "VOH.qml: camera moved back 3.1x so the whole box is in view",
+          "VOH.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/VOH/VOH.jpg"
@@ -479,12 +481,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -508,7 +510,8 @@
         ],
         "changes": [
           "AB.in: pair_style reax/c is now reaxff",
-          "AB.qml: camera moved back 2x so the whole system is in view"
+          "AB.qml: camera moved back 3.1x so the whole box is in view",
+          "AB.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/AB/AB.jpg"
@@ -542,12 +545,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -571,7 +574,8 @@
         ],
         "changes": [
           "FeOH3.in: pair_style reax/c is now reaxff",
-          "FeOH3.qml: camera moved back 2x so the whole system is in view"
+          "FeOH3.qml: camera moved back 3.1x so the whole box is in view",
+          "FeOH3.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/FeOH3/FeOH3.jpg"
@@ -605,12 +609,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -634,7 +638,8 @@
         ],
         "changes": [
           "RDX.in: pair_style reax/c is now reaxff",
-          "RDX.qml: camera moved back 2x so the whole system is in view"
+          "RDX.qml: camera moved back 3.1x so the whole box is in view",
+          "RDX.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/RDX/RDX.jpg"
@@ -668,12 +673,12 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 2,
         "camera": {
           "position": [
             0.0,
             0.0,
-            40.0
+            62.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -697,7 +702,8 @@
         ],
         "changes": [
           "ZnOH2.in: pair_style reax/c is now reaxff",
-          "ZnOH2.qml: camera moved back 2x so the whole system is in view"
+          "ZnOH2.qml: camera moved back 3.1x so the whole box is in view",
+          "ZnOH2.qml: starts at 2 timesteps per frame so the reactions show within the first minute"
         ]
       },
       "imageUrl": "reaxff/ZnOH2/ZnOH2.jpg"
@@ -715,7 +721,7 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 5,
         "camera": {
           "position": [
             0.0,
@@ -756,7 +762,8 @@
         ],
         "changes": [
           "simple_diffusion.in: OPT package style replaced by the plain one",
-          "simple_diffusion.qml: camera moved back 1.5x so the whole system is in view"
+          "simple_diffusion.qml: camera moved back 1.5x so the whole system is in view",
+          "simple_diffusion.qml: starts at 5 timesteps per frame so the stripe has mixed in about a minute"
         ]
       },
       "imageUrl": "diffusion/simple_diffusion/simple_diffusion.jpg"
@@ -858,7 +865,7 @@
           "position": [
             0.0,
             0.0,
-            73.6
+            125.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -890,7 +897,7 @@
           }
         ],
         "changes": [
-          "sica_sheet.qml: camera moved back 1.6x so the whole system is in view"
+          "sica_sheet.qml: camera moved back 2.7x so the whole sheet is in view while it curls"
         ]
       },
       "imageUrl": "new/sica_sheet/sica_sheet.jpg"
@@ -928,7 +935,7 @@
       ],
       "atomifyMetal": {
         "dialect": "atomify2",
-        "stepsPerFrame": 1,
+        "stepsPerFrame": 5,
         "camera": {
           "position": [
             0.0,
@@ -956,7 +963,8 @@
           }
         ],
         "changes": [
-          "abstract_translocation.qml: camera moved back 2x so the whole system is in view"
+          "abstract_translocation.qml: camera moved back 2x so the whole system is in view",
+          "abstract_translocation.qml: starts at 5 timesteps per frame so the polymer reaches the hole in reasonable time"
         ]
       },
       "imageUrl": "new/abstract_translocation/abstract_translocation.jpg"
@@ -1036,8 +1044,8 @@
         "camera": {
           "position": [
             0.0,
-            0.0,
-            112.5
+            -70.0,
+            140.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1069,7 +1077,7 @@
           }
         ],
         "changes": [
-          "sica_sheet_melt.qml: camera moved back 1.5x so the whole system is in view"
+          "sica_sheet_melt.qml: camera moved back 1.9x and tilted so the sheet’s ripples show"
         ]
       },
       "imageUrl": "new/sica_sheet_melt/sica_sheet_melt.jpg"
@@ -1116,7 +1124,7 @@
           "position": [
             0.0,
             0.0,
-            40.0
+            52.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1154,7 +1162,7 @@
           }
         ],
         "changes": [
-          "ice_crystal.qml: camera moved back 4x so the whole system is in view"
+          "ice_crystal.qml: camera moved back 5.2x so the whole crystal is in view"
         ]
       },
       "imageUrl": "new/ice_crystal/ice_crystal.jpg"
@@ -1312,9 +1320,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            -68.1186,
-            -8.3321,
-            -19.8606
+            -99.0,
+            -12.1,
+            -28.9
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1339,7 +1347,7 @@
           }
         ],
         "changes": [
-          "nanotube.qml: camera moved back 1.6x so the whole system is in view"
+          "nanotube.qml: camera moved back 2.3x so the whole system is in view"
         ]
       },
       "imageUrl": "water/nanotube/nanotube.jpg"
@@ -1370,7 +1378,7 @@
           "position": [
             0.0,
             0.0,
-            60.0
+            72.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1386,7 +1394,7 @@
           }
         ],
         "changes": [
-          "gas_hydrates.qml: camera moved back 2x so the whole system is in view"
+          "gas_hydrates.qml: camera moved back 2.4x so the whole crystal is in view"
         ]
       },
       "imageUrl": "new/gas_hydrates/gas_hydrates.jpg"
@@ -1596,9 +1604,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            0.0,
-            0.0,
-            73.6
+            40.0,
+            30.0,
+            78.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1638,7 +1646,7 @@
           }
         ],
         "changes": [
-          "betacristobalite.qml: camera moved back 1.6x so the whole system is in view"
+          "betacristobalite.qml: camera moved back 1.7x and turned off the crystal axis so the tetrahedra are not seen end-on"
         ]
       },
       "imageUrl": "silica/betacristobalite/betacristobalite.jpg"

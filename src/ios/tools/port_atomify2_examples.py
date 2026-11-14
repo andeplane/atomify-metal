@@ -78,32 +78,42 @@ CAMERA_FIXES = {
     "singlewater": ({"position": [0.0, 0.0, 6.0]}, "camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"),
     "lammps": ({"position": [0.0, 0.0, -49.5]}, "camera moved back 1.1x so the whole system is in view"),
     "crack": ({"position": [0.0, 0.0, -208.0]}, "camera moved back 3.2x so the whole system is in view"),
-    "flow_couette": ({"position": [0.0, 0.0, 55.0]}, "camera moved back 2.5x so the whole system is in view"),
-    "flow_pois": ({"position": [0.0, 0.0, 50.0]}, "camera moved back 2.5x so the whole system is in view"),
+    "flow_couette": ({"position": [0.0, 0.0, 70.0]}, "camera moved back 3.2x so both walls clear the controls"),
+    "flow_pois": ({"position": [0.0, 0.0, 64.0]}, "camera moved back 3.2x so both walls clear the controls"),
     "friction": ({"position": [0.0, 0.0, 91.0]}, "camera moved back 2.6x so the whole system is in view"),
     "obstacle": ({"position": [0.0, 0.0, 80.5]}, "camera moved back 2.3x so the whole system is in view"),
-    "CHO": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
-    "ssz_13": ({"position": [0.0, 0.0, 65.0]}, "camera moved back 1.3x so the whole system is in view"),
-    "VOH": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
-    "AB": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
-    "FeOH3": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
-    "RDX": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
-    "ZnOH2": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "CHO": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
+    "ssz_13": ({"position": [0.0, 0.0, 85.0]}, "camera moved back 1.7x so the whole cell is in view"),
+    "VOH": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
+    "AB": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
+    "FeOH3": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
+    "RDX": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
+    "ZnOH2": ({"position": [0.0, 0.0, 62.0]}, "camera moved back 3.1x so the whole box is in view"),
     "simple_diffusion": ({"position": [0.0, 0.0, 75.0]}, "camera moved back 1.5x so the whole system is in view"),
     "diffusion_coefficient": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 2.6x so the whole system is in view"),
-    "sica_sheet": ({"position": [0.0, 0.0, 73.6]}, "camera moved back 1.6x so the whole system is in view"),
+    "sica_sheet": ({"position": [0.0, 0.0, 125.0]}, "camera moved back 2.7x so the whole sheet is in view while it curls"),
     "abstract_translocation": ({"position": [0.0, 60.0, 0.0]}, "camera moved back 2x so the whole system is in view"),
     "cmap": ({"position": [0.0, 0.0, 28.0]}, "camera moved back 2.8x so the whole system is in view"),
-    "sica_sheet_melt": ({"position": [0.0, 0.0, 112.5]}, "camera moved back 1.5x so the whole system is in view"),
-    "ice_crystal": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 4x so the whole system is in view"),
-    "nanotube": ({"position": [-68.1186, -8.3321, -19.8606]}, "camera moved back 1.6x so the whole system is in view"),
-    "gas_hydrates": ({"position": [0.0, 0.0, 60.0]}, "camera moved back 2x so the whole system is in view"),
+    "sica_sheet_melt": ({"position": [0.0, -70.0, 140.0]}, "camera moved back 1.9x and tilted so the sheet’s ripples show"),
+    "ice_crystal": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 5.2x so the whole crystal is in view"),
+    "nanotube": ({"position": [-99.0, -12.1, -28.9]}, "camera moved back 2.3x so the whole system is in view"),
+    "gas_hydrates": ({"position": [0.0, 0.0, 72.0]}, "camera moved back 2.4x so the whole crystal is in view"),
     "patterns": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
     "patterns_final": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
     "maxwell": ({"position": [-28.0, 0.0, -14.0], "target": [0.0, 0.0, -18.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved back to show both chambers from the side"),
-    "betacristobalite": ({"position": [0.0, 0.0, 73.6]}, "camera moved back 1.6x so the whole system is in view"),
+    "betacristobalite": ({"position": [40.0, 30.0, 78.0]}, "camera moved back 1.7x and turned off the crystal axis so the tetrahedra are not seen end-on"),
     "generate_nanoporous": ({"position": [99.0, -46.5, 127.5]}, "camera moved back 1.5x so the whole system is in view"),
 }
+# Default speeds (timesteps per displayed frame) raised where the point of the
+# physics arrives too late at Atomify 2's one step per frame, with the reason.
+# The speed button still goes from a quarter of this up to as fast as the
+# device can.
+SPEED_FIXES = {
+    "simple_diffusion": (5, "starts at 5 timesteps per frame so the stripe has mixed in about a minute"),
+    "abstract_translocation": (5, "starts at 5 timesteps per frame so the polymer reaches the hole in reasonable time"),
+}
+for _name in ("CHO", "AB", "VOH", "FeOH3", "RDX", "ZnOH2"):
+    SPEED_FIXES[_name] = (2, "starts at 2 timesteps per frame so the reactions show within the first minute")
 # Atomify 2's custom color shaders (GLSL run per atom), as AtomifyKit color
 # ramps: the type color times factors blended from low to high between two
 # coordinates (relative to the box center) along an axis.
@@ -284,6 +294,9 @@ def main():
                 changes.append(f"{identifier}.qml: {note}")
             options = {"dialect": "atomify2", "stepsPerFrame": STEPS_PER_FRAME, "camera": camera,
                        "dashboard": qml_controllers(qml)}
+            if identifier in SPEED_FIXES:
+                options["stepsPerFrame"], note = SPEED_FIXES[identifier]
+                changes.append(f"{identifier}.qml: {note}")
             unsupported = []
             if "customColorShaderCode" in qml:
                 code = qml_strings(qml, "customColorShaderCode") or ""
