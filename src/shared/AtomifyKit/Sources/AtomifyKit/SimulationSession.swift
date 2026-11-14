@@ -326,6 +326,19 @@ public final class SimulationSession {
         let directives: ScriptDirectives
     }
 
+    /// The example's visual effects (tracers, trails), new for every run.
+    private var effects = EffectPipeline()
+    /// The example's small live chart, if it asks for one: the plotted
+    /// series to show, matched against plot titles.
+    public var miniChartSeries: String? { example?.atomifyMetal?.effects?.first { $0.kind == .chart }?.series }
+
+    /// The dashboard chart the example's small live chart shows: the one
+    /// whose title is its `series` ("Temperature"), if there is one.
+    public var miniChart: DashboardChart? {
+        guard let series = miniChartSeries else { return nil }
+        return dashboard.compactMap(DashboardLayout.chart(for:))
+            .first { $0.title.caseInsensitiveCompare(series) == .orderedSame }
+    }
     private var storedColorQuantity: String?
     private var storedColormap: Colormap = .viridis
     private var storedCustomRange: ClosedRange<Float>?
@@ -484,6 +497,7 @@ public final class SimulationSession {
             var directives = ScriptDirectives.parse(text, dialect: options?.dialect ?? .web)
             if let camera = options?.camera { directives.camera = camera.hint }
             directiveWarnings = directives.warnings
+            effects = EffectPipeline(effects: options?.effects ?? [])
             stepsPerFrame = appliesScriptSpeed ? options?.stepsPerFrame.flatMap { Self.speedLimit($0) } : nil
             eventFilter = ScriptEventFilter(echoesEvents: !appliesScriptSpeed)
             configureDashboard(options?.dashboard ?? [])
@@ -537,6 +551,7 @@ public final class SimulationSession {
 
     private func resetForNewRun(keepingPlots: Bool) {
         history.reset()
+        effects = EffectPipeline()
         frame = nil
         scene = nil
         sceneRevision += 1
@@ -643,6 +658,7 @@ public final class SimulationSession {
         historyChanged = true
         let frame = AtomFrame(snapshot)
         self.frame = frame
+        if !effects.isEmpty { effects.record(frame) }
 
         pendingStats.atoms = snapshot.atomCount
         pendingStats.bonds = snapshot.bonds.count
@@ -769,6 +785,7 @@ public final class SimulationSession {
             built.images = SceneBuilder.imageOffsets(counts: counts, low: frame.boxLow, high: frame.boxHigh,
                                                      tilt: frame.tilt)
         }
+        if !effects.isEmpty { effects.apply(to: &built, frame: frame) }
         scene = built
         sceneRevision += 1
         let range = SceneBuilder.colorRange(for: frame, colorMode: mode)

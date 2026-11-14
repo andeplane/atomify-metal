@@ -1,6 +1,10 @@
 {
   "sections": [
-    {"id": "reactions-and-explosions", "title": "Reactions and explosions", "after": "lammps-examples"}
+    {
+      "id": "reactions-and-explosions",
+      "title": "Reactions and explosions",
+      "after": "lammps-examples"
+    }
   ],
   "examples": [
     {
@@ -12,9 +16,111 @@
       "atomifyMetal": {
         "dialect": "atomify2",
         "stepsPerFrame": 6,
-        "color": {"quantity": "c_ke", "colormap": "inferno", "range": [0, 30]},
-        "camera": {"position": [0.0, 0.0, 34.0], "fieldOfView": 25.0, "relativeToBoxCenter": true, "up": [0.0, 1.0, 0.0]},
-        "dashboard": [{"kind": "summary"}, {"kind": "thermometer", "parameters": {"xLabel": "Time [fs]", "xRange": "1000"}}]
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            30
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            34.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "1000"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
+    },
+    {
+      "id": "surface_diffusion",
+      "folder": "new",
+      "section": "diffusion",
+      "title": "Atoms hopping on a surface",
+      "description": "Six extra atoms sit on a crystal surface. The warm surface shakes them, and every so often one jumps to the next hollow between the atoms below. Their paths are drawn as orange lines.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 10,
+        "camera": {
+          "position": [
+            0.0,
+            -22.0,
+            30.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -2.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "tracers",
+            "type": 2,
+            "color": [
+              1.0,
+              0.48,
+              0.1
+            ],
+            "scale": 1.35
+          },
+          {
+            "kind": "trails",
+            "type": 2,
+            "color": [
+              1.0,
+              0.55,
+              0.15
+            ],
+            "length": 400,
+            "width": 3,
+            "every": 3
+          }
+        ]
       }
     }
   ]

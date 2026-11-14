@@ -41,10 +41,12 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     /// kinetic energy of an explosion, instead of by type. The View panel
     /// can still change it.
     public var color: ExampleColoring?
+    /// Visual effects of the run: tracers, trails, a small chart.
+    public var effects: [ExampleEffect]?
 
     public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
                 camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil,
-                colorRamp: ColorRamp? = nil, color: ExampleColoring? = nil) {
+                colorRamp: ColorRamp? = nil, color: ExampleColoring? = nil, effects: [ExampleEffect]? = nil) {
         self.skip = skip
         self.dialect = dialect
         self.stepsPerFrame = stepsPerFrame
@@ -53,6 +55,7 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
         self.periodicImages = periodicImages
         self.colorRamp = colorRamp
         self.color = color
+        self.effects = effects
     }
 
     /// `periodicImages` as counts, when it asks for more than one copy.
