@@ -2001,6 +2001,66 @@
         ]
       },
       "imageUrl": "new/cluster_impact/cluster_impact.jpg"
+    },
+    {
+      "id": "droplet_splash",
+      "title": "Droplet splash",
+      "description": "A liquid droplet falls onto a surface that it wets. It flattens into a pancake, a ring of liquid spreads out and rebounds, and the droplet settles. Atoms are colored by kinetic energy.",
+      "inputScript": "droplet_splash.in",
+      "files": [
+        {
+          "fileName": "droplet_splash.in",
+          "url": "new/droplet_splash/droplet_splash.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 2,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            3
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            -70.0,
+            -4.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -14.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
     }
   ],
   "atomifyMetalSections": [
@@ -2013,7 +2073,8 @@
         "flow_couette",
         "flow_pois",
         "friction",
-        "obstacle"
+        "obstacle",
+        "droplet_splash"
       ]
     },
     {
