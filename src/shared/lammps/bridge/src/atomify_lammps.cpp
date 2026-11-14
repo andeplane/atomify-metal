@@ -22,11 +22,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <condition_variable>
 #include <cstdio>
 #include <cstring>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -406,6 +409,38 @@ void use_threads_on_this_thread(atomify_sim *sim)
 #endif
 }
 
+// Keeps the OpenMP runtime alive for the life of the process. A statically
+// linked libomp shuts itself down when its last root thread exits, freeing
+// every lock, yet the `omp critical` sections in LAMMPS cache pointers to
+// theirs. Each script runs on its own thread that exits afterwards, so the
+// next simulation's first critical section would read a freed lock. One
+// thread that registers with the runtime and never exits prevents that.
+void keep_openmp_alive()
+{
+#ifdef _OPENMP
+  static std::once_flag once;
+  std::call_once(once, [] {
+    std::mutex mutex;
+    std::condition_variable registered;
+    bool ready = false;
+    std::thread([&] {
+      omp_set_num_threads(1);    // registers this thread as a root
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        ready = true;
+      }
+      registered.notify_one();
+      std::mutex idle;
+      std::unique_lock<std::mutex> lock(idle);
+      std::condition_variable never;
+      never.wait(lock, [] { return false; });
+    }).detach();
+    std::unique_lock<std::mutex> lock(mutex);
+    registered.wait(lock, [&] { return ready; });
+  });
+#endif
+}
+
 // A LAMMPS instance on `threads` threads, with its output captured.
 bool open_instance(atomify_sim *sim, int threads)
 {
@@ -513,6 +548,7 @@ atomify_sim *atomify_sim_create_threaded(int echo, int threads)
   auto *sim = new atomify_sim();
   sim->shared->mark_progress();
   sim->shared->echo = echo != 0;
+  keep_openmp_alive();
   threads = std::clamp(threads, 1, atomify_max_threads());
   if (!open_instance(sim, threads)) {
     delete sim;
