@@ -79,10 +79,22 @@ final class AppModel {
         session.appliesScriptSpeed = true
     }
 
+    /// Launch argument that opens one example with no welcome and no
+    /// controls, for taking its gallery picture:
+    /// `xcrun simctl launch booted <bundle id> -AtomifyCapture <example id>`.
+    static let captureArgument = "AtomifyCapture"
+
     /// Starts the first example, once: the app opens on a running simulation.
-    func start() {
-        guard session.title == nil,
-              let example = catalog.example(id: Self.firstExampleID) ?? catalog.examples.first else { return }
+    /// With the capture argument it opens that example with a bare view.
+    func start(captureID: String? = UserDefaults.standard.string(forKey: AppModel.captureArgument)) {
+        guard session.title == nil else { return }
+        if let captureID, let example = catalog.example(id: captureID) {
+            showsWelcome = false
+            chromeHidden = true
+            session.load(example, from: catalog)
+            return
+        }
+        guard let example = catalog.example(id: Self.firstExampleID) ?? catalog.examples.first else { return }
         session.load(example, from: catalog)
     }
 
