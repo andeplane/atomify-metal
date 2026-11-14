@@ -1884,6 +1884,62 @@
         ]
       },
       "imageUrl": "new/surface_diffusion/surface_diffusion.jpg"
+    },
+    {
+      "id": "shock_void",
+      "title": "Shock wave and a hole",
+      "description": "A piston pushes into a cold 2D crystal at constant speed and drives a shock wave through it. Each atom is colored by its kinetic energy, so the front glows. When it reaches the hole in the crystal, atoms are thrown across it.",
+      "inputScript": "shock_void.in",
+      "files": [
+        {
+          "fileName": "shock_void.in",
+          "url": "new/shock_void/shock_void.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 4,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            1.5
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -235.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      },
+      "imageUrl": "new/shock_void/shock_void.jpg"
     }
   ],
   "atomifyMetalSections": [
@@ -1903,7 +1959,8 @@
       "id": "reactions-and-explosions",
       "title": "Reactions and explosions",
       "exampleIDs": [
-        "h2_explosion"
+        "h2_explosion",
+        "shock_void"
       ]
     },
     {
