@@ -122,6 +122,166 @@
           }
         ]
       }
+    },
+    {
+      "id": "shock_void",
+      "folder": "new",
+      "section": "reactions-and-explosions",
+      "title": "Shock wave and a hole",
+      "description": "A piston pushes into a cold 2D crystal at constant speed and drives a shock wave through it. Each atom is colored by its kinetic energy, so the front glows. When it reaches the hole in the crystal, atoms are thrown across it.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 4,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            1.5
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -235.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            -1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cluster_impact",
+      "folder": "new",
+      "section": "reactions-and-explosions",
+      "title": "Cluster impact",
+      "description": "A cluster of 177 atoms hits a crystal surface at high speed. The impact heats a spot far above melting, throws atoms out and leaves a crater, and the heat spreads through the crystal. Atoms are colored by kinetic energy.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 2,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            4
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            -42.0,
+            8.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -4.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
+    },
+    {
+      "id": "droplet_splash",
+      "folder": "new",
+      "section": "lammps-examples",
+      "title": "Droplet splash",
+      "description": "A liquid droplet falls onto a surface that it wets. It flattens into a pancake, a ring of liquid spreads out and rebounds, and the droplet settles. Atoms are colored by kinetic energy.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 2,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            3
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            -70.0,
+            -4.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -14.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
     }
   ]
 }

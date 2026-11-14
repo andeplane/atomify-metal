@@ -1,0 +1,42 @@
+# A shock wave through a 2D Lennard-Jones crystal with a hole in it. A piston
+# at the left pushes into the cold crystal for a while; atoms are
+# colored by their kinetic energy, so the shock front shows as a bright line.
+# When it reaches the hole, atoms are thrown across it.
+log none
+units		lj
+dimension	2
+boundary	f p p
+atom_style	atomic
+
+lattice		hex 0.92
+region		box block 0 90 0 40 -0.5 0.5
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+# the hole
+region		hole sphere 55 20 0 7
+delete_atoms	region hole
+
+# the piston is the leftmost columns, and moves at 0.9
+region		piston block 0 4 INF INF INF INF
+group		piston region piston
+velocity	all create 0.02 4711 dist gaussian
+velocity	piston set 0.9 0.0 0.0
+
+fix		1 all nve
+fix		2 piston setforce 0.0 0.0 0.0
+fix		3 all enforce2d
+fix		4 all wall/reflect xhi EDGE
+
+# kinetic energy of each atom, which colors the atoms
+compute		ke all ke/atom
+
+timestep	0.004
+
+# push for a while, then hold the piston still and let the shock run on
+run		2500
+velocity	piston set 0.0 0.0 0.0
+run		200000
