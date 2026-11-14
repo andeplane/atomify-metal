@@ -5,7 +5,7 @@ import simd
 /// interpolated in sRGB (as plotting libraries do), then converted to linear
 /// light, which the renderer shades in.
 public enum Colormap: String, CaseIterable, Sendable {
-    case viridis, plasma, coolwarm, jet, grayscale
+    case viridis, plasma, inferno, coolwarm, jet, grayscale
 
     /// Linear RGBA (alpha 1) at `t`, clamped to 0...1. NaN maps to 0.
     public func color(at t: Float) -> SIMD4<Float> {
@@ -49,6 +49,10 @@ public enum Colormap: String, CaseIterable, Sendable {
         case .plasma:
             return Self.hex([0x0D0887, 0x46039F, 0x7201A8, 0x9C179E, 0xBD3786,
                              0xD8576B, 0xED7953, 0xFB9F3A, 0xFDCA26, 0xF0F921])
+        case .inferno:
+            // Dark to bright through red and orange: heat, for energies.
+            return Self.hex([0x000004, 0x1B0C41, 0x4A0C6B, 0x781C6D, 0xA52C60,
+                             0xCF4446, 0xED6925, 0xFB9A06, 0xF7D03C, 0xFCFFA4])
         case .coolwarm:
             // Moreland's diverging map (matplotlib "coolwarm").
             return Self.rgb([(59, 76, 192), (98, 130, 234), (141, 176, 254), (184, 208, 249), (221, 221, 221),

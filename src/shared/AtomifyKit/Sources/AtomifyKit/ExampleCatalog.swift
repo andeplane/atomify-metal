@@ -37,10 +37,14 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     public var periodicImages: [Int]?
     /// Atom colors shaded along one axis (Atomify 2's custom color shaders).
     public var colorRamp: ColorRamp?
+    /// Color the atoms by a per-atom quantity from the start, such as the
+    /// kinetic energy of an explosion, instead of by type. The View panel
+    /// can still change it.
+    public var color: ExampleColoring?
 
     public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
                 camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil,
-                colorRamp: ColorRamp? = nil) {
+                colorRamp: ColorRamp? = nil, color: ExampleColoring? = nil) {
         self.skip = skip
         self.dialect = dialect
         self.stepsPerFrame = stepsPerFrame
@@ -48,12 +52,37 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
         self.dashboard = dashboard
         self.periodicImages = periodicImages
         self.colorRamp = colorRamp
+        self.color = color
     }
 
     /// `periodicImages` as counts, when it asks for more than one copy.
     public var imageCounts: SIMD3<Int>? {
         guard let values = periodicImages, values.count == 3, values.contains(where: { $0 > 1 }) else { return nil }
         return SIMD3(max(values[0], 1), max(values[1], 1), max(values[2], 1))
+    }
+}
+
+/// How an example colors its atoms from the start: by a per-atom quantity
+/// its script provides (`c_ke` from `compute ke ... ke/atom`, `speed`, ...).
+public struct ExampleColoring: Codable, Sendable, Hashable {
+    /// The per-atom quantity, as the View panel names it.
+    public var quantity: String
+    /// A `Colormap` name ("inferno", "viridis", ...); the default when nil.
+    public var colormap: String?
+    /// The values at the two ends of the colormap; the range seen over the
+    /// run when nil.
+    public var range: [Double]?
+
+    public init(quantity: String, colormap: String? = nil, range: [Double]? = nil) {
+        self.quantity = quantity
+        self.colormap = colormap
+        self.range = range
+    }
+
+    /// `range` as a usable color range, or nil.
+    public var colorRange: ClosedRange<Float>? {
+        guard let range, range.count == 2, range.allSatisfy(\.isFinite), range[0] < range[1] else { return nil }
+        return Float(range[0])...Float(range[1])
     }
 }
 
