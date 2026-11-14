@@ -1,3 +1,4 @@
+import AppKit
 import AtomifyKit
 import SwiftUI
 
@@ -24,6 +25,9 @@ struct MacRootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: model.showsGallery)
+        // Over the simulation the title bar is see-through, so the atoms go
+        // edge to edge under the traffic lights; the gallery keeps a bar.
+        .background(WindowTitlebar(transparent: !model.showsGallery))
         // The Info panel's script, over the whole window.
         .hostsFullWindowCovers()
         .task { model.start() }
@@ -37,5 +41,34 @@ struct MacRootView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+}
+
+/// Sets the hosting window's title bar transparent or not. SwiftUI's
+/// toolbar background setting covers the toolbar; this covers a title bar
+/// with no toolbar items, which would otherwise draw its own strip.
+private struct WindowTitlebar: NSViewRepresentable {
+    let transparent: Bool
+
+    func makeNSView(context: Context) -> NSView { WindowObserver() }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        (view as? WindowObserver)?.transparent = transparent
+    }
+
+    private final class WindowObserver: NSView {
+        var transparent = true {
+            didSet { apply() }
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            apply()
+        }
+
+        private func apply() {
+            guard let window, window.titlebarAppearsTransparent != transparent else { return }
+            window.titlebarAppearsTransparent = transparent
+        }
     }
 }

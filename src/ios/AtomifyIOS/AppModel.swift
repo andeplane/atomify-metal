@@ -189,6 +189,46 @@ final class AppModel {
         }
     }
 
+    // MARK: Keyboard (the Mac's menus)
+
+    /// What Escape would do now.
+    var escapeAction: AppNavigation.EscapeAction {
+        AppNavigation.escapeAction(showsGallery: showsGallery, galleryDepth: galleryPath.count,
+                                   showsWelcome: showsWelcome, panelOpen: panel != nil)
+    }
+
+    /// Escape: closes the welcome, then an open panel; in the gallery goes
+    /// back a page, or from its root back to the simulation.
+    func escape() {
+        switch escapeAction {
+        case .closeWelcome: showsWelcome = false
+        case .closePanel: panel = nil
+        case .galleryBack: galleryPath.removeLast()
+        case .leaveGallery: returnToSimulation()
+        case .none: break
+        }
+    }
+
+    /// Opens `panel` beside the simulation, or closes it when it is open.
+    func togglePanel(_ panel: SidePanel) {
+        showsWelcome = false
+        chromeHidden = false
+        self.panel = self.panel == panel ? nil : panel
+    }
+
+    /// The playback speed one choice faster (`steps` > 0) or slower.
+    func stepSpeed(by steps: Int) {
+        let next = AppNavigation.steppedSpeed(from: session.speedFactor, by: steps,
+                                              in: SpeedMenu.choices.map(\.factor))
+        if next != session.speedFactor { session.speedFactor = next }
+    }
+
+    /// The gallery's Settings page.
+    func showSettings() {
+        if !showsGallery { showGallery() }
+        galleryPath = [.settings]
+    }
+
     /// Moves the orbit target onto the selected atom.
     func centerOnSelectedAtom() {
         guard let atom = session.selectedAtom, Self.isFinite(atom.position) else { return }

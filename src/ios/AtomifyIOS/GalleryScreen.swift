@@ -87,7 +87,7 @@ private struct GalleryContent: View {
             .padding(.bottom, 12)
             #else
             // A page of sections, as wide as reads well on a large display.
-            .padding(.horizontal, 28)
+            .padding(.horizontal, metrics.margin)
             .padding(.top, 16)
             .padding(.bottom, 28)
             .frame(maxWidth: 1400)

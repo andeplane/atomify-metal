@@ -43,6 +43,8 @@ struct ViewPanel: View {
                 } maximumValueLabel: {
                     Image(systemName: "circle.fill").font(.system(size: 15))
                 }
+                // The row above names it; the label is for VoiceOver (the Mac draws it).
+                .labelsHidden()
             }
             if session.renderSettings.radiusScale != 1 {
                 Divider()
@@ -121,6 +123,7 @@ struct ViewPanel: View {
                 Slider(value: $session.renderSettings.ambientOcclusionStrength, in: 0...2) {
                     Text("Ambient occlusion")
                 }
+                .labelsHidden()
             }
         }
     }

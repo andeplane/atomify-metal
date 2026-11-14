@@ -37,6 +37,21 @@ enum Platform {
     /// Off only in the Mac's offscreen screenshot tool: Liquid Glass draws
     /// on screen only, so offscreen pictures use the material fallback.
     nonisolated(unsafe) static var allowsLiquidGlass = true
+
+    /// How to move around the atoms, for VoiceOver: touch words on iOS,
+    /// pointer words on Mac.
+    #if os(iOS)
+    static let canvasGestureHint = "Drag to rotate, pinch to zoom, tap an atom to inspect it."
+    #else
+    static let canvasGestureHint =
+        "Drag to rotate, scroll to zoom, click an atom to inspect it, double-click to reframe."
+    #endif
+
+    /// The side margin that centres a column of at most `maxWidth` in
+    /// `width`, never less than `margin`.
+    static func sideMargin(width: CGFloat, maxWidth: CGFloat, margin: CGFloat) -> CGFloat {
+        max(margin, (width - maxWidth) / 2)
+    }
 }
 
 extension ToolbarItemPlacement {
@@ -137,6 +152,32 @@ extension View {
         #endif
     }
 
+    /// A page as a column of at most `maxWidth`, centred at the top of a
+    /// wide Mac window. On iOS the page fills the screen from the top
+    /// leading corner, as before.
+    @ViewBuilder
+    func centredPage(maxWidth: CGFloat) -> some View {
+        #if os(iOS)
+        frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        #else
+        frame(maxWidth: maxWidth, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        #endif
+    }
+
+    /// Scroll content as a column of at most `maxWidth`, centred in a wide
+    /// Mac window, with at least `margin` at the sides. The scroll view
+    /// itself stays full width, so its edge line under the toolbar spans
+    /// the window as the gallery's does. As is on iOS.
+    @ViewBuilder
+    func centredScrollContent(maxWidth: CGFloat, margin: CGFloat) -> some View {
+        #if os(iOS)
+        self
+        #else
+        modifier(CentredScrollContent(maxWidth: maxWidth, margin: margin))
+        #endif
+    }
+
     /// A tooltip for the pointer on Mac; nothing on iOS.
     @ViewBuilder
     func tooltip(_ text: String) -> some View {
@@ -182,6 +223,19 @@ extension View {
 }
 
 #if os(macOS)
+private struct CentredScrollContent: ViewModifier {
+    let maxWidth: CGFloat
+    let margin: CGFloat
+    @State private var width: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .contentMargins(.horizontal, Platform.sideMargin(width: width, maxWidth: maxWidth, margin: margin),
+                            for: .scrollContent)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+}
+
 private struct PointerHighlight: ViewModifier {
     let shape: AnyShape
     @State private var hovering = false

@@ -139,8 +139,9 @@ struct LayoutMetrics: Equatable {
     #if os(iOS)
     var margin: CGFloat { isWide ? 24 : 12 }
     #else
-    /// A Mac window is never phone-narrow.
-    var margin: CGFloat { 24 }
+    /// A Mac window is never phone-narrow; the gallery, detail and
+    /// settings pages share this side margin.
+    var margin: CGFloat { 28 }
     #endif
     var panelWidth: CGFloat { isWide ? 400 : 340 }
     /// Between a side panel and the window's edges.
