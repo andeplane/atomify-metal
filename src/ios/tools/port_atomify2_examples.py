@@ -67,10 +67,39 @@ REPLACEMENTS = {
         "restart file regenerated with current LAMMPS by running granular/patterns to its end "
         "(the 2017 binary restart format is no longer readable)",
 }
-# Starting cameras moved back so the whole system stays in view (Atomify 2
-# showed only part of it), with the reason.
+# Starting cameras changed so the whole system is in view in landscape
+# (Atomify 2 showed only part of most systems), with the reason. Each fix
+# replaces those fields of the camera; positions are relative to the box
+# center like Atomify 2's. Tuned by eye with tools/capture_thumbnails.sh.
 CAMERA_FIXES = {
-    "singlewater": ([0.0, 0.0, 6.0], "camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"),
+    "singlewater": ({"position": [0.0, 0.0, 6.0]}, "camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"),
+    "lammps": ({"position": [0.0, 0.0, -49.5]}, "camera moved back 1.1x so the whole system is in view"),
+    "crack": ({"position": [0.0, 0.0, -208.0]}, "camera moved back 3.2x so the whole system is in view"),
+    "flow_couette": ({"position": [0.0, 0.0, 55.0]}, "camera moved back 2.5x so the whole system is in view"),
+    "flow_pois": ({"position": [0.0, 0.0, 50.0]}, "camera moved back 2.5x so the whole system is in view"),
+    "friction": ({"position": [0.0, 0.0, 91.0]}, "camera moved back 2.6x so the whole system is in view"),
+    "obstacle": ({"position": [0.0, 0.0, 80.5]}, "camera moved back 2.3x so the whole system is in view"),
+    "CHO": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "ssz_13": ({"position": [0.0, 0.0, 65.0]}, "camera moved back 1.3x so the whole system is in view"),
+    "VOH": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "AB": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "FeOH3": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "RDX": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "ZnOH2": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 2x so the whole system is in view"),
+    "simple_diffusion": ({"position": [0.0, 0.0, 75.0]}, "camera moved back 1.5x so the whole system is in view"),
+    "diffusion_coefficient": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 2.6x so the whole system is in view"),
+    "sica_sheet": ({"position": [0.0, 0.0, 73.6]}, "camera moved back 1.6x so the whole system is in view"),
+    "abstract_translocation": ({"position": [0.0, 60.0, 0.0]}, "camera moved back 2x so the whole system is in view"),
+    "cmap": ({"position": [0.0, 0.0, 28.0]}, "camera moved back 2.8x so the whole system is in view"),
+    "sica_sheet_melt": ({"position": [0.0, 0.0, 112.5]}, "camera moved back 1.5x so the whole system is in view"),
+    "ice_crystal": ({"position": [0.0, 0.0, 40.0]}, "camera moved back 4x so the whole system is in view"),
+    "nanotube": ({"position": [-68.1186, -8.3321, -19.8606]}, "camera moved back 1.6x so the whole system is in view"),
+    "gas_hydrates": ({"position": [0.0, 0.0, 60.0]}, "camera moved back 2x so the whole system is in view"),
+    "patterns": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
+    "patterns_final": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
+    "maxwell": ({"position": [-28.0, 0.0, -14.0], "target": [0.0, 0.0, -18.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved back to show both chambers from the side"),
+    "betacristobalite": ({"position": [0.0, 0.0, 73.6]}, "camera moved back 1.6x so the whole system is in view"),
+    "generate_nanoporous": ({"position": [99.0, -46.5, 127.5]}, "camera moved back 1.5x so the whole system is in view"),
 }
 # Atomify 2's custom color shaders (GLSL run per atom), as AtomifyKit color
 # ramps: the type color times factors blended from low to high between two
@@ -241,13 +270,14 @@ def main():
             name = TITLE_FIXES.get(name, name)
             description = html_to_markdown(qml_strings(qml, "description") or "")
             position = qml_vector(qml, "initialCameraPosition") or [0.0, 0.0, 10.0]
-            if identifier in CAMERA_FIXES:
-                position, note = CAMERA_FIXES[identifier]
-                changes.append(f"{identifier}.qml: {note}")
             camera = {"position": position, "fieldOfView": FIELD_OF_VIEW, "relativeToBoxCenter": True}
             if (center := qml_vector(qml, "initialViewCenter")) is not None:
                 camera["target"] = center
             camera["up"] = qml_vector(qml, "initialUpVector") or [0.0, 1.0, 0.0]
+            if identifier in CAMERA_FIXES:
+                fix, note = CAMERA_FIXES[identifier]
+                camera.update(fix)
+                changes.append(f"{identifier}.qml: {note}")
             options = {"dialect": "atomify2", "stepsPerFrame": STEPS_PER_FRAME, "camera": camera,
                        "dashboard": qml_controllers(qml)}
             unsupported = []
