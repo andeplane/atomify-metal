@@ -1423,15 +1423,15 @@
         "camera": {
           "position": [
             0.0,
-            0.0,
-            100.0
+            -120.0,
+            38.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
           "up": [
             0.0,
-            1.0,
-            0.0
+            0.0,
+            1.0
           ]
         },
         "dashboard": [
@@ -1455,7 +1455,7 @@
           ]
         },
         "changes": [
-          "patterns.qml: camera moved back 2x so the whole system is in view"
+          "patterns.qml: camera moved to a side view above the plate, so the plate and its waves can be seen, and the whole container is in view"
         ]
       },
       "imageUrl": "granular/patterns/patterns.jpg"
@@ -1481,15 +1481,15 @@
         "camera": {
           "position": [
             0.0,
-            0.0,
-            100.0
+            -120.0,
+            38.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
           "up": [
             0.0,
-            1.0,
-            0.0
+            0.0,
+            1.0
           ]
         },
         "dashboard": [
@@ -1514,7 +1514,7 @@
         },
         "changes": [
           "patterns_final.bin: restart file regenerated with current LAMMPS by running granular/patterns to its end (the 2017 binary restart format is no longer readable)",
-          "patterns_final.qml: camera moved back 2x so the whole system is in view"
+          "patterns_final.qml: camera moved to a side view above the plate, so the plate and its waves can be seen, and the whole container is in view"
         ]
       },
       "imageUrl": "granular/patterns_final/patterns_final.jpg"
@@ -1535,16 +1535,16 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            -26.0,
-            -24.0,
-            -11.0
+            -34.0,
+            -31.0,
+            6.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
           "target": [
             0.0,
             0.0,
-            -18.0
+            -15.0
           ],
           "up": [
             0.0,
@@ -1565,6 +1565,7 @@
             }
           }
         ],
+        "showBox": true,
         "colorRamp": {
           "axis": 1,
           "from": -8.0,
@@ -1582,7 +1583,7 @@
         },
         "changes": [
           "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added",
-          "maxwell.qml: camera turned right side up and moved around to an angle, so the wall between the chambers is seen as a pane and not edge-on"
+          "maxwell.qml: camera turned right side up and moved around to an angle, so the box, the vibrating plate and the wall between the chambers are seen from outside, and the container is framed from its floor up"
         ]
       },
       "imageUrl": "granular/maxwell/maxwell.jpg"
@@ -1682,9 +1683,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            99.0,
-            -46.5,
-            127.5
+            190.0,
+            -88.0,
+            242.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1732,7 +1733,7 @@
           2
         ],
         "changes": [
-          "generate_nanoporous.qml: camera moved back 1.5x so the whole system is in view"
+          "generate_nanoporous.qml: camera moved back 2.9x so the whole system is in view, copies included (it is drawn 2 x 2 x 2 times)"
         ]
       },
       "imageUrl": "silica/generate_nanoporous/generate_nanoporous.jpg"

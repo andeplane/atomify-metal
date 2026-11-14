@@ -32,6 +32,7 @@ public enum CameraFraming {
             && abs(a.yaw - b.yaw) <= tolerance
             && abs(a.pitch - b.pitch) <= tolerance
             && abs(a.roll - b.roll) <= tolerance
+            && simd_length(a.up - b.up) <= tolerance
             && a.fieldOfView == b.fieldOfView
             && a.fitsShorterSide == b.fitsShorterSide
     }
@@ -47,6 +48,7 @@ public enum CameraFraming {
                               tilt: SIMD3<Double> = .zero, base: OrbitCamera = OrbitCamera()) -> OrbitCamera {
         var camera = base
         camera.roll = 0
+        camera.up = SIMD3(0, 1, 0)
         camera.fieldOfView = OrbitCamera().fieldOfView
         camera.fitsShorterSide = false
         if let degrees = hint?.fieldOfView, degrees.isFinite, degrees > 0, degrees < 180 {
@@ -65,17 +67,24 @@ public enum CameraFraming {
         let origin: SIMD3<Float> = hint.relativeToBoxCenter && Self.isFinite(center) ? center : .zero
         let target = hint.target.map { origin + SIMD3<Float>($0) } ?? center
         camera.target = target
+        // The hint's up direction is the axis the camera orbits about, so a
+        // sideways drag keeps the scene's floor level, whichever axis that is.
+        if let up = hint.up {
+            camera.up = SIMD3<Float>(up)
+        }
         if let position = hint.position {
+            let offset = origin + SIMD3<Float>(position) - target
             let parameters = Self.orbit(position: origin + SIMD3<Float>(position), target: target)
             camera.distance = parameters.distance
-            camera.yaw = parameters.yaw
-            camera.pitch = parameters.pitch
+            // Angles in the up frame; a view along the up axis keeps its
+            // yaw and looks straight down or up.
+            if let angles = camera.orbitAngles(forOffset: offset) {
+                camera.yaw = angles.yaw
+                camera.pitch = angles.pitch
+            }
             // Keep the hinted view inside the zoom limits.
             let range = camera.distanceRange
             camera.distanceRange = min(range.lowerBound, camera.distance)...max(range.upperBound, camera.distance)
-        }
-        if let up = hint.up {
-            camera.roll = Self.roll(toward: SIMD3<Float>(up), in: camera)
         }
         return camera
     }

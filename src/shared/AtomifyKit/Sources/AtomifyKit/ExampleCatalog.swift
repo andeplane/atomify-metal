@@ -41,12 +41,15 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     /// kinetic energy of an explosion, instead of by type. The View panel
     /// can still change it.
     public var color: ExampleColoring?
+    /// The simulation box matters to the picture (grains held by walls, say):
+    /// the gallery picture draws it, which it leaves out for other examples.
+    public var showBox: Bool?
     /// Visual effects of the run: tracers, trails, a small chart.
     public var effects: [ExampleEffect]?
 
     public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
                 camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil,
-                colorRamp: ColorRamp? = nil, color: ExampleColoring? = nil, effects: [ExampleEffect]? = nil) {
+                colorRamp: ColorRamp? = nil, color: ExampleColoring? = nil, effects: [ExampleEffect]? = nil, showBox: Bool? = nil) {
         self.skip = skip
         self.dialect = dialect
         self.stepsPerFrame = stepsPerFrame
@@ -56,6 +59,7 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
         self.colorRamp = colorRamp
         self.color = color
         self.effects = effects
+        self.showBox = showBox
     }
 
     /// `periodicImages` as counts, when it asks for more than one copy.

@@ -2,8 +2,9 @@ import Foundation
 import simd
 
 /// Orbit camera for mouse/touch apps: the eye circles `target` at
-/// `distance`, `yaw` around the world y axis and `pitch` above the
-/// horizon. Yaw 0, pitch 0 puts the eye on +z looking toward −z.
+/// `distance`, `yaw` around the `up` axis (the world y axis unless the scene
+/// says otherwise) and `pitch` above the horizon, the plane across `up`.
+/// With `up` = +y, yaw 0 and pitch 0 put the eye on +z looking toward −z.
 public struct OrbitCamera: Sendable, Equatable {
     public var target: SIMD3<Float>
     public var distance: Float
@@ -15,6 +16,13 @@ public struct OrbitCamera: Sendable, Equatable {
     /// right becomes cos(roll)·right + sin(roll)·up; π shows the scene
     /// upside down.
     public var roll: Float = 0
+    /// The scene's up direction: the axis yaw turns about, so dragging
+    /// sideways keeps the scene's own floor level whichever axis it is on
+    /// (z for most granular and surface systems, −y for Atomify 2's views).
+    /// Unit length, or +y when not usable.
+    public var up: SIMD3<Float> = SIMD3(0, 1, 0) {
+        didSet { up = Self.normalizedUp(up) }
+    }
     /// Vertical field of view, radians (see `fitsShorterSide`).
     public var fieldOfView: Float = .pi / 4
     /// When true, `fieldOfView` spans the shorter side of the view: the
@@ -93,10 +101,38 @@ public struct OrbitCamera: Sendable, Equatable {
         distanceRange = Self.distanceRange(sceneRadius: radius, framingDistance: distance)
     }
 
+    /// `v` as a unit vector, or +y when it has no direction.
+    static func normalizedUp(_ v: SIMD3<Float>) -> SIMD3<Float> {
+        let length = simd_length(v)
+        guard length.isFinite, length > 1e-6, v.x.isFinite, v.y.isFinite, v.z.isFinite else { return SIMD3(0, 1, 0) }
+        return v / length
+    }
+
+    /// The axes the orbit is drawn in: x and z of the +y-up formulas become
+    /// the first and third column, y becomes `up`. Exactly the identity for
+    /// +y.
+    var orbitFrame: simd_float3x3 {
+        let u = Self.normalizedUp(up)
+        if u == SIMD3(0, 1, 0) { return matrix_identity_float3x3 }
+        // The world axis least along `up` gives the first axis.
+        let reference: SIMD3<Float> = abs(u.x) < 0.9 ? SIMD3(1, 0, 0) : SIMD3(0, 0, 1)
+        let a = simd_normalize(reference - simd_dot(reference, u) * u)
+        return simd_float3x3(columns: (a, u, simd_cross(a, u)))
+    }
+
+    /// Yaw and pitch of an eye offset `direction` from the target (any
+    /// length), in this camera's `up` frame; the inverse of `position`.
+    public func orbitAngles(forOffset direction: SIMD3<Float>) -> (yaw: Float, pitch: Float)? {
+        let length = simd_length(direction)
+        guard length > 0, length.isFinite else { return nil }
+        let local = orbitFrame.transpose * (direction / length)
+        return (atan2f(local.x, local.z), asinf(min(max(local.y, -1), 1)))
+    }
+
     /// The eye position in world space.
     public var position: SIMD3<Float> {
         let c = cosf(pitch)
-        return target + distance * SIMD3(c * sinf(yaw), sinf(pitch), c * cosf(yaw))
+        return target + distance * (orbitFrame * SIMD3(c * sinf(yaw), sinf(pitch), c * cosf(yaw)))
     }
 
     /// Unit vectors of the view in world space.
@@ -105,9 +141,14 @@ public struct OrbitCamera: Sendable, Equatable {
         let forward = -SIMD3(c * sinf(yaw), sinf(pitch), c * cosf(yaw))
         let level = SIMD3(cosf(yaw), 0, -sinf(yaw))
         let levelUp = simd_cross(level, forward)
-        guard roll != 0, roll.isFinite else { return (level, levelUp, forward) }
-        let cr = cosf(roll), sr = sinf(roll)
-        return (cr * level + sr * levelUp, cr * levelUp - sr * level, forward)
+        var right = level, upVector = levelUp
+        if roll != 0, roll.isFinite {
+            let cr = cosf(roll), sr = sinf(roll)
+            right = cr * level + sr * levelUp
+            upVector = cr * levelUp - sr * level
+        }
+        let frame = orbitFrame
+        return (frame * right, frame * upVector, frame * forward)
     }
 
     public var viewMatrix: simd_float4x4 {

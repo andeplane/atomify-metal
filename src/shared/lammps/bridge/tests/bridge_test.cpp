@@ -693,6 +693,32 @@ void test_walls()
   atomify_sim_destroy(sim);
 }
 
+// fix wall/gran planes, where a wiggling plate is now: lo + A (1 - cos(omega t)).
+void test_wall_gran_wiggle()
+{
+  atomify_sim *sim = atomify_sim_create(0);
+  CHECK(run(sim, {"units lj", "atom_style sphere", "boundary f p f", "comm_modify vel yes", "region box block 0 4 0 4 0 10",
+                  "create_box 1 box", "create_atoms 1 single 2 2 5", "set atom 1 diameter 1.0",
+                  "pair_style gran/hooke/history 2000.0 NULL 50.0 NULL 0.5 0", "pair_coeff * *", "timestep 0.01",
+                  "fix n all nve/sphere", "fix xp all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 xplane 0.0 4.0",
+                  "fix w all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 zplane 1.0 2000.0 wiggle z 0.5 2.0",
+                  "run 50"}));
+  const Snapshot s = copy(sim);
+  // The x planes sit where they were made; the z plate has left its start at
+  // 1.0 and stays within its stroke, 1.0 + 0.5 (1 - cos(omega t)) in 1.0 ... 2.0.
+  CHECK(s.walls.size() == 4);
+  bool found_plate = false, found_x = false;
+  for (const auto &w : s.walls) {
+    if (w.first == 4 && w.second > 1.0 && w.second <= 2.0) found_plate = true;
+    if (w.first == 0 && w.second == 0.0) found_x = true;
+  }
+  CHECK(found_plate);
+  CHECK(found_x);
+  CHECK(run(sim, {"unfix w", "unfix xp", "run 0"}));
+  CHECK(copy(sim).walls.empty());
+  atomify_sim_destroy(sim);
+}
+
 // fix wall/region with a block (Maxwell's demon divider): the block clipped
 // to the box. Other region shapes are not listed.
 void test_wall_blocks()
@@ -1310,6 +1336,7 @@ int main()
   test_run_status();
   test_walls();
   test_wall_blocks();
+  test_wall_gran_wiggle();
   test_extra_pair_style();
   test_rejects_nonfinite_hand_input_and_preserves_last_good_frame();
   test_tracking_timeout_releases_grabs();

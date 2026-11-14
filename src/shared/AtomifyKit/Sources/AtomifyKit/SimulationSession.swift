@@ -780,7 +780,8 @@ public final class SimulationSession {
         let mode = colorMode
         var built = SceneBuilder.scene(from: frame, typeStyles: typeStyles, colorMode: mode, selectedTag: selectedTag,
                                        showBox: storedShowBox, bondRadius: storedShowBonds ? bondRadius : 0,
-                                       colorRamp: example?.atomifyMetal?.colorRamp)
+                                       colorRamp: example?.atomifyMetal?.colorRamp,
+                                       imageCounts: example?.atomifyMetal?.imageCounts)
         if let counts = example?.atomifyMetal?.imageCounts {
             built.images = SceneBuilder.imageOffsets(counts: counts, low: frame.boxLow, high: frame.boxHigh,
                                                      tilt: frame.tilt)
