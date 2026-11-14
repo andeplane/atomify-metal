@@ -68,7 +68,7 @@ velocity	all create 2.0 87287 loop geom
 
 # run without integrator to "pause" the visualization
 #/label Logo is intact
-run		100
+run		400
 
 # dissolve the lattice
 
@@ -101,4 +101,4 @@ run		1000
 unfix		1
 unfix		2
 #/label Tada :D
-run		100
+run		300
