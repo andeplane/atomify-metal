@@ -142,6 +142,40 @@ import simd
         #expect(SceneBuilder.imageOffsets(counts: SIMD3(1, 1, 1), low: .zero, high: SIMD3(1, 1, 1),
                                           tilt: .zero) == [.zero])
     }
+
+    @Test func theBoxSurroundsAllTheCopies() throws {
+        // 2 x 2 copies reach from 0 to 20 in x and y: one box around them all.
+        let box = SceneBuilder.replicatedBox(counts: SIMD3(2, 2, 1), low: .zero, high: SIMD3(10, 20, 30), tilt: .zero)
+        #expect(box.low == .zero && box.high == SIMD3(20, 40, 30) && box.tilt == .zero)
+        // Three copies are centered on the original: -10 ... 20.
+        let three = SceneBuilder.replicatedBox(counts: SIMD3(3, 1, 1), low: SIMD3(0, 0, 0), high: SIMD3(10, 10, 10),
+                                               tilt: .zero)
+        #expect(three.low == SIMD3(-10, 0, 0) && three.high == SIMD3(20, 10, 10))
+        // One copy is the box itself, and tilt scales with the copies.
+        let one = SceneBuilder.replicatedBox(counts: SIMD3(1, 1, 1), low: SIMD3(1, 2, 3), high: SIMD3(4, 5, 6),
+                                             tilt: SIMD3(1, 2, 3))
+        #expect(one.low == SIMD3(1, 2, 3) && one.high == SIMD3(4, 5, 6) && one.tilt == SIMD3(1, 2, 3))
+        let tilted = SceneBuilder.replicatedBox(counts: SIMD3(2, 2, 2), low: .zero, high: SIMD3(1, 1, 1),
+                                                tilt: SIMD3(0.5, 0.25, 0.1))
+        #expect(tilted.high == SIMD3(2, 2, 2) && tilted.tilt == SIMD3(1.0, 0.5, 0.2))
+
+        // The scene's box lines span the replicated box, and every copy lies inside it.
+        let frame = AtomFrame(tags: [1], types: [1], positions: [SIMD3(5, 5, 5)], boxLow: .zero,
+                              boxHigh: SIMD3(10, 10, 10))
+        let single = SceneBuilder.scene(from: frame, typeStyles: [], colorMode: .type, selectedTag: nil, showBox: true,
+                                        bondRadius: 0)
+        let replicated = SceneBuilder.scene(from: frame, typeStyles: [], colorMode: .type, selectedTag: nil,
+                                            showBox: true, bondRadius: 0, imageCounts: SIMD3(2, 2, 1))
+        func extent(_ scene: SceneData) throws -> SIMD3<Float> {
+            let points = try #require(scene.lines.first).segments.flatMap { [$0.0, $0.1] }
+            return points.reduce(SIMD3<Float>(repeating: -.infinity)) { simd_max($0, $1) }
+                - points.reduce(SIMD3<Float>(repeating: .infinity)) { simd_min($0, $1) }
+        }
+        #expect(try extent(single) == SIMD3(10, 10, 10))
+        #expect(try extent(replicated) == SIMD3(20, 20, 10))
+        let offsets = SceneBuilder.imageOffsets(counts: SIMD3(2, 2, 1), low: .zero, high: SIMD3(10, 10, 10), tilt: .zero)
+        #expect(offsets.allSatisfy { $0.x >= 0 && $0.x <= 10 && $0.y >= 0 && $0.y <= 10 })
+    }
 }
 
 @Suite struct CameraHintFramingTests {

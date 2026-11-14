@@ -7,6 +7,7 @@
 #include "error.h"
 #include "exceptions.h"
 #include "fix_wall.h"
+#include "fix_wall_gran.h"
 #include "fix_wall_region.h"
 #include "force.h"
 #include "input.h"
@@ -818,6 +819,19 @@ struct BlockFields : RegBlock {
     return axis == 0 ? &BlockFields::xhi : axis == 1 ? &BlockFields::yhi : &BlockFields::zhi;
   }
 };
+// fix wall/gran keeps its position and motion protected, too.
+struct WallGranFields : FixWallGran {
+  static int FixWallGran::*member_wallstyle() { return &WallGranFields::wallstyle; }
+  static int FixWallGran::*member_wiggle() { return &WallGranFields::wiggle; }
+  static int FixWallGran::*member_axis() { return &WallGranFields::axis; }
+  static bigint FixWallGran::*member_time_origin() { return &WallGranFields::time_origin; }
+  static double FixWallGran::*member_lo() { return &WallGranFields::lo; }
+  static double FixWallGran::*member_hi() { return &WallGranFields::hi; }
+  static double FixWallGran::*member_amplitude() { return &WallGranFields::amplitude; }
+  static double FixWallGran::*member_omega() { return &WallGranFields::omega; }
+  static double FixWallGran::*member_dt() { return &WallGranFields::dt; }
+  static int (FixWallGran::*member_xstyle())[2] { return &WallGranFields::xstyle; }
+};
 }    // namespace
 
 // Planes of fix wall/* at a fixed position, as lammps.js' getWalls lists
@@ -845,6 +859,27 @@ void FixAtomify::collect_walls(AtomifySnapshotData &out)
       if (!(clipped.lo[axis] <= clipped.hi[axis])) empty = true;
     }
     if (!empty) out.wall_blocks.push_back(clipped);
+  }
+  // fix wall/gran planes (x, y or z), where they are now: a wiggling plate
+  // is at its lo + A - A cos(omega t), as the fix computes it. Cylinders,
+  // regions and variable positions are skipped.
+  for (Fix *fix : modify->get_fix_list()) {
+    auto *wall = dynamic_cast<FixWallGran *>(fix);
+    if (!wall) continue;
+    const int style = wall->*WallGranFields::member_wallstyle();
+    if (style < 0 || style > 2) continue;    // XPLANE, YPLANE, ZPLANE
+    double lo = wall->*WallGranFields::member_lo(), hi = wall->*WallGranFields::member_hi();
+    if (wall->*WallGranFields::member_wiggle()) {
+      const double arg = wall->*WallGranFields::member_omega() *
+          static_cast<double>(update->ntimestep - wall->*WallGranFields::member_time_origin()) * wall->*WallGranFields::member_dt();
+      const double move = wall->*WallGranFields::member_amplitude() * (1.0 - std::cos(arg));
+      lo += move;
+      hi += move;
+    }
+    const auto &xstyle = wall->*WallGranFields::member_xstyle();
+    // 0 NONE, 1 CONSTANT, 2 EQUAL (a variable, skipped)
+    if (xstyle[0] == 1) out.walls.push_back(atomify_wall{2 * style, lo});
+    if (xstyle[1] == 1) out.walls.push_back(atomify_wall{2 * style + 1, hi});
   }
   for (Fix *fix : modify->get_fix_list()) {
     auto *wall = dynamic_cast<FixWall *>(fix);

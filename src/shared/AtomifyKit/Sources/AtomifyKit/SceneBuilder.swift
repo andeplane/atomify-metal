@@ -121,7 +121,7 @@ public enum SceneBuilder {
     /// type colors by position.
     public static func scene(from frame: AtomFrame, typeStyles: [ParticleStyle], colorMode: ColorMode,
                              selectedTag: Int64?, showBox: Bool, bondRadius: Float,
-                             colorRamp: ColorRamp? = nil) -> SceneData {
+                             colorRamp: ColorRamp? = nil, imageCounts: SIMD3<Int>? = nil) -> SceneData {
         let styles = typeStyles.isEmpty ? [fallbackStyle] : typeStyles
         let styleCount = styles.count
         let styleIndices = frame.types.map { type -> UInt16 in
@@ -164,7 +164,10 @@ public enum SceneBuilder {
 
         var lines: [LineData] = []
         if showBox {
-            lines.append(LineData(segments: boxEdges(low: frame.boxLow, high: frame.boxHigh, tilt: frame.tilt,
+            // With periodic images, one box around all the copies.
+            let box = imageCounts.map { replicatedBox(counts: $0, low: frame.boxLow, high: frame.boxHigh, tilt: frame.tilt) }
+                ?? (low: frame.boxLow, high: frame.boxHigh, tilt: frame.tilt)
+            lines.append(LineData(segments: boxEdges(low: box.low, high: box.high, tilt: box.tilt,
                                                      dimension: frame.dimension),
                                   color: boxColor, width: boxLineWidth))
         }
@@ -250,6 +253,22 @@ public enum SceneBuilder {
     public static func defaultBondRadius(styles: AtomStyleTable, typeCount: Int) -> Float {
         let radii = (0..<max(typeCount, 1)).map { Float(styles.style(forType: $0 + 1).radius) }
         return 0.35 * (radii.filter { $0 > 0 }.min() ?? 0.5)
+    }
+
+    /// The box that holds all the copies `imageOffsets` makes: the same
+    /// corner offsets as the copies, edge vectors `counts` times as long.
+    public static func replicatedBox(counts: SIMD3<Int>, low: SIMD3<Double>, high: SIMD3<Double>,
+                                     tilt: SIMD3<Double>) -> (low: SIMD3<Double>, high: SIMD3<Double>,
+                                                              tilt: SIMD3<Double>) {
+        let n = SIMD3(max(counts.x, 1), max(counts.y, 1), max(counts.z, 1))
+        let length = high - low
+        let a = SIMD3<Double>(length.x, 0, 0)
+        let b = SIMD3<Double>(tilt.x, length.y, 0)
+        let c = SIMD3<Double>(tilt.y, tilt.z, length.z)
+        let first = SIMD3<Double>(Double(-(n.x - 1) / 2), Double(-(n.y - 1) / 2), Double(-(n.z - 1) / 2))
+        let origin = low + first.x * a + first.y * b + first.z * c
+        let scale = SIMD3<Double>(Double(n.x), Double(n.y), Double(n.z))
+        return (origin, origin + length * scale, SIMD3(tilt.x * scale.y, tilt.y * scale.z, tilt.z * scale.z))
     }
 
     /// The eight corners of a (possibly triclinic) LAMMPS box, corner k

@@ -118,11 +118,11 @@ CAMERA_FIXES = {
     "ice_crystal": ({"position": [0.0, 0.0, 52.0]}, "camera moved back 5.2x so the whole crystal is in view"),
     "nanotube": ({"position": [-99.0, -12.1, -28.9]}, "camera moved back 2.3x so the whole system is in view"),
     "gas_hydrates": ({"position": [0.0, 0.0, 72.0]}, "camera moved back 2.4x so the whole crystal is in view"),
-    "patterns": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
-    "patterns_final": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
-    "maxwell": ({"position": [-26.0, -24.0, -11.0], "target": [0.0, 0.0, -18.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved around to an angle, so the wall between the chambers is seen as a pane and not edge-on"),
+    "patterns": ({"position": [0.0, -120.0, 38.0], "up": [0.0, 0.0, 1.0]}, "camera moved to a side view above the plate, so the plate and its waves can be seen, and the whole container is in view"),
+    "patterns_final": ({"position": [0.0, -120.0, 38.0], "up": [0.0, 0.0, 1.0]}, "camera moved to a side view above the plate, so the plate and its waves can be seen, and the whole container is in view"),
+    "maxwell": ({"position": [-34.0, -31.0, 6.0], "target": [0.0, 0.0, -15.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved around to an angle, so the box, the vibrating plate and the wall between the chambers are seen from outside, and the container is framed from its floor up"),
     "betacristobalite": ({"position": [40.0, 30.0, 78.0]}, "camera moved back 1.7x and turned off the crystal axis so the tetrahedra are not seen end-on"),
-    "generate_nanoporous": ({"position": [99.0, -46.5, 127.5]}, "camera moved back 1.5x so the whole system is in view"),
+    "generate_nanoporous": ({"position": [190.0, -88.0, 242.0]}, "camera moved back 2.9x so the whole system is in view, copies included (it is drawn 2 x 2 x 2 times)"),
 }
 # Default speeds (timesteps per displayed frame) raised where the point of the
 # physics arrives too late at Atomify 2's one step per frame, with the reason.
@@ -134,6 +134,9 @@ SPEED_FIXES = {
 }
 for _name in ("CHO", "AB", "VOH", "FeOH3", "RDX", "ZnOH2"):
     SPEED_FIXES[_name] = (2, "starts at 2 timesteps per frame so the reactions show within the first minute")
+# Examples whose gallery picture draws the simulation box, because what it
+# holds in matters to the picture (the others are taken without it).
+BOX_SHOWN = {"maxwell"}
 # Atomify 2's custom color shaders (GLSL run per atom), as AtomifyKit color
 # ramps: the type color times factors blended from low to high between two
 # coordinates (relative to the box center) along an axis.
@@ -354,6 +357,8 @@ def main():
                 changes.append(f"{identifier}.qml: {note}")
             options = {"dialect": "atomify2", "stepsPerFrame": STEPS_PER_FRAME, "camera": camera,
                        "dashboard": qml_controllers(qml)}
+            if identifier in BOX_SHOWN:
+                options["showBox"] = True
             if identifier in SPEED_FIXES:
                 options["stepsPerFrame"], note = SPEED_FIXES[identifier]
                 changes.append(f"{identifier}.qml: {note}")

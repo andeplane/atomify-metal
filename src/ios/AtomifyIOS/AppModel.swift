@@ -98,8 +98,9 @@ final class AppModel {
         if let captureID, let example = catalog.example(id: captureID) {
             showsWelcome = false
             chromeHidden = screen == nil
-            // The box's white lines clutter the small gallery pictures.
-            session.showBox = false
+            // The box's white lines clutter the small gallery pictures, unless
+            // the example says its box matters (`"showBox": true`).
+            session.showBox = example.atomifyMetal?.showBox == true
             session.load(example, from: catalog)
             show(screen: screen)
             return

@@ -247,3 +247,41 @@ let sampleObservables = [
         #expect(SessionStats() == SessionStats())
     }
 }
+
+@Suite struct CameraUpHintTests {
+    @Test func aUpHintBecomesTheOrbitAxisInsteadOfARoll() {
+        let hint = CameraHint(position: SIMD3<Double>(-26, -24, -11), target: SIMD3<Double>(0, 0, -18), up: SIMD3<Double>(0, 0, 1),
+                              fieldOfView: nil, relativeToBoxCenter: true)
+        let camera = CameraFraming.camera(hint: hint, boxLow: SIMD3(-4, -8, 0), boxHigh: SIMD3(4, 8, 50))
+        #expect(camera.up == SIMD3(0, 0, 1))
+        #expect(camera.roll == 0)
+        // It looks from the hinted position at the hinted target, with z up on screen.
+        let eye = SIMD3<Float>(0, 0, 25) + SIMD3(-26, -24, -11)
+        #expect(simd_length(camera.position - eye) < 1e-3)
+        #expect(simd_length(camera.target - SIMD3(0, 0, 7)) < 1e-3)
+        #expect(camera.basis.up.z > 0.5)
+        // Turning around the axis keeps the screen level.
+        var turned = camera
+        turned.rotate(by: SIMD2(1.0, 0))
+        #expect(abs(turned.basis.right.z) < 1e-4)
+    }
+
+    @Test func aDownwardUpHintLooksTheSameAsTheOldRoll() {
+        let hint = CameraHint(position: SIMD3<Double>(0, 0, 40), up: SIMD3<Double>(0, -1, 0), fieldOfView: nil,
+                              relativeToBoxCenter: true)
+        let camera = CameraFraming.camera(hint: hint, boxLow: .zero, boxHigh: SIMD3(10, 10, 10))
+        #expect(camera.up == SIMD3(0, -1, 0))
+        #expect(simd_length(camera.basis.up - SIMD3(0, -1, 0)) < 1e-4)
+        #expect(simd_length(camera.position - SIMD3(5, 5, 45)) < 1e-3)
+    }
+
+    @Test func viewsDifferingOnlyInUpAreNotTheSameView() {
+        var a = OrbitCamera(distance: 5, yaw: 0.2, pitch: 0.1)
+        var b = a
+        #expect(CameraFraming.isSameView(a, b))
+        b.up = SIMD3(0, 0, 1)
+        #expect(!CameraFraming.isSameView(a, b))
+        a.up = SIMD3(0, 0, 1)
+        #expect(CameraFraming.isSameView(a, b))
+    }
+}
