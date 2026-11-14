@@ -1181,8 +1181,34 @@ void test_clear_reinstalls_the_fix()
 
 }    // namespace
 
+// Simulations that each run on their own short-lived thread, one after
+// another, with OpenMP threads: the runtime must survive the gap when no
+// thread that used it is left (a statically linked libomp shut down there,
+// and the next critical section crashed). Runs first, before this thread
+// touches OpenMP.
+void test_threaded_simulations_on_short_lived_threads()
+{
+  for (int round = 0; round < 4; round++) {
+    std::thread worker([] {
+      const int threads = std::min(2, atomify_max_threads());
+      atomify_sim *sim = atomify_sim_create_threaded(0, threads);
+      CHECK(sim != nullptr);
+      atomify_sim_set_publish_interval(sim, 0);
+      std::vector<std::string> script;
+      for (const auto &line : lj_melt)
+        script.push_back(line == "region box block 0 4 0 4 0 4" ? "region box block 0 10 0 10 0 10" : line);
+      CHECK(run(sim, script));
+      CHECK(run(sim, {"run 20"}));
+      CHECK(atomify_sim_threads(sim) == threads);
+      atomify_sim_destroy(sim);
+    });
+    worker.join();
+  }
+}
+
 int main()
 {
+  test_threaded_simulations_on_short_lived_threads();
   test_snapshot_is_sorted_by_tag();
   test_distance_bonds();
   test_topology_bonds();
