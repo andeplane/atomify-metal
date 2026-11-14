@@ -1535,9 +1535,9 @@
         "stepsPerFrame": 1,
         "camera": {
           "position": [
-            -28.0,
-            0.0,
-            -14.0
+            -26.0,
+            -24.0,
+            -11.0
           ],
           "fieldOfView": 25.0,
           "relativeToBoxCenter": true,
@@ -1582,7 +1582,7 @@
         },
         "changes": [
           "maxwell.in: defines v_atomify_left and v_atomify_right, which Atomify 2's counter panel added",
-          "maxwell.qml: camera turned right side up and moved back to show both chambers from the side"
+          "maxwell.qml: camera turned right side up and moved around to an angle, so the wall between the chambers is seen as a pane and not edge-on"
         ]
       },
       "imageUrl": "granular/maxwell/maxwell.jpg"
@@ -2060,7 +2060,8 @@
             "series": "Temperature"
           }
         ]
-      }
+      },
+      "imageUrl": "new/droplet_splash/droplet_splash.jpg"
     }
   ],
   "atomifyMetalSections": [

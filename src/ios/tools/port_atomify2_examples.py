@@ -120,7 +120,7 @@ CAMERA_FIXES = {
     "gas_hydrates": ({"position": [0.0, 0.0, 72.0]}, "camera moved back 2.4x so the whole crystal is in view"),
     "patterns": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
     "patterns_final": ({"position": [0.0, 0.0, 100.0]}, "camera moved back 2x so the whole system is in view"),
-    "maxwell": ({"position": [-28.0, 0.0, -14.0], "target": [0.0, 0.0, -18.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved back to show both chambers from the side"),
+    "maxwell": ({"position": [-26.0, -24.0, -11.0], "target": [0.0, 0.0, -18.0], "up": [0.0, 0.0, 1.0]}, "camera turned right side up and moved around to an angle, so the wall between the chambers is seen as a pane and not edge-on"),
     "betacristobalite": ({"position": [40.0, 30.0, 78.0]}, "camera moved back 1.7x and turned off the crystal axis so the tetrahedra are not seen end-on"),
     "generate_nanoporous": ({"position": [99.0, -46.5, 127.5]}, "camera moved back 1.5x so the whole system is in view"),
 }
