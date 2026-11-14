@@ -172,6 +172,61 @@
           }
         ]
       }
+    },
+    {
+      "id": "cluster_impact",
+      "folder": "new",
+      "section": "reactions-and-explosions",
+      "title": "Cluster impact",
+      "description": "A cluster of 177 atoms hits a crystal surface at high speed. The impact heats a spot far above melting, throws atoms out and leaves a crater, and the heat spreads through the crystal. Atoms are colored by kinetic energy.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 2,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            4
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            -42.0,
+            8.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -4.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
+        ]
+      }
     }
   ]
 }
