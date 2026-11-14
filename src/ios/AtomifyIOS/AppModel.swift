@@ -73,8 +73,9 @@ final class AppModel {
         }
         self.catalog = catalog
         self.catalogError = catalogError
-        sections = ExampleSections.sections(for: catalog.examples,
-                                            definitions: catalog.sections ?? ExampleSections.curated)
+        sections = ExampleSections.sections(
+            for: catalog.examples,
+            definitions: catalog.sections ?? ExampleSections.curated)
         // Play the examples at Atomify 2's pace, `#/speed` lines included.
         session.appliesScriptSpeed = true
     }
@@ -92,8 +93,10 @@ final class AppModel {
 
     /// Starts the first example, once: the app opens on a running simulation.
     /// With the capture argument it opens that example with a bare view.
-    func start(captureID: String? = UserDefaults.standard.string(forKey: AppModel.captureArgument),
-               screen: String? = UserDefaults.standard.string(forKey: AppModel.screenArgument)) {
+    func start(
+        captureID: String? = UserDefaults.standard.string(forKey: AppModel.captureArgument),
+        screen: String? = UserDefaults.standard.string(forKey: AppModel.screenArgument)
+    ) {
         guard session.title == nil else { return }
         if let captureID, let example = catalog.example(id: captureID) {
             showsWelcome = false
@@ -114,6 +117,9 @@ final class AppModel {
         guard let screen else { return }
         showsWelcome = false
         if screen == "gallery" {
+            showsGallery = true
+        } else if screen == "settings" {
+            galleryPath = [.settings]
             showsGallery = true
         } else if screen.hasPrefix("detail:"), let example = catalog.example(id: String(screen.dropFirst(7))) {
             galleryPath = [.detail(example)]

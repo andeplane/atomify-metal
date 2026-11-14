@@ -75,11 +75,8 @@ def main():
     manifest = []
     for i, (example, title, subtitle, panel, wait) in enumerate(SHOTS, 1):
         run("xcrun", "simctl", "terminate", args.device, args.bundle, check=False)
-        # Explicitly reset the capture keys on every launch.
         launch = ["xcrun", "simctl", "launch", args.device, args.bundle,
-                  "-AtomifyCapture", "", "-AtomifyShowcase", example,
-                  "-AtomifyPanel", panel if panel != "gallery" else "",
-                  "-AtomifyGallery", "YES" if panel == "gallery" else "NO"]
+                  "-AtomifyCapture", example, "-AtomifyScreen", panel or "play"]
         run(*launch)
         time.sleep(wait)
         name = f"{i:02d}-{example}"

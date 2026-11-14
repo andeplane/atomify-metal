@@ -23,10 +23,13 @@ struct SettingsView: View {
 
             Form {
                 Section {
-                    Picker("Playback speed", selection: Binding(
-                        get: { SpeedMenu.choices.firstIndex { $0.factor == model.session.speedFactor } ?? 2 },
-                        set: { model.session.speedFactor = SpeedMenu.choices[$0].factor }
-                    )) {
+                    Picker(
+                        "Playback speed",
+                        selection: Binding(
+                            get: { SpeedMenu.choices.firstIndex { $0.factor == model.session.speedFactor } ?? 2 },
+                            set: { model.session.speedFactor = SpeedMenu.choices[$0].factor }
+                        )
+                    ) {
                         ForEach(SpeedMenu.choices.indices, id: \.self) { index in
                             Text(SpeedMenu.choices[index].label).tag(index)
                         }
@@ -93,14 +96,16 @@ private struct AboutColumn: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            Text("""
+            Text(
+                """
                 Atomify simulates atoms and molecules with LAMMPS, the molecular dynamics code from \
                 Sandia National Laboratories, and draws them with Metal. The examples come from \
                 Atomify 2 by Anders Hafreager and Svenn-Arne Dragly at the University of Oslo.
-                """)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                """
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 8) {
                 Link(destination: URL(string: "https://www.lammps.org")!) {
                     Text("LAMMPS \(Image(systemName: "arrow.up.right"))")
@@ -108,7 +113,10 @@ private struct AboutColumn: View {
                 Link(destination: URL(string: "https://github.com/andeplane/atomify-metal")!) {
                     Text("Atomify on GitHub \(Image(systemName: "arrow.up.right"))")
                 }
-                Link(destination: URL(string: "https://github.com/andeplane/atomify-metal/blob/main/docs/app-store/privacy.md")!) {
+                Link(
+                    destination: URL(
+                        string: "https://github.com/andeplane/atomify-metal/blob/main/docs/app-store/privacy.md")!
+                ) {
                     Text("Privacy Policy \(Image(systemName: "arrow.up.right"))")
                 }
             }
@@ -121,18 +129,21 @@ private struct AboutColumn: View {
 struct AcknowledgementsView: View {
     var body: some View {
         List {
-            entry("LAMMPS",
-                  "Large-scale Atomic/Molecular Massively Parallel Simulator, Sandia National Laboratories. "
-                  + "GNU General Public License, version 2.",
-                  link: "https://www.lammps.org")
-            entry("Atomify 2",
-                  "The examples, their descriptions, cameras and dashboards, by Anders Hafreager and "
-                  + "Svenn-Arne Dragly, University of Oslo. GNU General Public License, version 3.",
-                  link: "https://github.com/ovilab/atomify")
-            entry("Potentials",
-                  "The examples' force fields (ReaxFF, Tersoff, Vashishta, SW and others) come from the "
-                  + "LAMMPS potentials folder and the papers cited in each file.",
-                  link: nil)
+            entry(
+                "LAMMPS",
+                "Large-scale Atomic/Molecular Massively Parallel Simulator, Sandia National Laboratories. "
+                    + "GNU General Public License, version 2.",
+                link: "https://www.lammps.org")
+            entry(
+                "Atomify 2",
+                "The examples, their descriptions, cameras and dashboards, by Anders Hafreager and "
+                    + "Svenn-Arne Dragly, University of Oslo. GNU General Public License, version 3.",
+                link: "https://github.com/ovilab/atomify")
+            entry(
+                "Potentials",
+                "The examples' force fields (ReaxFF, Tersoff, Vashishta, SW and others) come from the "
+                    + "LAMMPS potentials folder and the papers cited in each file.",
+                link: nil)
         }
         .navigationTitle("Acknowledgements")
         .navigationBarTitleDisplayMode(.inline)

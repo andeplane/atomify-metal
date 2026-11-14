@@ -23,12 +23,12 @@ Use the production override explicitly for a release:
 xcodebuild -project src/ios/Atomify.xcodeproj -scheme Atomify \
   -configuration Release -destination 'generic/platform=iOS' \
   -derivedDataPath build/ios \
-  -archivePath build/app-store/5.0/Atomify-final.xcarchive \
+  -archivePath build/app-store/5.0/Atomify-5.0-1.xcarchive \
   -xcconfig src/ios/Config/AppStore.xcconfig \
   -allowProvisioningUpdates archive
 
 xcodebuild -exportArchive \
-  -archivePath build/app-store/5.0/Atomify-final.xcarchive \
+  -archivePath build/app-store/5.0/Atomify-5.0-1.xcarchive \
   -exportPath build/app-store/5.0/export \
   -exportOptionsPlist src/ios/Config/ExportOptions-AppStore.plist \
   -allowProvisioningUpdates
@@ -71,15 +71,18 @@ python3 src/ios/tools/build_app_preview.py build/app-store/5.0/iphone
 python3 src/ios/tools/build_app_preview.py build/app-store/5.0/ipad --ipad
 ```
 
-`-AtomifyShowcase <example id>` opens the real interface without the welcome;
-`-AtomifyPanel dashboard` opens the live dashboard and `-AtomifyGallery YES`
-opens the library. Normal launches retain their existing behavior.
+`-AtomifyCapture <example id> -AtomifyScreen play` opens the real interface
+without the welcome; use `-AtomifyScreen dashboard` for the live dashboard,
+`-AtomifyScreen gallery` for the library, or `-AtomifyScreen settings` for
+release QA. Normal launches retain their existing behavior.
 
 ## Validation and outstanding steps
 
 - Release simulator build and production-identity archive passed.
 - `swift test --enable-code-coverage --jobs 2` passed: 122 XCTest tests and
-  300 Swift Testing tests, 422 total, with no failures.
+  313 Swift Testing tests, 435 total, with no failures.
+- All 34 bundled iOS simulations passed `atomify-check-examples --examples
+  src/ios/Examples --steps 100 --timeout 120` with no failures or skips.
 - Both home Macs timed out over SSH before remote execution. The package
   checks ran locally with two build jobs; simulator and signing checks use
   the local Apple SDKs.
