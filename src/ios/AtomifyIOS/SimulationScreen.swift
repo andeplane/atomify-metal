@@ -164,6 +164,12 @@ struct SimulationChrome: View {
             SelectedAtomCard(model: model, session: session, maxWidth: atomCardMaxWidth)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+            // An example's small live chart, while no atom card needs the corner.
+            if let chart = session.miniChart, !atomShown {
+                MiniChart(chart: chart, data: session.dashboardData)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .transition(.opacity)
+            }
             // Above the card, which never reaches it.
             TimeRail(session: session)
                 .offset(x: timeRailShift)

@@ -1804,9 +1804,86 @@
               "xRange": "1000"
             }
           }
+        ],
+        "effects": [
+          {
+            "kind": "chart",
+            "series": "Temperature"
+          }
         ]
       },
       "imageUrl": "reaxff/h2_explosion/h2_explosion.jpg"
+    },
+    {
+      "id": "surface_diffusion",
+      "title": "Atoms hopping on a surface",
+      "description": "Six extra atoms sit on a crystal surface. The warm surface shakes them, and every so often one jumps to the next hollow between the atoms below. Their paths are drawn as orange lines.",
+      "inputScript": "surface_diffusion.in",
+      "files": [
+        {
+          "fileName": "surface_diffusion.in",
+          "url": "new/surface_diffusion/surface_diffusion.in"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 10,
+        "camera": {
+          "position": [
+            0.0,
+            -22.0,
+            30.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            -2.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "tracers",
+            "type": 2,
+            "color": [
+              1.0,
+              0.48,
+              0.1
+            ],
+            "scale": 1.35
+          },
+          {
+            "kind": "trails",
+            "type": 2,
+            "color": [
+              1.0,
+              0.55,
+              0.15
+            ],
+            "length": 400,
+            "width": 3,
+            "every": 3
+          }
+        ]
+      },
+      "imageUrl": "new/surface_diffusion/surface_diffusion.jpg"
     }
   ],
   "atomifyMetalSections": [
@@ -1847,7 +1924,8 @@
       "title": "Diffusion",
       "exampleIDs": [
         "simple_diffusion",
-        "diffusion_coefficient"
+        "diffusion_coefficient",
+        "surface_diffusion"
       ]
     },
     {
