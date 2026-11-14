@@ -27,17 +27,22 @@ xcodebuild -project src/ios/Atomify.xcodeproj -scheme Atomify \
   -xcconfig src/ios/Config/AppStore.xcconfig \
   -allowProvisioningUpdates archive
 
-xcodebuild -exportArchive \
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin xcodebuild -exportArchive \
   -archivePath build/app-store/5.0/Atomify-5.0-1.xcarchive \
   -exportPath build/app-store/5.0/export \
   -exportOptionsPlist src/ios/Config/ExportOptions-AppStore.plist \
   -allowProvisioningUpdates
 ```
 
+Put Apple's system tools first in PATH for export. Xcode invokes `/usr/bin/rsync`,
+but its child process otherwise finds Homebrew rsync and fails with
+`--extended-attributes: unknown option`. This is an export-process override,
+not a change to the system installation.
+
 An archive succeeding is not an App Store upload. Verify export, upload,
 Apple processing and selected build separately. The first export reported
-`No Accounts` and no App Store profile; the Apple account in Xcode needs a
-fresh sign-in. No credentials belong in this repository.
+`No Accounts` and no App Store profile; refreshing the Apple account in Xcode
+resolved authentication. Export and upload subsequently succeeded. No credentials belong in this repository.
 
 ## Store media
 
@@ -98,7 +103,14 @@ release QA. Normal launches retain their existing behavior.
 - App Store Connect 5.0 draft, refreshed description, release notes,
   keywords, support URL and review instructions are saved. Both required
   screenshot sets and previews have been uploaded and shown in the UI.
-- Finish App Store signing/export and upload after Xcode authentication,
-  wait for Apple processing, select the processed build, and resolve any
-  remaining validation before submission. Record actual submission status;
-  preparation is not approval or publication.
+- PR [#58](https://github.com/andeplane/atomify-metal/pull/58) merged as
+  `c3a182f3ea0f8e70751ac6d34378c2a5ad5aaf49`.
+- Signed App Store export and upload succeeded November 14, 2026 at 17:26
+  Europe/Oslo. Build 5.0 (1) became selectable after Apple processing.
+- The privacy policy is publicly accessible (HTTP 200). The no-data-collection
+  responses are saved. Apple's final privacy accuracy/update declaration is
+  awaiting the user's requested confirmation before publication.
+- The updated age questionnaire calculates 4+; there are no loot boxes,
+  advertising, social features, health advice or mature content.
+- Resolve final validation and record actual submission status; preparation
+  and successful upload are not review approval or public release.
