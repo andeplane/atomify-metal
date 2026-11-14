@@ -10,3 +10,5 @@ xcuserdata/
 src/ios/*.xcodeproj/
 src/ios/Config/Local.xcconfig
 __pycache__/
+src/macos/Atomify/*.xcodeproj/
+src/macos/Atomify/Config/Local.xcconfig

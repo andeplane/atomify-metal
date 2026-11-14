@@ -1,0 +1,12 @@
+// Identity and signing for the Atomify Mac app.
+//
+// The default builds a development app signed to run locally. Put your own
+// values in Local.xcconfig (git-ignored), or pass them to xcodebuild:
+//   xcodebuild ... ATOMIFY_BUNDLE_ID=com.example.atomify DEVELOPMENT_TEAM=ABCDE12345
+
+ATOMIFY_BUNDLE_ID = no.uio.atomify.mac.dev
+DEVELOPMENT_TEAM =
+CODE_SIGN_IDENTITY = -
+CODE_SIGN_STYLE = Manual
+
+#include? "Local.xcconfig"

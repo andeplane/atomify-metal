@@ -54,12 +54,14 @@ struct ExampleDetail: View {
         .navigationTitle(example.title)
         .inlineNavigationTitle()
         .toolbar {
+            #if os(iOS)
             // The trailing pane shows the title; keep the bar clear.
             ToolbarItem(placement: .principal) {
                 Color.clear
                     .frame(width: 1, height: 1)
                     .accessibilityHidden(true)
             }
+            #endif
             ToolbarItemGroup(placement: .barTrailing) {
                 if isLoaded {
                     Button {
@@ -77,6 +79,7 @@ struct ExampleDetail: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.capsule)
+                    .defaultActionLabel()
                 } else {
                     Button {
                         model.run(example)
@@ -85,6 +88,7 @@ struct ExampleDetail: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.capsule)
+                    .defaultActionLabel()
                 }
             }
         }
@@ -230,6 +234,7 @@ struct ExampleFilesView: View {
                 }
             }
         }
+        .readingColumn()
         .navigationTitle("Files")
         .inlineNavigationTitle()
     }
