@@ -34,7 +34,7 @@ struct InfoPanel: View {
             }
         }
         .padding(.top, 4)
-        .fullScreenCover(isPresented: $showsScript) {
+        .fullWindowCover(isPresented: $showsScript) {
             if let example = session.example {
                 NavigationStack {
                     ScriptView(model: model, example: example)

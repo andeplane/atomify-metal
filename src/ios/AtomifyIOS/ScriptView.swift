@@ -35,10 +35,10 @@ struct ScriptView: View {
             }
         }
         .navigationTitle(example.inputScript)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .toolbar {
             if let url, !failed {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .barTrailing) {
                     ShareLink(item: url)
                 }
             }

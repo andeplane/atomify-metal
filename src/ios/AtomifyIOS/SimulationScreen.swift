@@ -47,7 +47,7 @@ struct SimulationScreen: View {
         .background(Color.canvas)
         .readsLayoutMetrics()
         .preferredColorScheme(.dark)
-        .persistentSystemOverlays(model.chromeHidden ? .hidden : .automatic)
+        .systemOverlaysHidden(model.chromeHidden)
     }
 }
 
