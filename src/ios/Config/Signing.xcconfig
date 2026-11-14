@@ -6,6 +6,7 @@
 //   xcodebuild ... DEVELOPMENT_TEAM=ABCDE12345 ATOMIFY_BUNDLE_ID=com.example.atomify
 
 ATOMIFY_BUNDLE_ID = no.uio.atomify.dev
+ATOMIFY_SOURCE_REVISION = development
 DEVELOPMENT_TEAM =
 
 #include? "Local.xcconfig"

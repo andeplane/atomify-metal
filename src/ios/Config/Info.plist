@@ -3,6 +3,9 @@
 <!-- Keys Xcode has no INFOPLIST_KEY_ setting for; merged with the generated Info.plist. -->
 <plist version="1.0">
 <dict>
+	<!-- Records the exact source used for an App Store archive. -->
+	<key>AtomifySourceRevision</key>
+	<string>$(ATOMIFY_SOURCE_REVISION)</string>
 	<!-- Lets the particle view draw at 120 Hz on ProMotion iPhones. -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
