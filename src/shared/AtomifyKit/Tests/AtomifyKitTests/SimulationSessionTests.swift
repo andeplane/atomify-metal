@@ -255,6 +255,36 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
         session.stop()
     }
 
+    @Test(.timeLimit(.minutes(1))) func anExampleCanColorItsAtomsFromTheStart() async throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let plain = try #require(catalog.example(id: "lj"))
+        var hot = plain
+        hot.id = "lj-hot"
+        hot.atomifyMetal = ExampleOptions(color: ExampleColoring(quantity: "c_ke", colormap: "inferno", range: [0, 4]))
+        let session = SimulationSession()
+        session.maxStepsPerSecond = 2000
+        session.load(hot, from: catalog)
+        #expect(session.colorQuantity == "c_ke")
+        #expect(session.colormap == .inferno)
+        #expect(session.customColorRange == 0...4)
+        try await waitUntil("per-atom colors") {
+            if case .perAtom(let quantity, let colormap, let range) = session.colorMode {
+                return quantity == "c_ke" && colormap == .inferno && range == 0...4 && session.scene != nil
+            }
+            return false
+        }
+
+        // A restart of the same example keeps what the user changed ...
+        session.colormap = .plasma
+        session.restart()
+        #expect(session.colormap == .plasma)
+        // ... and another example starts with its own coloring: by type here.
+        session.load(plain, from: catalog)
+        #expect(session.colorQuantity == nil)
+        #expect(session.customColorRange == nil)
+        session.stop()
+    }
+
     @Test(.timeLimit(.minutes(1))) func dashboardPanelsMeasureAndControl() async throws {
         let fixtures = try fixturesDirectory()
         let panels = [

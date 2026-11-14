@@ -125,6 +125,12 @@ COLOR_SHADERS = {
     "customColor.b *= (1.0 - yPosScaled); customColor.g *= 0.3;":
         {"axis": 1, "from": -8.0, "to": 8.0, "low": [0.0, 0.3, 1.0], "high": [1.0, 0.3, 0.0]},
 }
+# Examples this app adds to Atomify 2's: tools/new-examples/catalog.json lists
+# them (title, description, section, camera, dashboard, speed) and
+# tools/new-examples/<id>/ holds their files. They come after the Atomify 2
+# examples of their section; a section that does not exist yet is created
+# where the catalog says.
+NEW_EXAMPLES = pathlib.Path(__file__).resolve().parent / "new-examples"
 # Spelling mistakes in the original titles.
 TITLE_FIXES = {"Hydrocarbon oxcidation": "Hydrocarbon oxidation"}
 
@@ -231,6 +237,40 @@ def sections_from(main_qml: str):
     return sections
 
 
+def add_new_examples(output, examples, section_entries):
+    """Adds the examples of tools/new-examples/catalog.json to `examples` and
+    their sections, and copies their files (and thumbnails) into `output`."""
+    catalog = json.loads((NEW_EXAMPLES / "catalog.json").read_text())
+    for section in catalog.get("sections", []):
+        if all(entry["id"] != section["id"] for entry in section_entries):
+            after = section.get("after")
+            index = next((i + 1 for i, entry in enumerate(section_entries) if entry["id"] == after),
+                         len(section_entries))
+            section_entries.insert(index, {"id": section["id"], "title": section["title"], "exampleIDs": []})
+    for entry in catalog["examples"]:
+        identifier = entry["id"]
+        source = NEW_EXAMPLES / identifier
+        folder = f"{entry.get('folder', 'new')}/{identifier}"
+        target = output / folder
+        target.mkdir(parents=True)
+        files = []
+        for path in sorted(source.iterdir()):
+            if not path.is_file():
+                continue
+            shutil.copyfile(path, target / path.name)
+            files.append({"fileName": path.name, "url": f"{folder}/{path.name}"})
+        example = {"id": identifier, "title": entry["title"], "description": entry["description"],
+                   "inputScript": f"{identifier}.in", "files": files, "atomifyMetal": entry["atomifyMetal"]}
+        if "keywords" in entry:
+            example["keywords"] = entry["keywords"]
+        thumbnail = THUMBNAILS / f"{identifier}.jpg"
+        if thumbnail.exists():
+            shutil.copyfile(thumbnail, target / thumbnail.name)
+            example["imageUrl"] = f"{folder}/{thumbnail.name}"
+        examples.append(example)
+        next(section for section in section_entries if section["id"] == entry["section"])["exampleIDs"].append(identifier)
+
+
 def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
@@ -324,6 +364,8 @@ def main():
             examples.append(example)
         section_id = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
         section_entries.append({"id": section_id, "title": title, "exampleIDs": ids})
+
+    add_new_examples(output, examples, section_entries)
 
     (output / "potentialparameters").mkdir()
     for name in sorted(potentials_used):

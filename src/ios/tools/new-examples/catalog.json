@@ -1,0 +1,21 @@
+{
+  "sections": [
+    {"id": "reactions-and-explosions", "title": "Reactions and explosions", "after": "lammps-examples"}
+  ],
+  "examples": [
+    {
+      "id": "h2_explosion",
+      "folder": "reaxff",
+      "section": "reactions-and-explosions",
+      "title": "Hydrogen explosion",
+      "description": "Hydrogen and oxygen gas, simulated with ReaxFF so bonds break and form as the molecules collide. The gas is hot enough to ignite: hydrogen and oxygen react into water, and the energy the new bonds release heats the gas up further.",
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 6,
+        "color": {"quantity": "c_ke", "colormap": "inferno", "range": [0, 30]},
+        "camera": {"position": [0.0, 0.0, 34.0], "fieldOfView": 25.0, "relativeToBoxCenter": true, "up": [0.0, 1.0, 0.0]},
+        "dashboard": [{"kind": "summary"}, {"kind": "thermometer", "parameters": {"xLabel": "Time [fs]", "xRange": "1000"}}]
+      }
+    }
+  ]
+}

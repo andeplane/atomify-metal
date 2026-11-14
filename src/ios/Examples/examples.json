@@ -1729,6 +1729,77 @@
         ]
       },
       "imageUrl": "silica/generate_nanoporous/generate_nanoporous.jpg"
+    },
+    {
+      "id": "h2_explosion",
+      "title": "Hydrogen explosion",
+      "description": "Hydrogen and oxygen gas, simulated with ReaxFF so bonds break and form as the molecules collide. The gas is hot enough to ignite: hydrogen and oxygen react into water, and the energy the new bonds release heats the gas up further.",
+      "inputScript": "h2_explosion.in",
+      "files": [
+        {
+          "fileName": "ffield.reax.cho",
+          "url": "reaxff/h2_explosion/ffield.reax.cho"
+        },
+        {
+          "fileName": "h2_explosion.in",
+          "url": "reaxff/h2_explosion/h2_explosion.in"
+        },
+        {
+          "fileName": "lmp_control",
+          "url": "reaxff/h2_explosion/lmp_control"
+        },
+        {
+          "fileName": "mol.H2",
+          "url": "reaxff/h2_explosion/mol.H2"
+        },
+        {
+          "fileName": "mol.O2",
+          "url": "reaxff/h2_explosion/mol.O2"
+        },
+        {
+          "fileName": "param.qeq",
+          "url": "reaxff/h2_explosion/param.qeq"
+        }
+      ],
+      "atomifyMetal": {
+        "dialect": "atomify2",
+        "stepsPerFrame": 6,
+        "color": {
+          "quantity": "c_ke",
+          "colormap": "inferno",
+          "range": [
+            0,
+            30
+          ]
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            34.0
+          ],
+          "fieldOfView": 25.0,
+          "relativeToBoxCenter": true,
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "dashboard": [
+          {
+            "kind": "summary"
+          },
+          {
+            "kind": "thermometer",
+            "parameters": {
+              "xLabel": "Time [fs]",
+              "xRange": "1000"
+            }
+          }
+        ]
+      },
+      "imageUrl": "reaxff/h2_explosion/h2_explosion.jpg"
     }
   ],
   "atomifyMetalSections": [
@@ -1742,6 +1813,13 @@
         "flow_pois",
         "friction",
         "obstacle"
+      ]
+    },
+    {
+      "id": "reactions-and-explosions",
+      "title": "Reactions and explosions",
+      "exampleIDs": [
+        "h2_explosion"
       ]
     },
     {

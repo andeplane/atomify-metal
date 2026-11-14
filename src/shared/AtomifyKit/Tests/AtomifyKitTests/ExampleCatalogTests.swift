@@ -208,3 +208,24 @@ func scratchDirectory() throws -> URL {
         #expect(ScriptPreparation.prepare("") == "")
     }
 }
+
+@Suite struct ExampleColoringTests {
+    @Test func decodesAColoringUnderAtomifyMetal() throws {
+        let json = """
+        {"examples":[{"id":"a","title":"A","description":"d","inputScript":"a.in","files":[],
+        "atomifyMetal":{"color":{"quantity":"c_ke","colormap":"inferno","range":[0,30]}}}]}
+        """
+        let catalog = try ExampleCatalog.decode(Data(json.utf8), directory: URL(fileURLWithPath: "/tmp"))
+        let color = try #require(catalog.example(id: "a")?.atomifyMetal?.color)
+        #expect(color == ExampleColoring(quantity: "c_ke", colormap: "inferno", range: [0, 30]))
+        #expect(color.colorRange == 0...30)
+    }
+
+    @Test func ignoresARangeThatIsNotTwoOrderedNumbers() {
+        #expect(ExampleColoring(quantity: "speed").colorRange == nil)
+        #expect(ExampleColoring(quantity: "speed", range: [1]).colorRange == nil)
+        #expect(ExampleColoring(quantity: "speed", range: [5, 5]).colorRange == nil)
+        #expect(ExampleColoring(quantity: "speed", range: [9, 1]).colorRange == nil)
+        #expect(ExampleColoring(quantity: "speed", range: [0, .infinity]).colorRange == nil)
+    }
+}

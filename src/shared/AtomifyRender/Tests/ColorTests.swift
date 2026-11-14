@@ -34,6 +34,8 @@ final class ColorTests: XCTestCase {
         XCTAssertLessThan(simd_length(Colormap.viridis.color(at: 1) - hexLinear(0xFDE725)), 1e-5)
         XCTAssertLessThan(simd_length(Colormap.plasma.color(at: 0) - hexLinear(0x0D0887)), 1e-5)
         XCTAssertLessThan(simd_length(Colormap.plasma.color(at: 1) - hexLinear(0xF0F921)), 1e-5)
+        XCTAssertLessThan(simd_length(Colormap.inferno.color(at: 0) - hexLinear(0x000004)), 1e-5)
+        XCTAssertLessThan(simd_length(Colormap.inferno.color(at: 1) - hexLinear(0xFCFFA4)), 1e-5)
         XCTAssertEqual(Colormap.grayscale.color(at: 0), SIMD4(0, 0, 0, 1))
         XCTAssertEqual(Colormap.grayscale.color(at: 1), SIMD4(1, 1, 1, 1))
         XCTAssertLessThan(simd_length(Colormap.coolwarm.srgbColor(at: 0.5) - SIMD3(repeating: 221.0 / 255)), 1e-5)

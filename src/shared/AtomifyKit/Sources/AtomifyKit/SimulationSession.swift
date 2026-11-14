@@ -463,6 +463,7 @@ public final class SimulationSession {
         stop()
         self.launch = launch
         resetForNewRun(keepingPlots: Self.isSame(launch, previous))
+        if !Self.isSame(launch, previous) { applyExampleColoring(of: launch) }
         var copiedFolder: URL?
         do {
             let prepared: (folder: URL, script: URL)
@@ -517,6 +518,21 @@ public final class SimulationSession {
         case (.script(let a, _), .script(let b, _)?): a == b
         default: false
         }
+    }
+
+    /// A new example's own coloring (see `ExampleOptions.color`), or the
+    /// color-by-type default.
+    private func applyExampleColoring(of launch: Launch) {
+        guard case .example(let example, _) = launch, let color = example.atomifyMetal?.color else {
+            if case .example = launch {
+                storedColorQuantity = nil
+                storedCustomRange = nil
+            }
+            return
+        }
+        storedColorQuantity = color.quantity
+        storedColormap = color.colormap.flatMap(Colormap.init(rawValue:)) ?? .viridis
+        storedCustomRange = color.colorRange
     }
 
     private func resetForNewRun(keepingPlots: Bool) {
