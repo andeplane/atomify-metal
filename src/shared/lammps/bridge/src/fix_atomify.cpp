@@ -609,11 +609,15 @@ void FixAtomify::after_step(bool minimizing)
   // requested for, where energy and virial were tallied.
   const bool sample = sample_pending && update->ntimestep >= sample_step;
   if (sample) sample_pending = false;
-  if (sample || seconds(now - shared->last_publish) >= shared->publish_interval)
+  bool published = false;
+  if (sample || seconds(now - shared->last_publish) >= shared->publish_interval) {
     publish(minimizing, sample);
+    published = true;
+  }
   if (!sample_pending && seconds(now - last_sample) >= observable_interval) request_sample();
 
   double max_rate;
+  bool paced, out_of_steps = false;
   {
     std::unique_lock<std::mutex> lock(shared->control_mutex);
     if (shared->paused && !wants_interrupt()) {
@@ -624,6 +628,23 @@ void FixAtomify::after_step(bool minimizing)
       shared->last_step = Clock::now();
     }
     max_rate = shared->max_steps_per_second;
+    paced = shared->frame_paced;
+    if (paced) {
+      shared->step_budget = std::max(shared->step_budget - 1.0, 0.0);
+      out_of_steps = shared->step_budget < 1.0;
+    }
+  }
+  check_cancelled();
+
+  // Frame pacing: show where the grant ended, then wait for the next one.
+  if (out_of_steps && !wants_interrupt()) {
+    if (!published) publish(minimizing, false);
+    std::unique_lock<std::mutex> lock(shared->control_mutex);
+    shared->control_cv.wait(lock, [this] {
+      return !shared->frame_paced || shared->step_budget >= 1.0 || shared->cancelled.load() ||
+          wants_interrupt();
+    });
+    shared->last_step = Clock::now();
   }
   check_cancelled();
 
@@ -635,7 +656,7 @@ void FixAtomify::after_step(bool minimizing)
     return;
   }
 
-  if (max_rate > 0.0) {
+  if (max_rate > 0.0 && !paced) {
     const auto next = shared->last_step +
         std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(1.0 / max_rate));
     const auto current = Clock::now();

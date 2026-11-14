@@ -526,6 +526,60 @@ void test_throttle()
   atomify_sim_destroy(sim);
 }
 
+// Frame pacing: each grant of N steps advances the run by exactly N steps and
+// publishes where it ended; without grants the run waits.
+void test_frame_pacing()
+{
+  atomify_sim *sim = atomify_sim_create(0);
+  CHECK(run(sim, lj_melt));
+  atomify_sim_set_publish_interval(sim, 10);    // only the pacing publishes
+  atomify_sim_set_frame_paced(sim, 1);
+  const int64_t start = copy(sim).timestep;
+  std::atomic<int> status{-1};
+  std::thread worker([&] { status = atomify_sim_command(sim, "run 100000000"); });
+
+  auto settle = [&] {
+    // The run is waiting once the timestep stops changing.
+    int64_t last = -1;
+    for (int i = 0; i < 300; i++) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      const int64_t now = copy(sim).timestep;
+      if (now == last && now >= 0) return now;
+      last = now;
+    }
+    return int64_t(-1);
+  };
+  const int64_t waiting = settle();
+  CHECK(waiting >= start && waiting <= start + 1);    // the first step runs ungranted
+  atomify_sim_grant_steps(sim, 5, 10);
+  CHECK(settle() == waiting + 5);
+  atomify_sim_grant_steps(sim, 0.5, 10);              // fractions add up
+  CHECK(settle() == waiting + 5);
+  atomify_sim_grant_steps(sim, 0.5, 10);
+  CHECK(settle() == waiting + 6);
+  atomify_sim_grant_steps(sim, 1000, 3);              // capped
+  CHECK(settle() == waiting + 9);
+
+  // Commands queued while it waits still run.
+  atomify_sim_enqueue_command(sim, "velocity all scale 1.0");
+  for (int i = 0; i < 100 && atomify_sim_queued_command_count(sim) > 0; i++)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  CHECK(atomify_sim_queued_command_count(sim) == 0);
+
+  atomify_sim_set_frame_paced(sim, 0);                // unpaced runs on
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  atomify_sim_set_publish_interval(sim, 0);
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  CHECK(copy(sim).timestep > waiting + 20);
+
+  atomify_sim_set_frame_paced(sim, 1);
+  settle();
+  atomify_sim_cancel(sim);                            // must wake a waiting run
+  worker.join();
+  CHECK(status == ATOMIFY_CANCELLED);
+  atomify_sim_destroy(sim);
+}
+
 void test_errors_are_reported()
 {
   atomify_sim *sim = atomify_sim_create(0);
@@ -1223,6 +1277,7 @@ int main()
   test_freeze_holds_atoms_and_reports_grab_force();
   test_wall_grid_repels_atoms();
   test_throttle();
+  test_frame_pacing();
   test_errors_are_reported();
   test_error_input_line();
   test_run_status();

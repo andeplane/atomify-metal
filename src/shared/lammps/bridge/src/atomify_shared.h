@@ -118,6 +118,10 @@ struct AtomifyShared {
   std::atomic<int64_t> progress_ns{0};
   std::chrono::steady_clock::time_point interaction_updated{};
   double max_steps_per_second = 0.0;
+  // Frame pacing: the run takes only granted timesteps (see
+  // atomify_sim_grant_steps) and waits for more when they run out.
+  bool frame_paced = false;
+  double step_budget = 0.0;
   double publish_interval = 1.0 / 90.0;
   double observable_interval = 0.05;
 
