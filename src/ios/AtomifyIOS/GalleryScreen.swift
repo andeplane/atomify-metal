@@ -1,6 +1,5 @@
 import AtomifyKit
 import SwiftUI
-import UIKit
 
 /// Where a tap in the gallery leads.
 enum ExampleRoute: Hashable {
@@ -22,9 +21,9 @@ struct GalleryScreen: View {
         NavigationStack(path: $model.galleryPath) {
             GalleryContent(model: model, query: query)
                 .navigationTitle("Simulations")
-                .navigationBarTitleDisplayMode(.inline)
+                .inlineNavigationTitle()
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .barLeading) {
                         Button {
                             model.returnToSimulation()
                         } label: {
@@ -34,10 +33,10 @@ struct GalleryScreen: View {
                         }
                         .accessibilityHint("Returns to the simulation.")
                     }
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .barTrailing) {
                         GallerySearchField(text: $query)
                     }
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .barTrailing) {
                         NavigationLink(value: ExampleRoute.settings) {
                             Image(systemName: "gearshape")
                         }
@@ -108,7 +107,7 @@ private struct GallerySearchField: View {
                 .textFieldStyle(.plain)
                 .submitLabel(.search)
                 .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
+                .noAutocapitalization()
             if !text.isEmpty {
                 Button {
                     text = ""
@@ -249,7 +248,7 @@ enum ExampleText {
 struct ExampleThumbnail: View {
     let url: URL?
     var cornerRadius: CGFloat = 8
-    @State private var image: UIImage?
+    @State private var image: PlatformImage?
 
     var body: some View {
         // The picture is an overlay, so it fills the frame it is given
@@ -258,7 +257,7 @@ struct ExampleThumbnail: View {
             .fill(.quaternary)
             .overlay {
                 if let image {
-                    Image(uiImage: image)
+                    Image(platformImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 } else {
@@ -277,11 +276,11 @@ struct ExampleThumbnail: View {
 /// Thumbnails are read once and kept while memory allows.
 @MainActor
 enum ThumbnailCache {
-    private static let cache = NSCache<NSURL, UIImage>()
+    private static let cache = NSCache<NSURL, PlatformImage>()
 
-    static func image(at url: URL) -> UIImage? {
+    static func image(at url: URL) -> PlatformImage? {
         if let image = cache.object(forKey: url as NSURL) { return image }
-        guard let image = UIImage(contentsOfFile: url.path) else { return nil }
+        guard let image = PlatformImage(contentsOfFile: url.path) else { return nil }
         cache.setObject(image, forKey: url as NSURL)
         return image
     }

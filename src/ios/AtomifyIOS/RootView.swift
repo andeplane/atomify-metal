@@ -10,10 +10,12 @@ struct RootView: View {
     var body: some View {
         @Bindable var model = model
         SimulationScreen()
-            .fullScreenCover(isPresented: $model.showsGallery) {
+            .fullWindowCover(isPresented: $model.showsGallery) {
                 GalleryScreen(model: model)
                     .environment(model)
             }
+            // The Mac draws its covers (gallery, script) here, over the whole window.
+            .hostsFullWindowCovers()
             .task { model.start() }
             .onChange(of: scenePhase) { _, phase in
                 switch phase {

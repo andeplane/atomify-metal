@@ -5,7 +5,7 @@ extension View {
     @ViewBuilder
     func glass(in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.glassEffect(.regular, in: shape)
         } else {
             self.background(.ultraThinMaterial, in: shape)
@@ -20,7 +20,7 @@ extension View {
     @ViewBuilder
     func tintedGlass(_ tint: Color, in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.glassEffect(.regular.tint(tint).interactive(), in: shape)
         } else {
             self.background(tint, in: shape)
@@ -38,7 +38,7 @@ extension View {
     @ViewBuilder
     func panelBackground(in shape: some Shape) -> some View {
         #if compiler(>=6.2)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.glassEffect(.regular, in: shape)
         } else {
             self.background(.regularMaterial, in: shape)

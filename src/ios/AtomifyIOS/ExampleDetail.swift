@@ -52,7 +52,7 @@ struct ExampleDetail: View {
         .safeAreaPadding(.horizontal, metrics.margin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationTitle(example.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .toolbar {
             // The trailing pane shows the title; keep the bar clear.
             ToolbarItem(placement: .principal) {
@@ -60,7 +60,7 @@ struct ExampleDetail: View {
                     .frame(width: 1, height: 1)
                     .accessibilityHidden(true)
             }
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .barTrailing) {
                 if isLoaded {
                     Button {
                         model.restartAndShow()
@@ -231,7 +231,7 @@ struct ExampleFilesView: View {
             }
         }
         .navigationTitle("Files")
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
     }
 }
 

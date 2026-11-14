@@ -52,7 +52,7 @@ struct SettingsView: View {
             }
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
-            .listSectionSpacing(.compact)
+            .compactListSections()
             .environment(\.defaultMinListRowHeight, 42)
             .contentMargins(.top, 8, for: .scrollContent)
             .contentMargins(.bottom, 24, for: .scrollContent)
@@ -64,7 +64,7 @@ struct SettingsView: View {
         .safeAreaPadding(.horizontal, metrics.margin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationTitle("Settings")
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
     }
 
     /// The version and build number from the bundle.
@@ -146,7 +146,7 @@ struct AcknowledgementsView: View {
                 link: nil)
         }
         .navigationTitle("Acknowledgements")
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
     }
 
     private func entry(_ title: String, _ text: String, link: String?) -> some View {
