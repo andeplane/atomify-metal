@@ -105,8 +105,11 @@ private struct AboutColumn: View {
                 Link(destination: URL(string: "https://www.lammps.org")!) {
                     Text("LAMMPS \(Image(systemName: "arrow.up.right"))")
                 }
-                Link(destination: URL(string: "https://github.com/ovilab/atomify")!) {
+                Link(destination: URL(string: "https://github.com/andeplane/atomify-metal")!) {
                     Text("Atomify on GitHub \(Image(systemName: "arrow.up.right"))")
+                }
+                Link(destination: URL(string: "https://github.com/andeplane/atomify-metal/blob/main/docs/app-store/privacy.md")!) {
+                    Text("Privacy Policy \(Image(systemName: "arrow.up.right"))")
                 }
             }
             .font(.subheadline)
