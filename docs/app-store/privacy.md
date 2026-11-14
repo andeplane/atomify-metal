@@ -1,6 +1,6 @@
 # Atomify privacy policy
 
-Effective November 14, 2026. Applies to Atomify 5.0 for iPhone and iPad.
+Effective November 14, 2026. Applies to Atomify 3.0 for iPhone and iPad.
 
 Atomify runs its bundled molecular dynamics simulations on your device. It does
 not require an account and does not collect, transmit, sell or share personal

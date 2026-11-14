@@ -1,4 +1,4 @@
-# Atomify 5.0 for iPhone and iPad
+# Atomify 3.0 for iPhone and iPad
 
 Release preparation started November 14, 2026. Use the existing App Store app;
 do not create a replacement listing.
@@ -9,7 +9,7 @@ do not create a replacement listing.
 | Bundle ID | `com.compphys.atomify` |
 | Team | `4XKET6P69R` |
 | Previous published version | 2.10 |
-| Candidate | 5.0 (1), iOS 18.0 or later, iPhone and iPad, landscape |
+| Candidate | 3.0 (2), iOS 18.0 or later, iPhone and iPad, landscape |
 | App Store Connect | https://appstoreconnect.apple.com/apps/934441274/distribution/ios/version/inflight |
 | Privacy policy | https://github.com/andeplane/atomify-metal/blob/main/docs/app-store/privacy.md |
 
@@ -23,13 +23,13 @@ Use the production override explicitly for a release:
 xcodebuild -project src/ios/Atomify.xcodeproj -scheme Atomify \
   -configuration Release -destination 'generic/platform=iOS' \
   -derivedDataPath build/ios \
-  -archivePath build/app-store/5.0/Atomify-5.0-1.xcarchive \
+  -archivePath build/app-store/3.0/Atomify-3.0-2.xcarchive \
   -xcconfig src/ios/Config/AppStore.xcconfig \
   -allowProvisioningUpdates archive
 
 PATH=/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin xcodebuild -exportArchive \
-  -archivePath build/app-store/5.0/Atomify-5.0-1.xcarchive \
-  -exportPath build/app-store/5.0/export \
+  -archivePath build/app-store/3.0/Atomify-3.0-2.xcarchive \
+  -exportPath build/app-store/3.0/export \
   -exportOptionsPlist src/ios/Config/ExportOptions-AppStore.plist \
   -allowProvisioningUpdates
 ```
@@ -46,7 +46,7 @@ resolved authentication. Export and upload subsequently succeeded. No credential
 
 ## Store media
 
-Generated assets are under the ignored `build/app-store/5.0/`, never committed.
+Generated assets are under the ignored `build/app-store/3.0/`, never committed.
 Both required device classes have six screenshots and a 24-second preview.
 
 | Asset | Dimensions / format |
@@ -72,8 +72,8 @@ contains the arm64 simulator slice. Then run:
 ```sh
 python3 src/ios/tools/capture_app_store.py --device <UDID> --family iphone --video
 python3 src/ios/tools/capture_app_store.py --device <UDID> --family ipad --video
-python3 src/ios/tools/build_app_preview.py build/app-store/5.0/iphone
-python3 src/ios/tools/build_app_preview.py build/app-store/5.0/ipad --ipad
+python3 src/ios/tools/build_app_preview.py build/app-store/3.0/iphone
+python3 src/ios/tools/build_app_preview.py build/app-store/3.0/ipad --ipad
 ```
 
 `-AtomifyCapture <example id> -AtomifyScreen play` opens the real interface
@@ -100,16 +100,19 @@ release QA. Normal launches retain their existing behavior.
 - `PrivacyInfo.xcprivacy` declares no tracking or collected data and the
   app-local UserDefaults reason `CA92.1`. Settings links to the policy and
   the current source repository.
-- App Store Connect 5.0 draft, refreshed description, release notes,
+- App Store Connect 3.0 draft, refreshed description, release notes,
   keywords, support URL and review instructions are saved. Both required
   screenshot sets and previews have been uploaded and shown in the UI.
 - PR [#58](https://github.com/andeplane/atomify-metal/pull/58) merged as
   `c3a182f3ea0f8e70751ac6d34378c2a5ad5aaf49`.
-- Signed App Store export and upload succeeded November 14, 2026 at 17:26
-  Europe/Oslo. Build 5.0 (1) became selectable after Apple processing.
+- Release history verified in App Store Connect: 1.0, 1.1, 2.0, 2.01, 2.10.
+  The next major version is 3.0. The initial unsubmitted 5.0 candidate was
+  superseded; its version came from the old project configuration.
+- Corrected candidate: 3.0 (2). Archive passed; upload and selection are
+  tracked separately in the local release-state record.
 - The privacy policy is publicly accessible (HTTP 200). The no-data-collection
-  responses are saved. Apple's final privacy accuracy/update declaration is
-  awaiting the user's requested confirmation before publication.
+  responses were published after the user explicitly approved Apple's final
+  privacy accuracy/update declaration.
 - The updated age questionnaire calculates 4+; there are no loot boxes,
   advertising, social features, health advice or mature content.
 - Resolve final validation and record actual submission status; preparation

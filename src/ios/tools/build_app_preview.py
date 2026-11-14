@@ -57,7 +57,7 @@ def main():
         print(f"Edited {movie.name}", flush=True)
     listing = args.directory / "raw" / "concat.txt"
     listing.write_text("".join(f"file 'edited-{i}.mp4'\n" for i in range(3)))
-    output = args.directory / "Atomify-5.0-preview.mp4"
+    output = args.directory / "Atomify-3.0-preview.mp4"
     run("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", listing,
         "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
         "-t", "24", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", output)

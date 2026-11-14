@@ -2,7 +2,7 @@
 """Capture real iPhone/iPad UI and footage; build App Store artwork.
 
 Requires Pillow, ffmpeg, a booted landscape simulator and the Release app.
-Outputs are deliberately outside tracked source, under build/app-store/5.0.
+Outputs are deliberately outside tracked source, under build/app-store/3.0.
 """
 import argparse
 import json
@@ -66,7 +66,7 @@ def main():
     p.add_argument("--bundle", default="no.uio.atomify.dev")
     p.add_argument("--video", action="store_true")
     args = p.parse_args()
-    output = ROOT / "build/app-store/5.0" / (args.directory or args.family)
+    output = ROOT / "build/app-store/3.0" / (args.directory or args.family)
     output.mkdir(parents=True, exist_ok=True)
     raw = output / "raw"
     raw.mkdir(exist_ok=True)

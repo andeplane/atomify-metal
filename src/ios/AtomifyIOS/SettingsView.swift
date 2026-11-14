@@ -67,7 +67,7 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    /// "5.0 (1)" from the bundle.
+    /// The version and build number from the bundle.
     static var version: String {
         let info = Bundle.main.infoDictionary
         let short = info?["CFBundleShortVersionString"] as? String ?? "?"
