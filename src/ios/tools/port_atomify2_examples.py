@@ -13,7 +13,8 @@ What is copied, and how:
 - Each simulation folder (src/simulations/<group>/<id>): every file except the
   .qml metadata, unchanged, except that scripts refer to the shared potentials
   in ../../potentialparameters by file name (the app copies an example's files
-  into one folder). The thumbnail is <id>.png.
+  into one folder). Atomify 2's thumbnails are replaced by pictures the app
+  took of itself (thumbnails/<id>.jpg, from capture_thumbnails.sh).
 - From <id>.qml: name (with spelling fixes) and description (HTML turned into Markdown), the
   initial camera (position, view center, up vector; Atomify 2 drew the box
   centered on the origin and used a 25 degree field of view, which spans the
@@ -45,6 +46,8 @@ SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 FIELD_OF_VIEW = 25.0    # SimVis CameraLens default
 STEPS_PER_FRAME = 1     # AtomifySimulator.simulationSpeed in MainMobile.qml
 POTENTIALS = "../../potentialparameters/"
+# Gallery pictures taken with the app itself (tools/capture_thumbnails.sh).
+THUMBNAILS = pathlib.Path(__file__).resolve().parent / "thumbnails"
 # Style names LAMMPS has renamed since 2017, and the OPT package this build lacks.
 COMPATIBILITY = [
     (r"^(\s*pair_style\s+)reax/c\b", r"\1reaxff", "pair_style reax/c is now reaxff"),
@@ -244,7 +247,9 @@ def main():
             target.mkdir(parents=True)
             files, changes = [], []
             for path in sorted(source.iterdir()):
-                if path.suffix == ".qml" or not path.is_file():
+                # Atomify 2's thumbnail (<id>.png) is left out: the app's own
+                # pictures from THUMBNAILS replace it.
+                if path.suffix in (".qml", ".png") or not path.is_file():
                     continue
                 data = path.read_bytes()
                 relative = f"{folder}/{path.name}"
@@ -263,8 +268,7 @@ def main():
                             changes.append(f"{path.name}: {note}")
                     data = text.encode()
                 (target / path.name).write_bytes(data)
-                if path.suffix != ".png":
-                    files.append({"fileName": path.name, "url": f"{folder}/{path.name}"})
+                files.append({"fileName": path.name, "url": f"{folder}/{path.name}"})
             qml = (source / f"{identifier}.qml").read_text()
             name = html_to_markdown(qml_strings(qml, "name") or identifier)
             name = TITLE_FIXES.get(name, name)
@@ -300,8 +304,10 @@ def main():
             unique = [f for f in files if not (f["fileName"] in seen_files or seen_files.add(f["fileName"]))]
             example = {"id": identifier, "title": name, "description": description,
                        "inputScript": f"{identifier}.in", "files": unique, "atomifyMetal": options}
-            if (source / f"{identifier}.png").exists():
-                example["imageUrl"] = f"{folder}/{identifier}.png"
+            thumbnail = THUMBNAILS / f"{identifier}.jpg"
+            if thumbnail.exists():
+                shutil.copyfile(thumbnail, target / thumbnail.name)
+                example["imageUrl"] = f"{folder}/{thumbnail.name}"
             examples.append(example)
         section_id = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
         section_entries.append({"id": section_id, "title": title, "exampleIDs": ids})

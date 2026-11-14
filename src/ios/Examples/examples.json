@@ -39,7 +39,7 @@
           "lammps.qml: camera moved back 1.1x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/lammps/lammps.png"
+      "imageUrl": "lammps/lammps/lammps.jpg"
     },
     {
       "id": "crack",
@@ -92,7 +92,7 @@
           "crack.qml: camera moved back 3.2x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/crack/crack.png"
+      "imageUrl": "lammps/crack/crack.jpg"
     },
     {
       "id": "flow_couette",
@@ -132,7 +132,7 @@
           "flow_couette.qml: camera moved back 2.5x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/flow_couette/flow_couette.png"
+      "imageUrl": "lammps/flow_couette/flow_couette.jpg"
     },
     {
       "id": "flow_pois",
@@ -172,7 +172,7 @@
           "flow_pois.qml: camera moved back 2.5x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/flow_pois/flow_pois.png"
+      "imageUrl": "lammps/flow_pois/flow_pois.jpg"
     },
     {
       "id": "friction",
@@ -225,7 +225,7 @@
           "friction.qml: camera moved back 2.6x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/friction/friction.png"
+      "imageUrl": "lammps/friction/friction.jpg"
     },
     {
       "id": "obstacle",
@@ -265,7 +265,7 @@
           "obstacle.qml: camera moved back 2.3x so the whole system is in view"
         ]
       },
-      "imageUrl": "lammps/obstacle/obstacle.png"
+      "imageUrl": "lammps/obstacle/obstacle.jpg"
     },
     {
       "id": "CHO",
@@ -328,7 +328,7 @@
           "CHO.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/CHO/CHO.png"
+      "imageUrl": "reaxff/CHO/CHO.jpg"
     },
     {
       "id": "ssz_13",
@@ -385,7 +385,7 @@
           "ssz_13.qml: camera moved back 1.3x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/ssz_13/ssz_13.png"
+      "imageUrl": "reaxff/ssz_13/ssz_13.jpg"
     },
     {
       "id": "VOH",
@@ -448,7 +448,7 @@
           "VOH.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/VOH/VOH.png"
+      "imageUrl": "reaxff/VOH/VOH.jpg"
     },
     {
       "id": "AB",
@@ -511,7 +511,7 @@
           "AB.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/AB/AB.png"
+      "imageUrl": "reaxff/AB/AB.jpg"
     },
     {
       "id": "FeOH3",
@@ -574,7 +574,7 @@
           "FeOH3.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/FeOH3/FeOH3.png"
+      "imageUrl": "reaxff/FeOH3/FeOH3.jpg"
     },
     {
       "id": "RDX",
@@ -637,7 +637,7 @@
           "RDX.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/RDX/RDX.png"
+      "imageUrl": "reaxff/RDX/RDX.jpg"
     },
     {
       "id": "ZnOH2",
@@ -700,7 +700,7 @@
           "ZnOH2.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "reaxff/ZnOH2/ZnOH2.png"
+      "imageUrl": "reaxff/ZnOH2/ZnOH2.jpg"
     },
     {
       "id": "simple_diffusion",
@@ -759,7 +759,7 @@
           "simple_diffusion.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
-      "imageUrl": "diffusion/simple_diffusion/simple_diffusion.png"
+      "imageUrl": "diffusion/simple_diffusion/simple_diffusion.jpg"
     },
     {
       "id": "diffusion_coefficient",
@@ -834,7 +834,7 @@
           "diffusion_coefficient.qml: camera moved back 2.6x so the whole system is in view"
         ]
       },
-      "imageUrl": "diffusion/diffusion_coefficient/diffusion_coefficient.png"
+      "imageUrl": "diffusion/diffusion_coefficient/diffusion_coefficient.jpg"
     },
     {
       "id": "sica_sheet",
@@ -893,7 +893,7 @@
           "sica_sheet.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/sica_sheet/sica_sheet.png"
+      "imageUrl": "new/sica_sheet/sica_sheet.jpg"
     },
     {
       "id": "abstract_translocation",
@@ -959,7 +959,7 @@
           "abstract_translocation.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/abstract_translocation/abstract_translocation.png"
+      "imageUrl": "new/abstract_translocation/abstract_translocation.jpg"
     },
     {
       "id": "cmap",
@@ -1013,7 +1013,7 @@
           "cmap.qml: camera moved back 2.8x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/cmap/cmap.png"
+      "imageUrl": "new/cmap/cmap.jpg"
     },
     {
       "id": "sica_sheet_melt",
@@ -1072,7 +1072,7 @@
           "sica_sheet_melt.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/sica_sheet_melt/sica_sheet_melt.png"
+      "imageUrl": "new/sica_sheet_melt/sica_sheet_melt.jpg"
     },
     {
       "id": "ice_crystal",
@@ -1157,7 +1157,7 @@
           "ice_crystal.qml: camera moved back 4x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/ice_crystal/ice_crystal.png"
+      "imageUrl": "new/ice_crystal/ice_crystal.jpg"
     },
     {
       "id": "singlewater",
@@ -1216,7 +1216,7 @@
           "singlewater.qml: camera moved back from 2.65 to 6 Å so the rotating molecule stays in view"
         ]
       },
-      "imageUrl": "water/singlewater/singlewater.png"
+      "imageUrl": "water/singlewater/singlewater.jpg"
     },
     {
       "id": "vapor",
@@ -1278,7 +1278,7 @@
           }
         ]
       },
-      "imageUrl": "water/vapor/vapor.png"
+      "imageUrl": "water/vapor/vapor.jpg"
     },
     {
       "id": "nanotube",
@@ -1342,7 +1342,7 @@
           "nanotube.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
-      "imageUrl": "water/nanotube/nanotube.png"
+      "imageUrl": "water/nanotube/nanotube.jpg"
     },
     {
       "id": "gas_hydrates",
@@ -1389,7 +1389,7 @@
           "gas_hydrates.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "new/gas_hydrates/gas_hydrates.png"
+      "imageUrl": "new/gas_hydrates/gas_hydrates.jpg"
     },
     {
       "id": "patterns",
@@ -1443,7 +1443,7 @@
           "patterns.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "granular/patterns/patterns.png"
+      "imageUrl": "granular/patterns/patterns.jpg"
     },
     {
       "id": "patterns_final",
@@ -1502,7 +1502,7 @@
           "patterns_final.qml: camera moved back 2x so the whole system is in view"
         ]
       },
-      "imageUrl": "granular/patterns_final/patterns_final.png"
+      "imageUrl": "granular/patterns_final/patterns_final.jpg"
     },
     {
       "id": "maxwell",
@@ -1570,7 +1570,7 @@
           "maxwell.qml: camera turned right side up and moved back to show both chambers from the side"
         ]
       },
-      "imageUrl": "granular/maxwell/maxwell.png"
+      "imageUrl": "granular/maxwell/maxwell.jpg"
     },
     {
       "id": "betacristobalite",
@@ -1641,7 +1641,7 @@
           "betacristobalite.qml: camera moved back 1.6x so the whole system is in view"
         ]
       },
-      "imageUrl": "silica/betacristobalite/betacristobalite.png"
+      "imageUrl": "silica/betacristobalite/betacristobalite.jpg"
     },
     {
       "id": "generate_nanoporous",
@@ -1720,7 +1720,7 @@
           "generate_nanoporous.qml: camera moved back 1.5x so the whole system is in view"
         ]
       },
-      "imageUrl": "silica/generate_nanoporous/generate_nanoporous.png"
+      "imageUrl": "silica/generate_nanoporous/generate_nanoporous.jpg"
     }
   ],
   "atomifyMetalSections": [
