@@ -1,6 +1,6 @@
 #!/bin/bash
 # Takes the gallery thumbnails of the bundled examples with the app itself,
-# in the iOS Simulator: each example opens bare (no welcome, no controls,
+# in the iOS Simulator: each example opens bare (no welcome, no controls, no box,
 # see AppModel.captureArgument), runs for a while, and the screen is cropped
 # to the gallery's 16:10 cards.
 #
