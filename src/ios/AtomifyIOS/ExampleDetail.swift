@@ -152,10 +152,7 @@ struct ExampleDetail: View {
                     .padding(.top, 4)
                 }
             }
-            DescriptionText(text: example.description, font: .callout, spacing: 9)
-            if let analysis = example.analysisDescription, !analysis.isEmpty {
-                DescriptionText(text: analysis, font: .callout, spacing: 9)
-            }
+            StoryView(example: example, font: .callout, spacing: 14)
         }
     }
 

@@ -175,10 +175,19 @@ private struct GalleryCard: View {
                             .padding(6)
                     }
                 }
-            Text(example.title)
-                .font(.footnote.weight(.semibold))
-                .lineLimit(1)
-                .frame(width: size.width, alignment: .leading)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(example.title)
+                    .font(.footnote.weight(.semibold))
+                    .lineLimit(1)
+                if let tagline = example.story?.tagline {
+                    Text(tagline)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2, reservesSpace: true)
+                        .multilineTextAlignment(.leading)
+                }
+            }
+            .frame(width: size.width, alignment: .leading)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)

@@ -37,10 +37,12 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
     public var periodicImages: [Int]?
     /// Atom colors shaded along one axis (Atomify 2's custom color shaders).
     public var colorRamp: ColorRamp?
+    /// What the example shows and why it matters, in a few short pieces.
+    public var story: ExampleStory?
 
     public init(skip: String? = nil, dialect: ScriptDialect? = nil, stepsPerFrame: Double? = nil,
                 camera: ExampleCamera? = nil, dashboard: [DashboardPanel]? = nil, periodicImages: [Int]? = nil,
-                colorRamp: ColorRamp? = nil) {
+                colorRamp: ColorRamp? = nil, story: ExampleStory? = nil) {
         self.skip = skip
         self.dialect = dialect
         self.stepsPerFrame = stepsPerFrame
@@ -48,12 +50,35 @@ public struct ExampleOptions: Codable, Sendable, Hashable {
         self.dashboard = dashboard
         self.periodicImages = periodicImages
         self.colorRamp = colorRamp
+        self.story = story
     }
 
     /// `periodicImages` as counts, when it asks for more than one copy.
     public var imageCounts: SIMD3<Int>? {
         guard let values = periodicImages, values.count == 3, values.contains(where: { $0 > 1 }) else { return nil }
         return SIMD3(max(values[0], 1), max(values[1], 1), max(values[2], 1))
+    }
+}
+
+/// The story an example tells: what you are looking at, why it matters and
+/// what to watch for, each short enough to read on a phone while the
+/// simulation runs. Written for people who have never seen a molecular
+/// simulation.
+public struct ExampleStory: Codable, Sendable, Hashable {
+    /// A few words for a gallery card: "Entropy, undone".
+    public var tagline: String
+    /// What is on screen, in a sentence or two, colors included.
+    public var seeing: String
+    /// Why anyone should care, in a sentence or two.
+    public var matters: String
+    /// Things to watch for, one short sentence each.
+    public var lookFor: [String]
+
+    public init(tagline: String, seeing: String, matters: String, lookFor: [String]) {
+        self.tagline = tagline
+        self.seeing = seeing
+        self.matters = matters
+        self.lookFor = lookFor
     }
 }
 
@@ -143,6 +168,9 @@ public struct Example: Codable, Sendable, Identifiable, Hashable {
 
     /// Why the example checks skip this example, or nil.
     public var skipReason: String? { atomifyMetal?.skip }
+
+    /// The example's story, if it has one.
+    public var story: ExampleStory? { atomifyMetal?.story }
 
     /// Whether the example matches a search: every word of `query` appears in
     /// the title, id, description, author or a keyword (case and diacritics

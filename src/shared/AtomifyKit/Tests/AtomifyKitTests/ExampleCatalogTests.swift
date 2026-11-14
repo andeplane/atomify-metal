@@ -208,3 +208,36 @@ func scratchDirectory() throws -> URL {
         #expect(ScriptPreparation.prepare("") == "")
     }
 }
+
+@Suite struct ExampleStoryTests {
+    @Test func decodesAStoryUnderAtomifyMetal() throws {
+        let json = """
+        {"examples":[{"id":"a","title":"A","description":"d","inputScript":"a.in","files":[],
+        "atomifyMetal":{"story":{"tagline":"t","seeing":"s","matters":"m","lookFor":["x","y"]}}},
+        {"id":"b","title":"B","description":"d","inputScript":"b.in","files":[]}]}
+        """
+        let catalog = try ExampleCatalog.decode(Data(json.utf8), directory: URL(fileURLWithPath: "/tmp"))
+        #expect(catalog.example(id: "a")?.story == ExampleStory(tagline: "t", seeing: "s", matters: "m",
+                                                               lookFor: ["x", "y"]))
+        #expect(catalog.example(id: "b")?.story == nil)
+    }
+
+    /// The iOS catalog tells a story for every example, in short pieces.
+    @Test func everyBundledIOSExampleHasAShortStory() throws {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let directory = root.appendingPathComponent("ios/Examples")
+        guard FileManager.default.fileExists(atPath: directory.path) else { return }
+        let catalog = try ExampleCatalog.load(from: directory)
+        #expect(!catalog.examples.isEmpty)
+        for example in catalog.examples {
+            let story = try #require(example.story, "\(example.id) has no story")
+            #expect(story.tagline.count <= 50, "\(example.id) tagline is long")
+            #expect(story.seeing.count <= 330, "\(example.id) seeing is long")
+            #expect(story.matters.count <= 330, "\(example.id) matters is long")
+            #expect((2...4).contains(story.lookFor.count), "\(example.id) lookFor count")
+            #expect(story.lookFor.allSatisfy { $0.count <= 130 }, "\(example.id) lookFor is long")
+        }
+    }
+}

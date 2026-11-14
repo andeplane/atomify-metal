@@ -17,10 +17,7 @@ struct InfoPanel: View {
                         .accessibilityAddTraits(.isHeader)
                     ExampleSource(model: model, example: example, prefix: "Atomify 2 example")
                 }
-                DescriptionText(text: example.description)
-                if let analysis = example.analysisDescription, !analysis.isEmpty {
-                    DescriptionText(text: analysis)
-                }
+                StoryView(example: example, collapsesDescription: true)
                 scriptButton(example)
             } else {
                 Text(session.title ?? "Atomify")

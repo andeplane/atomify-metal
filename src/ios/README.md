@@ -19,6 +19,7 @@ python3 src/ios/tools/port_atomify2_examples.py /tmp/atomify2
 ```
 
 The script copies the scripts unchanged except for file paths and three LAMMPS renames since 2017, and swaps in the files under `tools/atomify2-replacements` (a restart file regenerated with current LAMMPS); each change is listed per example under `atomifyMetal.changes`. It reads each simulation's QML metadata into `atomifyMetal` options: `dialect: atomify2` (the old element colors and radii), `stepsPerFrame: 1` (one timestep per frame, changed by the scripts' `#/speed` lines), the starting `camera` and the `dashboard` panels.
+Each example also carries a story, `atomifyMetal.story`: a tagline for its gallery card, what you are looking at, why it matters and what to watch for, written for this app in `tools/stories.json` (the port script refuses an example without one). The Info panel and the example's page in the gallery show it above Atomify 2's original description.
 Check that every example runs with `src/shared/lammps/check-examples.sh --examples src/ios/Examples`.
 
 The gallery pictures are taken with the app itself in the iOS Simulator, in landscape.

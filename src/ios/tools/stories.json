@@ -1,0 +1,297 @@
+{
+  "singlewater": {
+    "tagline": "One water molecule, jiggling on its own",
+    "seeing": "A single water molecule: one red oxygen atom and two white hydrogen atoms, with nothing around it and no outside forces. It moves only because its own bonds pull and push.",
+    "matters": "Water's strange behavior (why ice floats, why it dissolves salt, why it boils where it does) starts with this bent three-atom shape and how it stretches and bends.",
+    "lookFor": [
+      "The two hydrogens keep a preferred angle to the oxygen. Real water measures about 105°, and the chart traces the angle live.",
+      "Symmetric stretch: both O-H bonds get longer and shorter together.",
+      "Antisymmetric stretch: one bond stretches while the other shrinks.",
+      "Scissoring: the H-O-H angle opens and closes."
+    ]
+  },
+  "vapor": {
+    "tagline": "3000 water molecules in thin air",
+    "seeing": "3000 water molecules spread far apart at 300 K, about 2 nanometers between neighbors. This is water vapor, the invisible water in the air around you, seen molecule by molecule.",
+    "matters": "Clouds, humidity and steam all begin with molecules that fly freely and meet only now and then. Whether they stick together decides if you get vapor or rain.",
+    "lookFor": [
+      "Two molecules meet and stay together for a moment: that is a hydrogen bond. Then thermal motion breaks it up.",
+      "Use the thermostat in the Dashboard to cool the vapor. Do clusters of molecules start to form?",
+      "Heat it again and watch the clusters dissolve."
+    ]
+  },
+  "nanotube": {
+    "tagline": "Water squeezed through a carbon nanotube",
+    "seeing": "Water (red and white) pushed from the left through a carbon nanotube (grey) that is only a few nanometers wide, under extreme pressure.",
+    "matters": "Channels this narrow exist in living cells, and researchers study them for desalination and filtration. Squeezed into such a tight space, water stops behaving like the water you pour from a tap.",
+    "lookFor": [
+      "Inside the tube the molecules line up in an ordered, ice-like structure.",
+      "The Dashboard's gravity slider changes how hard the water is pushed. Can you make it flow the other way?",
+      "Rotate the view to look down the tube."
+    ]
+  },
+  "gas_hydrates": {
+    "tagline": "Methane locked inside cages of ice",
+    "seeing": "A crystal of ice cages (red oxygen atoms with their bonds) at 260 K and high pressure. Each cage holds a methane molecule (blue).",
+    "matters": "Enormous amounts of natural gas are locked in hydrates on the sea floor and in permafrost. They could be an energy source, and if they melt they release methane, a strong greenhouse gas.",
+    "lookFor": [
+      "Methane sits inside the cavities of the cage and rattles around, but does not escape.",
+      "The cage is a repeating 3D pattern. Rotate it and zoom in to follow the rings of oxygen atoms.",
+      "Count the different shapes of cavity."
+    ]
+  },
+  "ice_crystal": {
+    "tagline": "Why ice is built from hexagons",
+    "seeing": "An ice crystal: red oxygen and white hydrogen atoms, with the bonds between them drawn. The molecules are locked into a fixed pattern and only vibrate in place.",
+    "matters": "The open hexagonal rings make ice less dense than liquid water. That is why ice floats, and why lakes freeze from the top down and fish survive the winter.",
+    "lookFor": [
+      "Look into the crystal along its axis and find the six-sided rings.",
+      "Each molecule shakes in place but never swaps places with a neighbor. That is what makes it a solid.",
+      "Raise the temperature in the Dashboard and see how much heat the structure can take."
+    ]
+  },
+  "betacristobalite": {
+    "tagline": "The structure inside sand and glass",
+    "seeing": "A crystal of silica (SiO₂): tan silicon atoms and red oxygen atoms, with the bonds drawn. It is a beta cristobalite structure, a mineral found in some volcanic rock.",
+    "matters": "Silica is the main ingredient of sand, quartz and glass. Knowing how its atoms connect explains why it is hard, why it is transparent, and how it turns into glass when cooled fast.",
+    "lookFor": [
+      "Each silicon sits in the middle of four oxygen atoms, forming a small pyramid called a tetrahedron.",
+      "Neighboring tetrahedra share their corners and build the whole crystal.",
+      "Heat the crystal with the thermostat and watch where the order breaks down."
+    ]
+  },
+  "generate_nanoporous": {
+    "tagline": "Making a sponge out of glass",
+    "seeing": "Silica (tan silicon, red oxygen) put through the steps of making a porous glass: melt the crystal at 4500 K, stretch it out to a low density, then cool it quickly. The caption at the top left names each step.",
+    "matters": "Porous glass works as filters, catalyst supports and insulation. This is the melt-and-quench recipe that real glass is made with, shrunk down to atoms.",
+    "lookFor": [
+      "The orderly crystal loses its pattern as it heats. It has melted.",
+      "While the box expands, the material is pulled into a web of thin strands with empty pores between them.",
+      "On the quench the strands freeze in place. The result has no crystal pattern, but it does have pores.",
+      "The Volume chart in the Dashboard follows the expansion."
+    ]
+  },
+  "ssz_13": {
+    "tagline": "A zeolite with a built-in acid site",
+    "seeing": "A crystal of the zeolite SSZ-13: a network of silicon and oxygen with regular cages and channels. One silicon is swapped for an aluminum atom with an extra hydrogen. The simulation uses ReaxFF, so bonds can form and break.",
+    "matters": "Zeolites are molecular sieves. SSZ-13 is used in catalytic converters that clean nitrogen oxides from diesel exhaust. The aluminum site is where the chemistry happens.",
+    "lookFor": [
+      "The open cages that other molecules can fit into.",
+      "Find the aluminum atom and the hydrogen next to it, the acid site.",
+      "This is a heavy simulation. Zoom in close and look for small movements."
+    ]
+  },
+  "CHO": {
+    "tagline": "Burning pentane, atom by atom",
+    "seeing": "Pentane fuel (grey carbon, white hydrogen) mixed with oxygen (red) and heated to thousands of kelvin. ReaxFF lets bonds break and form, so this is real chemistry.",
+    "matters": "Combustion powers engines, furnaces and power plants. The fleeting in-between molecules are too short-lived to catch in a lab, but here you can watch each one appear.",
+    "lookFor": [
+      "Fuel molecules breaking apart and new bonds appearing.",
+      "Water, carbon monoxide, carbon dioxide, HO₂ and OH forming.",
+      "After a few thousand timesteps, the interesting reactions start.",
+      "It is hot on purpose, so the reactions fit within a short simulation."
+    ]
+  },
+  "AB": {
+    "tagline": "Hydrogen released from a fuel-storage molecule",
+    "seeing": "Ammonia borane molecules (white hydrogen, pink boron, blue nitrogen) at 2000 K. ReaxFF lets their bonds break and form as they collide.",
+    "matters": "Ammonia borane holds a lot of hydrogen for its weight, so it is studied as a way to store fuel for hydrogen-powered devices. The question is how to get the hydrogen out.",
+    "lookFor": [
+      "Two molecules meet and a hydrogen molecule (H₂) is made.",
+      "Can you spot the moment the first H₂ forms, two white atoms bonding and leaving?",
+      "What do the leftover boron and nitrogen atoms do next?"
+    ]
+  },
+  "FeOH3": {
+    "tagline": "A close relative of rust, heated up",
+    "seeing": "Iron(III) hydroxide, Fe(OH)₃, at high temperature: orange-brown iron atoms with red-and-white hydroxide groups. The density is low, so the pieces have room to move and react.",
+    "matters": "Iron hydroxides are what rust is made of, and rust costs the world's economy a fortune every year. Watching how they hold together and break apart shows how iron, oxygen and hydrogen interact.",
+    "lookFor": [
+      "Hydroxide groups (a red oxygen with a white hydrogen) attached to iron.",
+      "Bonds breaking and re-forming as the heat shakes the structure.",
+      "Whether pieces start to leave as water."
+    ]
+  },
+  "RDX": {
+    "tagline": "An explosive coming apart",
+    "seeing": "RDX, an explosive, heated until it reacts. Each molecule is a ring with grey carbon, blue nitrogen, red oxygen and white hydrogen atoms.",
+    "matters": "An explosion is ordinary chemistry running extremely fast. A simulation lets researchers study how such materials decompose without anyone having to detonate one.",
+    "lookFor": [
+      "The ring-shaped molecules at the start.",
+      "Rings breaking open and fragments flying apart.",
+      "Fragments recombining into small, stable molecules."
+    ]
+  },
+  "VOH": {
+    "tagline": "A catalyst material at high temperature",
+    "seeing": "Vanadium oxide (magenta vanadium, red oxygen) with carbon and hydrogen groups, simulated with ReaxFF at high temperature.",
+    "matters": "Vanadium oxides are catalysts: they speed up reactions like the production of sulfuric acid and the clean-up of exhaust gases, without being used up.",
+    "lookFor": [
+      "Vanadium atoms surrounded by oxygen.",
+      "Carbon and hydrogen groups attaching to the vanadium and leaving again.",
+      "Bonds that keep breaking and re-forming: the atoms are not fixed."
+    ]
+  },
+  "ZnOH2": {
+    "tagline": "Zinc hydroxide losing its water",
+    "seeing": "Zinc hydroxide, Zn(OH)₂, at high temperature. Blue-grey zinc atoms carry red-and-white hydroxide groups, and ReaxFF lets the bonds change.",
+    "matters": "Heating zinc hydroxide leaves zinc oxide, the white powder in sunscreen, paint and ceramics. Hydroxide groups give up their hydrogen and the extra oxygen leaves as water.",
+    "lookFor": [
+      "Hydroxide groups (red with white) on the zinc.",
+      "Two hydroxides sharing atoms and a water molecule forming.",
+      "Zinc and oxygen staying together while water leaves."
+    ]
+  },
+  "simple_diffusion": {
+    "tagline": "A stripe of white atoms mixing into red",
+    "seeing": "Two kinds of identical particles: a stripe of white ones in the middle and red ones on both sides. No one stirs them. They only jostle one another.",
+    "matters": "This is why a drop of ink spreads in water and why you smell cooking from another room. Mixing needs no push, only random motion. Think of it next time you stir a drink.",
+    "lookFor": [
+      "The sharp edges of the stripe blur first, then the whole stripe spreads out.",
+      "No single atom heads anywhere on purpose. The mixing comes from many random steps.",
+      "Raise the temperature with the thermostat. Does it mix faster?"
+    ]
+  },
+  "diffusion_coefficient": {
+    "tagline": "Measuring how fast atoms spread",
+    "seeing": "A cube of identical atoms (Lennard-Jones atoms, a standard model of simple liquids like argon). The charts track how far the atoms have moved from where they started: the mean square displacement.",
+    "matters": "The diffusion coefficient says how fast things spread: sugar in coffee, oxygen in blood, ions in a battery. Reading it from atomic motion is one of simulation's most common jobs.",
+    "lookFor": [
+      "Early on the curve bends upward. Atoms fly in straight lines until they hit a neighbor (the ballistic regime).",
+      "Later it settles on a straight line. Its slope gives the diffusion coefficient, shown in the Dashboard.",
+      "Change the temperature. Does the slope get steeper?"
+    ]
+  },
+  "sica_sheet": {
+    "tagline": "A nanosheet that curls into a ball",
+    "seeing": "A sheet of silicon carbide, one atom thick (tan silicon and grey carbon), at about 2000 K, floating in empty space with free edges.",
+    "matters": "Sheets one atom thick, like graphene, are a new class of materials for electronics and filters. Free edges are unstable, so this one rolls itself up. The same thing happens to nanoparticles as they form.",
+    "lookFor": [
+      "The flat honeycomb pattern at the start.",
+      "The edges curl in first and the sheet folds into a ball.",
+      "The atoms gradually rearrange toward a diamond-like crystal.",
+      "Change the temperature and see what happens."
+    ]
+  },
+  "sica_sheet_melt": {
+    "tagline": "A sheet that does not melt at 2000 K",
+    "seeing": "A flat sheet of silicon carbide (tan silicon, grey carbon), one atom thick and held at about 2000 K. That is hotter than molten iron.",
+    "matters": "Silicon carbide is used where things get extremely hot: brakes, furnaces, reactor parts. Strong bonds keep the sheet intact, even with its atoms shaking this hard.",
+    "lookFor": [
+      "Defects pop up and heal again within moments.",
+      "From above the sheet looks flat. Rotate to the side and you will see it ripple.",
+      "Raise the temperature with the thermostat to find out where it finally gives up."
+    ]
+  },
+  "lammps": {
+    "tagline": "Entropy, undone",
+    "seeing": "The LAMMPS logo drawn in atoms, in a flat 2D world. The letters dissolve into a uniform cloud. Then every velocity is reversed and the logo builds itself back.",
+    "matters": "The laws of motion work the same forward and backward. Entropy seems to rule because getting back needs every single atom to be exactly right, and in nature none ever is.",
+    "lookFor": [
+      "The caption at the top left names each phase: intact, dissolving, reversing, restored.",
+      "At the reversal, nothing changes except the direction each atom moves in.",
+      "If you nudged one atom before the reversal, would the logo still come back?"
+    ]
+  },
+  "crack": {
+    "tagline": "A crack tearing through a solid",
+    "seeing": "A 2D crystal pulled apart from above and below. The green and purple blocks on the left mark a ready-made notch, where the crack starts.",
+    "matters": "Materials rarely fail everywhere at once. Stress piles up at the tip of a tiny flaw, and a crack can take down a bridge, a plane wing or a phone screen.",
+    "lookFor": [
+      "The tip of the notch concentrates the stress, and the crack grows from it.",
+      "The whole system suddenly breaks apart.",
+      "Do the temperature and pressure curves react when the material gives way? Why would they?"
+    ]
+  },
+  "flow_couette": {
+    "tagline": "A moving wall drags a liquid along",
+    "seeing": "A 2D liquid between two walls. The bottom wall (green) is fixed and the top wall (purple) slides sideways.",
+    "matters": "Viscosity, the stickiness that separates syrup from water, is what you see here. It emerges from atoms alone, with no fluid equations. Engineers care about the same effect in oil films and bearings.",
+    "lookFor": [
+      "Atoms touching the moving wall move along with it.",
+      "The speed fades smoothly to zero at the fixed wall.",
+      "It takes a moment to settle: the layers drag one another along."
+    ]
+  },
+  "flow_pois": {
+    "tagline": "Pipe flow: slow at the walls, fast inside",
+    "seeing": "A 2D channel with both walls fixed. Every liquid atom gets a small constant push in the same direction, standing in for a pressure difference along a pipe.",
+    "matters": "Water in a pipe and blood in a vessel flow this way. Poiseuille first worked it out in the 1840s while studying blood flow.",
+    "lookFor": [
+      "Atoms at the walls barely move while the ones in the middle race along.",
+      "After a short settling time the speeds form a smooth, rounded profile, the famous Poiseuille shape.",
+      "Notice that nothing tells the atoms to do this. It follows from the push and the walls."
+    ]
+  },
+  "friction": {
+    "tagline": "Why surfaces grip: two bumps collide",
+    "seeing": "Two rough bumps (asperities, purple and green) on facing 2D surfaces. The top surface slides sideways, so the bumps are dragged into one another.",
+    "matters": "Friction at human scale is the sum of countless contacts like this. Wear, heat and squeaking all begin when atoms catch and tear.",
+    "lookFor": [
+      "The moment the bumps touch: the pressure curve jumps.",
+      "Atoms are torn out of both bumps, leaving them damaged. The scars are permanent.",
+      "The system heats up as the sliding energy goes into atomic motion."
+    ]
+  },
+  "obstacle": {
+    "tagline": "A liquid flows around two obstacles",
+    "seeing": "A 2D liquid pushed along a channel. Two circular regions repel the atoms, so they act as obstacles in the flow.",
+    "matters": "A stream that splits around an object, speeds up and closes again behind it is the same flow that wraps around a plane wing or a bridge pillar. Here it comes from atoms alone.",
+    "lookFor": [
+      "How the flow bends around each obstacle.",
+      "Whether atoms pile up in front of an obstacle.",
+      "How the flow closes behind the obstacles."
+    ]
+  },
+  "abstract_translocation": {
+    "tagline": "A polymer threads itself through a hole",
+    "seeing": "A short chain of beads (a polymer) in a gas of tiny solvent particles, next to a wall with a hole in it. The red atoms are the wall. Nobody pulls the chain. The solvent particles jostle it.",
+    "matters": "DNA, RNA and proteins pass through pores in cell membranes this way. Nanopore DNA sequencers read the code of life by watching one strand thread through a hole.",
+    "lookFor": [
+      "The chain wiggles randomly and keeps finding the hole.",
+      "Eventually it passes through. It can take a long time, so try a higher speed.",
+      "What would make the passage faster, a bigger hole or a warmer liquid?"
+    ]
+  },
+  "cmap": {
+    "tagline": "A tiny protein chain",
+    "seeing": "A short chain of amino acids, the building blocks of proteins. White hydrogen, grey carbon, blue nitrogen and red oxygen atoms, joined in a zig-zag backbone.",
+    "matters": "Proteins are chains like this one, folded into exact shapes. The CMAP term in this force field corrects how the backbone twists, which is critical for getting those shapes right.",
+    "lookFor": [
+      "The zig-zag backbone and the side groups hanging off it.",
+      "The twisting at the joints between amino acids.",
+      "How the whole chain flexes as a connected whole."
+    ]
+  },
+  "patterns": {
+    "tagline": "Sand that organizes itself into waves",
+    "seeing": "8000 grains poured on a plate. The plate then shakes up and down at a chosen frequency and amplitude. Brighter grains are higher up. The caption at the top left tells you what stage you are in.",
+    "matters": "Shaken grains do not just spread out evenly. They build standing waves, hills and valleys, without anyone steering them. Any industry that mixes, sorts or ships powders and grains has to deal with this.",
+    "lookFor": [
+      "When the grains are poured, and when the plate starts to shake.",
+      "Bright and dark regions appearing as hills and valleys.",
+      "It takes a long time. Use a higher speed, or open 'Patterns final' to see the result right away."
+    ]
+  },
+  "patterns_final": {
+    "tagline": "The finished pattern, without the wait",
+    "seeing": "The same shaking plate as in 'Patterns', but already settled. Brighter grains are higher up.",
+    "matters": "Order appears in a pile of grains just because the plate shakes at the right frequency and strength. Any system that is fed energy steadily can organize itself like this.",
+    "lookFor": [
+      "Bright and dark regions: hills and valleys in the grain layer.",
+      "The pattern keeps its shape even though every grain is moving.",
+      "Rotate the view and compare the pattern from different angles."
+    ]
+  },
+  "maxwell": {
+    "tagline": "Entropy loses. Or does it?",
+    "seeing": "A shaking plate and two compartments of grains, split by a low wall. Blue grains are on one side and orange on the other. The chart shows how many grains are in each half.",
+    "matters": "Entropy should spread the grains evenly, but they end up on one side. The plate keeps adding energy, so the second law is not broken. Systems with a steady energy supply can organize themselves, as weather and living cells do.",
+    "lookFor": [
+      "At first the grains split roughly 50/50 between the halves.",
+      "Energy from the plate fades as it passes up through the collisions, so big jumps over the wall are rare.",
+      "Gradually one half collects almost all of them. Which side wins is random.",
+      "The more grains there are, the harder a big jump is."
+    ]
+  }
+}

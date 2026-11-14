@@ -84,18 +84,41 @@ final class AppModel {
     /// `xcrun simctl launch booted <bundle id> -AtomifyCapture <example id>`.
     static let captureArgument = "AtomifyCapture"
 
+    /// Launch argument that opens a screen straight away, with no welcome, for
+    /// checking the layout in the simulator: `gallery`, `info`, `dashboard`,
+    /// `view`, or `detail:<example id>`; `-AtomifyScreen info -AtomifyCapture
+    /// <id>` shows the Info panel of that example.
+    static let screenArgument = "AtomifyScreen"
+
     /// Starts the first example, once: the app opens on a running simulation.
     /// With the capture argument it opens that example with a bare view.
-    func start(captureID: String? = UserDefaults.standard.string(forKey: AppModel.captureArgument)) {
+    func start(captureID: String? = UserDefaults.standard.string(forKey: AppModel.captureArgument),
+               screen: String? = UserDefaults.standard.string(forKey: AppModel.screenArgument)) {
         guard session.title == nil else { return }
         if let captureID, let example = catalog.example(id: captureID) {
             showsWelcome = false
-            chromeHidden = true
+            chromeHidden = screen == nil
             session.load(example, from: catalog)
+            show(screen: screen)
             return
         }
         guard let example = catalog.example(id: Self.firstExampleID) ?? catalog.examples.first else { return }
         session.load(example, from: catalog)
+        show(screen: screen)
+    }
+
+    /// Opens the screen the launch argument names.
+    private func show(screen: String?) {
+        guard let screen else { return }
+        showsWelcome = false
+        if screen == "gallery" {
+            showsGallery = true
+        } else if screen.hasPrefix("detail:"), let example = catalog.example(id: String(screen.dropFirst(7))) {
+            galleryPath = [.detail(example)]
+            showsGallery = true
+        } else if let panel = SidePanel(rawValue: screen) {
+            self.panel = panel
+        }
     }
 
     /// Runs the example with this id, replacing the current run.

@@ -23,6 +23,8 @@ What is copied, and how:
   and the dashboard controllers with their settings. The granular
   examples' custom color shaders become color ramps (see COLOR_SHADERS);
   any other shader is listed under "notPorted".
+- The story of each example (what you are looking at, why it matters, what to
+  watch for) comes from tools/stories.json, which this app adds.
 - LAMMPS has changed since 2017, so a few style names are updated (the
   physics is the same): `reax/c` is now `reaxff`, and the OPT package's
   `lj/cut/opt` is plain `lj/cut` (this build has no OPT package). Each change
@@ -48,6 +50,9 @@ STEPS_PER_FRAME = 1     # AtomifySimulator.simulationSpeed in MainMobile.qml
 POTENTIALS = "../../potentialparameters/"
 # Gallery pictures taken with the app itself (tools/capture_thumbnails.sh).
 THUMBNAILS = pathlib.Path(__file__).resolve().parent / "thumbnails"
+# What each example shows and why it matters (atomifyMetal.story), written for
+# this app; every example needs one.
+STORIES = json.loads((pathlib.Path(__file__).resolve().parent / "stories.json").read_text())
 # Style names LAMMPS has renamed since 2017, and the OPT package this build lacks.
 COMPATIBILITY = [
     (r"^(\s*pair_style\s+)reax/c\b", r"\1reaxff", "pair_style reax/c is now reaxff"),
@@ -298,6 +303,9 @@ def main():
                 options["periodicImages"] = [images.get(axis, 1) for axis in "XYZ"]
             if unsupported:
                 options["notPorted"] = unsupported
+            if identifier not in STORIES:
+                sys.exit(f"tools/stories.json has no story for {identifier}")
+            options["story"] = STORIES[identifier]
             if changes:
                 options["changes"] = changes
             seen_files = set()
