@@ -29,7 +29,7 @@ DEVICE=<simulator name or id> src/ios/tools/capture_thumbnails.sh            # e
 DEVICE=<simulator name or id> src/ios/tools/capture_thumbnails.sh crack:30   # one, after 30 seconds
 ```
 
-Each example opens bare with the launch argument `-AtomifyCapture <id>` (no welcome, no controls), runs for the seconds in `tools/thumbnail-waits.txt` (8 by default), and the screen's middle 16:10 becomes `tools/thumbnails/<id>.jpg` and the example's picture in `Examples`.
+Each example opens bare with the launch argument `-AtomifyCapture <id>` (no welcome, no controls; add `-AtomifyScreen play` to keep the controls, or `gallery`, `info`, `dashboard`, `view`, `detail:<id>` to open that screen), runs for the seconds in `tools/thumbnail-waits.txt` (8 by default), and the screen's middle 16:10 becomes `tools/thumbnails/<id>.jpg` and the example's picture in `Examples`.
 
 ## Build
 
