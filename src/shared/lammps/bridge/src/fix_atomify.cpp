@@ -7,10 +7,13 @@
 #include "error.h"
 #include "exceptions.h"
 #include "fix_wall.h"
+#include "fix_wall_region.h"
 #include "force.h"
 #include "input.h"
 #include "modify.h"
 #include "output.h"
+#include "region.h"
+#include "region_block.h"
 #include "thermo.h"
 #include "timer.h"
 #include "update.h"
@@ -799,11 +802,50 @@ void FixAtomify::publish(bool minimizing, bool sample)
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
+// fix wall/region and region block keep these protected. A pointer to member
+// taken through a derived class reads them without patching LAMMPS.
+struct WallRegionFields : FixWallRegion {
+  static char *FixWallRegion::*region_id() { return &WallRegionFields::idregion; }
+};
+struct BlockFields : RegBlock {
+  static double RegBlock::*lo(int axis)
+  {
+    return axis == 0 ? &BlockFields::xlo : axis == 1 ? &BlockFields::ylo : &BlockFields::zlo;
+  }
+  static double RegBlock::*hi(int axis)
+  {
+    return axis == 0 ? &BlockFields::xhi : axis == 1 ? &BlockFields::yhi : &BlockFields::zhi;
+  }
+};
+}    // namespace
+
 // Planes of fix wall/* at a fixed position, as lammps.js' getWalls lists
-// them. Variable positions are skipped: evaluating them is not safe here.
+// them, and the blocks of fix wall/region. Variable positions are skipped:
+// evaluating them is not safe here.
 void FixAtomify::collect_walls(AtomifySnapshotData &out)
 {
   out.walls.clear();
+  out.wall_blocks.clear();
+  for (Fix *fix : modify->get_fix_list()) {
+    auto *wall = dynamic_cast<FixWallRegion *>(fix);
+    if (!wall) continue;
+    const char *id = wall->*WallRegionFields::region_id();
+    auto *block = id ? dynamic_cast<RegBlock *>(domain->get_region_by_id(id)) : nullptr;
+    if (!block || block->dynamic || block->varshape) continue;
+    // Regions are in box units (lattice scaling was applied when the region
+    // was made); EDGE and INF bounds end at the box, or its bounding box if triclinic.
+    const double *box_lo = domain->triclinic ? domain->boxlo_bound : domain->boxlo;
+    const double *box_hi = domain->triclinic ? domain->boxhi_bound : domain->boxhi;
+    atomify_wall_block clipped{};
+    bool empty = false;
+    for (int axis = 0; axis < 3; axis++) {
+      clipped.lo[axis] = std::max(block->*BlockFields::lo(axis), box_lo[axis]);
+      clipped.hi[axis] = std::min(block->*BlockFields::hi(axis), box_hi[axis]);
+      if (!(clipped.lo[axis] <= clipped.hi[axis])) empty = true;
+    }
+    if (!empty) out.wall_blocks.push_back(clipped);
+  }
   for (Fix *fix : modify->get_fix_list()) {
     auto *wall = dynamic_cast<FixWall *>(fix);
     if (!wall) continue;

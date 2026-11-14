@@ -52,7 +52,7 @@ public final class ParticleRenderer {
         RenderStats(particlesDrawn: drawnParticles, bondsDrawn: drawnBonds, gpuTimeMs: gpuTime.value)
     }
 
-    enum Geometry: Hashable { case sphere, bond, line }
+    enum Geometry: Hashable { case sphere, bond, line, panel }
     enum Pass: Hashable { case direct, gbuffer, pick }
     struct PipelineKey: Hashable {
         var geometry: Geometry
@@ -70,6 +70,8 @@ public final class ParticleRenderer {
     private var failedPipelines: Set<String> = []
     private let depthState: any MTLDepthStencilState
     private let alwaysDepthState: any MTLDepthStencilState
+    /// Depth tested, not written: translucent panels.
+    private let translucentDepthState: any MTLDepthStencilState
     /// Bound wherever an optional buffer is absent, so every binding the
     /// shaders reference is valid.
     private let placeholderBuffer: any MTLBuffer
@@ -106,19 +108,24 @@ public final class ParticleRenderer {
         let always = MTLDepthStencilDescriptor()
         always.depthCompareFunction = .always
         always.isDepthWriteEnabled = false
+        let translucent = MTLDepthStencilDescriptor()
+        translucent.depthCompareFunction = depth.depthCompareFunction
+        translucent.isDepthWriteEnabled = false
         guard let depthState = device.makeDepthStencilState(descriptor: depth),
               let alwaysDepthState = device.makeDepthStencilState(descriptor: always),
+              let translucentDepthState = device.makeDepthStencilState(descriptor: translucent),
               let placeholder = device.makeBuffer(length: 256, options: .storageModeShared) else {
             throw RendererError.resourceCreation("depth states or placeholder buffer")
         }
         placeholder.label = "AtomifyRender.placeholder"
         self.depthState = depthState
         self.alwaysDepthState = alwaysDepthState
+        self.translucentDepthState = translucentDepthState
         placeholderBuffer = placeholder
         slots = (0..<Self.slotCount).map { _ in FrameSlot(device: device) }
 
         // The pipelines every frame needs, so problems surface here.
-        for geometry in [Geometry.sphere, .bond, .line] {
+        for geometry in [Geometry.sphere, .bond, .line, .panel] {
             _ = try makePipeline(geometry, .direct)
         }
     }
@@ -192,6 +199,12 @@ public final class ParticleRenderer {
         let segmentCount = ParticlePacking.segmentCount(scene.lines)
         if segmentCount > 0, let pointer = slot.lines.pointer(GPULineSegment.self, count: segmentCount) {
             slot.lineCount = ParticlePacking.packLines(scene.lines, into: pointer)
+        }
+
+        slot.panelCount = 0
+        let panelCount = ParticlePacking.panelCount(scene.panels)
+        if panelCount > 0, let pointer = slot.panels.pointer(GPUPanel.self, count: panelCount) {
+            slot.panelCount = ParticlePacking.packPanels(scene.panels, into: pointer)
         }
         currentSlot = index
     }
@@ -388,6 +401,17 @@ public final class ParticleRenderer {
             setDraw(offset: .zero, radiusFactor: radiusScale)
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4,
                                    instanceCount: slot.lineCount)
+        }
+
+        // Last: translucent walls blend over everything opaque.
+        if pass != .pick, slot.panelCount > 0, let panelBuffer = slot.panels.buffer,
+           let panels = pipeline(.panel, pass) {
+            encoder.setRenderPipelineState(panels)
+            encoder.setDepthStencilState(translucentDepthState)
+            encoder.setVertexBuffer(panelBuffer, offset: 0, index: ShaderSource.BufferIndex.panels)
+            encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4,
+                                   instanceCount: slot.panelCount)
+            encoder.setDepthStencilState(depthState)
         }
 
         if views.count > 1 {
@@ -598,6 +622,7 @@ public final class ParticleRenderer {
         case .sphere: prefix = "sphere"
         case .bond: prefix = "bond"
         case .line: prefix = "line"
+        case .panel: return ("panelVertex", "panelFragment")    // color only, in every pass
         }
         let suffix: String
         switch pass {
@@ -657,12 +682,15 @@ public final class ParticleRenderer {
             descriptor.depthAttachmentPixelFormat = .depth32Float
             descriptor.rasterSampleCount = 1
         }
-        if multisampled {
+        if geometry == .panel {
+            // Blended per sample; the normal/depth target keeps what is behind.
+            if pass == .gbuffer { descriptor.colorAttachments[1].writeMask = [] }
+        } else if multisampled {
             // Alpha carries edge coverage; covered samples are opaque.
             descriptor.isAlphaToCoverageEnabled = true
             descriptor.isAlphaToOneEnabled = true
         }
-        if blended, let color = descriptor.colorAttachments[0] {
+        if blended || geometry == .panel, let color = descriptor.colorAttachments[0] {
             color.isBlendingEnabled = true
             color.rgbBlendOperation = .add
             color.alphaBlendOperation = .add

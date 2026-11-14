@@ -112,6 +112,18 @@ import Testing
         #expect(terminated)
     }
 
+    @Test func wallsAreInTheSnapshot() async throws {
+        let directory = try fixtures()
+        let simulation = try Simulation()
+        simulation.setPublishInterval(0)
+        let outcome = await start(simulation, "walls.in", in: directory).value
+        #expect(outcome == .finished)
+        let snapshot = try #require(simulation.takeNewSnapshot())
+        #expect(snapshot.walls == [WallPlane(face: 5, position: 15)])
+        // The divider, clipped to the box (z from 0, not -10).
+        #expect(snapshot.wallBlocks == [WallBlock(low: SIMD3(-4, -0.01, 0), high: SIMD3(4, 0.01, 10))])
+    }
+
     @Test func smallSystemRunsOnOneThread() async throws {
         let directory = try fixtures()
         let simulation = try Simulation(threads: 2)

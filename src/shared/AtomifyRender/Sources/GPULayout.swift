@@ -36,6 +36,14 @@ struct GPULineSegment: Equatable {
     var color: SIMD4<Float>
 }
 
+/// One translucent quad (64 bytes): corner, edge vectors u and v, linear RGBA.
+struct GPUPanel: Equatable {
+    var origin: SIMD4<Float>
+    var u: SIMD4<Float>
+    var v: SIMD4<Float>
+    var color: SIMD4<Float>
+}
+
 /// Per view (160 bytes). An array of 1 or 2 is bound at vertex/fragment index 4.
 struct ViewUniforms {
     /// Scene units → view space.
@@ -224,6 +232,24 @@ enum ParticlePacking {
         for line in lines where line.width > 0 {
             for (a, b) in line.segments {
                 segments[written] = GPULineSegment(start: SIMD4(a, line.width), end: SIMD4(b, 0), color: line.color)
+                written += 1
+            }
+        }
+        return written
+    }
+
+    /// Number of quads `packPanels` writes.
+    static func panelCount(_ panels: [PanelData]) -> Int {
+        panels.reduce(0) { $0 + ($1.color.w > 0 ? $1.quads.count : 0) }
+    }
+
+    /// Writes every quad of every visible panel set. Returns how many it wrote.
+    static func packPanels(_ panels: [PanelData], into quads: UnsafeMutablePointer<GPUPanel>) -> Int {
+        var written = 0
+        for panel in panels where panel.color.w > 0 {
+            for quad in panel.quads {
+                quads[written] = GPUPanel(origin: SIMD4(quad.origin, 1), u: SIMD4(quad.u, 0), v: SIMD4(quad.v, 0),
+                                          color: panel.color)
                 written += 1
             }
         }

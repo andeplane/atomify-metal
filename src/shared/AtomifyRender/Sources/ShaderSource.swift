@@ -36,6 +36,7 @@ enum ShaderSource {
         static let bonds = 7
         static let bondColors = 8
         static let lines = 9
+        static let panels = 10
     }
 
     enum FunctionConstant {
@@ -44,7 +45,7 @@ enum ShaderSource {
     }
 
     static var metal: String {
-        header + common + spheres + bonds + lines + postProcessing
+        header + common + spheres + bonds + lines + panels + postProcessing
     }
 
     static let header = """
@@ -666,6 +667,46 @@ enum ShaderSource {
         // No normal: the occlusion pass leaves lines unshaded.
         out.normalDepth = float4(0.0, 0.0, 0.0, 1.0 / max(in.viewDepth, 1e-6));
         return out;
+    }
+
+    """
+
+    /// Translucent walls: glass-like, more opaque where seen at a grazing
+    /// angle, so a wall stays visible from any side. Blended over the
+    /// opaque geometry without writing depth.
+    static let panels = """
+    struct Panel { float4 origin; float4 u; float4 v; float4 color; };
+
+    struct PanelVaryings {
+        float4 position [[position]];
+        float3 viewPosition;
+        float3 viewNormal [[flat]];
+        float4 color [[flat]];
+    };
+
+    vertex PanelVaryings panelVertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
+                                     constant ViewUniforms *views [[buffer(4)]],
+                                     const device Panel *panels [[buffer(10)]]
+                                     AMPLIFICATION_ARGUMENT) {
+        constant ViewUniforms &view = views[VIEW_INDEX];
+        Panel panel = panels[instanceID];
+        float2 st = float2(float(vertexID & 1u), float((vertexID >> 1) & 1u));
+        float3 corner = panel.origin.xyz + st.x * panel.u.xyz + st.y * panel.v.xyz;
+        float4 viewPosition = view.modelView * float4(corner, 1.0);
+        PanelVaryings out;
+        out.position = view.projection * viewPosition;
+        out.viewPosition = viewPosition.xyz;
+        out.viewNormal = (view.modelView * float4(cross(panel.u.xyz, panel.v.xyz), 0.0)).xyz;
+        out.color = panel.color;
+        return out;
+    }
+
+    fragment float4 panelFragment(PanelVaryings in [[stage_in]]) {
+        float3 toEye = normalize(-in.viewPosition);
+        float facing = abs(dot(normalize(in.viewNormal), toEye));
+        float grazing = 1.0 - facing;
+        float alpha = saturate(in.color.a * (1.0 + 2.0 * grazing * grazing));
+        return float4(in.color.rgb, alpha);
     }
 
     """

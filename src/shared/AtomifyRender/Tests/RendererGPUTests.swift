@@ -115,6 +115,44 @@ final class RendererGPUTests: XCTestCase {
         XCTAssertEqual(stats.bondsDrawn, 1)
     }
 
+    /// A wall in front of the sphere tints it; one behind it is hidden
+    /// where the sphere is and shows over the background.
+    private func checkPanels(_ renderer: ParticleRenderer, view: RenderView) throws {
+        let wall = SIMD4<Float>(0, 1, 0, 0.5)
+        var base = scene()
+        base.lines = []
+        var front = base
+        front.panels = [PanelData.box(low: SIMD3(-3, -3, 2), high: SIMD3(3, 3, 2), color: wall)]
+        renderer.update(front)
+        let tinted = try render(renderer, view: view)
+        var behind = base
+        behind.panels = [PanelData.box(low: SIMD3(-3, -3, -2), high: SIMD3(3, 3, -2), color: wall)]
+        renderer.update(behind)
+        let hidden = try render(renderer, view: view)
+        renderer.update(base)
+        let plain = try render(renderer, view: view)
+
+        let center = (tinted: pixel(tinted, size / 2, size / 2), hidden: pixel(hidden, size / 2, size / 2),
+                      plain: pixel(plain, size / 2, size / 2))
+        XCTAssertGreaterThan(Int(center.tinted.y), Int(center.plain.y) + 40, "wall in front: \(center)")
+        XCTAssertEqual(center.hidden, center.plain, "wall behind the sphere")
+        // Off the sphere, inside the wall: green over the background either way.
+        XCTAssertGreaterThan(pixel(hidden, 4, 4).y, 40)
+        XCTAssertEqual(pixel(plain, 4, 4).y, 0)
+    }
+
+    func testPanelsFast() throws {
+        try checkPanels(try makeRenderer(try device()), view: renderView())
+    }
+
+    func testPanelsMultisampleAndHighQuality() throws {
+        let device = try device()
+        guard device.supportsTextureSampleCount(4) else { throw XCTSkip("No 4x MSAA") }
+        try checkPanels(try makeRenderer(device, sampleCount: 4), view: renderView())
+        try checkPanels(try makeRenderer(device, sampleCount: 4, quality: .high), view: renderView())
+        try checkPanels(try makeRenderer(device, quality: .high), view: renderView())
+    }
+
     func testReverseZMultisampleAndOverrides() throws {
         let device = try device()
         guard device.supportsTextureSampleCount(4) else { throw XCTSkip("No 4x MSAA") }

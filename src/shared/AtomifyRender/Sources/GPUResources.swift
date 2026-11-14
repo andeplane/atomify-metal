@@ -49,11 +49,13 @@ final class FrameSlot {
     let bonds: GrowableBuffer
     let bondColors: GrowableBuffer
     let lines: GrowableBuffer
+    let panels: GrowableBuffer
 
     var particleCount = 0
     var styleCount = 0
     var bondCount = 0
     var lineCount = 0
+    var panelCount = 0
     var hasRadii = false
     var hasColors = false
     var hasBondColors = false
@@ -77,6 +79,7 @@ final class FrameSlot {
         bonds = GrowableBuffer(device: device, label: "AtomifyRender.bonds", stride: MemoryLayout<GPUBond>.stride)
         bondColors = GrowableBuffer(device: device, label: "AtomifyRender.bondColors", stride: MemoryLayout<UInt32>.stride)
         lines = GrowableBuffer(device: device, label: "AtomifyRender.lines", stride: MemoryLayout<GPULineSegment>.stride)
+        panels = GrowableBuffer(device: device, label: "AtomifyRender.panels", stride: MemoryLayout<GPUPanel>.stride)
     }
 
     /// Remembers a command buffer that reads this slot.
