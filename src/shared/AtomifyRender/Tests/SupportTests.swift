@@ -159,7 +159,8 @@ final class SceneTypesTests: XCTestCase {
         let positions: [SIMD3<Float>] = [.zero, .one]
         let scene = SceneData(particles: ParticleData(positions: positions, styles: [.fallback]),
                               bonds: BondData(pairs: [SIMD2(0, 1)], radius: 0.1),
-                              lines: [LineData.box(low: .zero, high: .one, color: .one)])
+                              lines: [LineData.box(low: .zero, high: .one, color: .one)],
+                              panels: [PanelData.box(low: .zero, high: .one, color: SIMD4(1, 1, 1, 0.1))])
         let copy = scene
         XCTAssertTrue(scene.sharesStorage(with: copy))
         var moved = scene
@@ -177,6 +178,12 @@ final class SceneTypesTests: XCTestCase {
         var relined = scene
         relined.lines = []
         XCTAssertFalse(scene.sharesStorage(with: relined))
+        var repaneled = scene
+        repaneled.panels = []
+        XCTAssertFalse(scene.sharesStorage(with: repaneled))
+        var tinted = scene
+        tinted.panels[0].color = .one
+        XCTAssertFalse(scene.sharesStorage(with: tinted))
         // Equal contents in different storage count as different.
         let rebuilt = SceneData(particles: ParticleData(positions: positions.map { $0 }, styles: [.fallback]))
         XCTAssertTrue(SceneData.empty.sharesStorage(with: SceneData.empty))
@@ -229,7 +236,7 @@ final class SceneTypesTests: XCTestCase {
 final class ShaderSourceTests: XCTestCase {
     func testSourceDeclaresEveryFunction() {
         let source = ShaderSource.metal
-        for geometry in [ParticleRenderer.Geometry.sphere, .bond, .line] {
+        for geometry in [ParticleRenderer.Geometry.sphere, .bond, .line, .panel] {
             for pass in [ParticleRenderer.Pass.direct, .gbuffer, .pick] where !(geometry == .line && pass == .pick) {
                 let names = ParticleRenderer.functionNames(geometry, pass)
                 XCTAssertTrue(source.contains(" \(names.vertex)("), names.vertex)
@@ -242,6 +249,7 @@ final class ShaderSourceTests: XCTestCase {
         XCTAssertEqual(ParticleRenderer.functionNames(.bond, .gbuffer).fragment, "bondGBufferFragment")
         XCTAssertEqual(ParticleRenderer.functionNames(.sphere, .pick).fragment, "spherePickFragment")
         XCTAssertEqual(ParticleRenderer.functionNames(.line, .direct).vertex, "lineVertex")
+        XCTAssertEqual(ParticleRenderer.functionNames(.panel, .gbuffer).fragment, "panelFragment")
     }
 
     func testBufferIndicesMatchTheSource() {
@@ -257,6 +265,7 @@ final class ShaderSourceTests: XCTestCase {
             ("const device Bond *bonds", ShaderSource.BufferIndex.bonds),
             ("const device uint *bondColors", ShaderSource.BufferIndex.bondColors),
             ("const device LineSegment *segments", ShaderSource.BufferIndex.lines),
+            ("const device Panel *panels", ShaderSource.BufferIndex.panels),
         ]
         for (declaration, index) in expectations {
             XCTAssertTrue(source.contains("\(declaration) [[buffer(\(index))]]"), declaration)

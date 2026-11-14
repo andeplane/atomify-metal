@@ -27,12 +27,17 @@ public struct AtomFrame: Sendable {
     public var units: String
     public var perAtomQuantity: String?
     public var perAtomValues: [Float]?
+    /// Planes of `fix wall/*` commands.
+    public var walls: [WallPlane]
+    /// Blocks of `fix wall/region` commands.
+    public var wallBlocks: [WallBlock]
 
     public init(tags: [Int64], types: [Int32], positions: [SIMD3<Float>], radii: [Float]? = nil,
                 bonds: [SIMD2<UInt32>] = [], boxLow: SIMD3<Double> = .zero, boxHigh: SIMD3<Double> = SIMD3(repeating: 1),
                 tilt: SIMD3<Double> = .zero, dimension: Int = 3, periodic: [Bool] = [true, true, true],
                 typeCount: Int? = nil, units: String = "lj",
-                perAtomQuantity: String? = nil, perAtomValues: [Float]? = nil) {
+                perAtomQuantity: String? = nil, perAtomValues: [Float]? = nil,
+                walls: [WallPlane] = [], wallBlocks: [WallBlock] = []) {
         self.tags = tags
         self.types = types
         self.positions = positions
@@ -47,6 +52,8 @@ public struct AtomFrame: Sendable {
         self.units = units
         self.perAtomQuantity = perAtomQuantity
         self.perAtomValues = perAtomValues
+        self.walls = walls
+        self.wallBlocks = wallBlocks
     }
 
     public init(_ snapshot: SimulationSnapshot) {
@@ -54,7 +61,8 @@ public struct AtomFrame: Sendable {
                   bonds: snapshot.bonds, boxLow: snapshot.boxLow, boxHigh: snapshot.boxHigh, tilt: snapshot.tilt,
                   dimension: snapshot.dimension, periodic: snapshot.periodic, typeCount: snapshot.typeCount,
                   units: snapshot.units,
-                  perAtomQuantity: snapshot.perAtomQuantity, perAtomValues: snapshot.perAtomValues)
+                  perAtomQuantity: snapshot.perAtomQuantity, perAtomValues: snapshot.perAtomValues,
+                  walls: snapshot.walls, wallBlocks: snapshot.wallBlocks)
     }
 
     public var count: Int { positions.count }
@@ -85,6 +93,10 @@ public enum SceneBuilder {
     /// Simulation box edges, linear RGB.
     public static let boxColor = SIMD4<Float>(0.55, 0.57, 0.62, 1)
     public static let boxLineWidth: Float = 1.5
+    /// Wall edges, linear RGB: lighter than the box, so a divider reads.
+    public static let wallEdgeColor = SIMD4<Float>(0.72, 0.76, 0.84, 1)
+    /// Wall faces: linear RGB and the face-on opacity (glass-like).
+    public static let wallFaceColor = SIMD4<Float>(0.5, 0.6, 0.8, 0.05)
     /// Style for types with no entry in the table (index 0 of `particleStyles`).
     public static let fallbackStyle = ParticleStyle(radius: 0.5, color: SIMD4(0.8, 0.8, 0.8, 1))
     /// `ParticleData.flags` bit for the selected atom.
@@ -156,7 +168,51 @@ public enum SceneBuilder {
                                                      dimension: frame.dimension),
                                   color: boxColor, width: boxLineWidth))
         }
-        return SceneData(particles: particles, bonds: bonds, lines: lines, images: [.zero])
+        let walls = wallGeometry(for: frame)
+        if !walls.edges.isEmpty {
+            lines.append(LineData(segments: walls.edges, color: wallEdgeColor, width: boxLineWidth))
+        }
+        let panels = walls.faces.isEmpty ? [] : [PanelData(quads: walls.faces, color: wallFaceColor)]
+        return SceneData(particles: particles, bonds: bonds, lines: lines, panels: panels, images: [.zero])
+    }
+
+    /// Faces and edges of the frame's walls, as the web app shows them:
+    /// translucent faces, plus edges where they are not on the box already.
+    /// A `fix wall/region` block is drawn as its box (in 2D, its outline at
+    /// the atoms' plane). A `fix wall/*` plane spans the box; planes are left
+    /// out in 2D and for triclinic boxes, where they do not line up with it.
+    public static func wallGeometry(for frame: AtomFrame) -> (faces: [PanelData.Quad],
+                                                               edges: [(SIMD3<Float>, SIMD3<Float>)]) {
+        var faces: [PanelData.Quad] = []
+        var edges: [(SIMD3<Float>, SIMD3<Float>)] = []
+        let low = frame.boxLow, high = frame.boxHigh
+        for block in frame.wallBlocks {
+            if frame.dimension == 2 {
+                edges += boxEdges(low: block.low, high: block.high, tilt: .zero, dimension: 2)
+                continue
+            }
+            let blockLow = SIMD3<Float>(block.low), blockHigh = SIMD3<Float>(block.high)
+            faces += PanelData.box(low: blockLow, high: blockHigh, color: .zero).quads
+            edges += LineData.box(low: blockLow, high: blockHigh, color: .zero).segments
+        }
+        guard frame.dimension == 3, frame.tilt == .zero else { return (faces, edges) }
+        for wall in frame.walls {
+            let axis = wall.axis
+            guard (0..<3).contains(axis), wall.position >= low[axis], wall.position <= high[axis] else { continue }
+            var planeLow = low, planeHigh = high
+            planeLow[axis] = wall.position
+            planeHigh[axis] = wall.position
+            let plane = PanelData.box(low: SIMD3<Float>(planeLow), high: SIMD3<Float>(planeHigh), color: .zero).quads
+            faces += plane
+            if wall.position != low[axis] && wall.position != high[axis] {
+                // Inside the box: the plane's own outline.
+                for quad in plane {
+                    let corners = [quad.origin, quad.origin + quad.u, quad.origin + quad.u + quad.v, quad.origin + quad.v]
+                    for k in 0..<4 { edges.append((corners[k], corners[(k + 1) % 4])) }
+                }
+            }
+        }
+        return (faces, edges)
     }
 
     /// The range the colors of a per-atom mode span for this frame: the

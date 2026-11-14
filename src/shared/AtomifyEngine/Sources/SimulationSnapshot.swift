@@ -29,6 +29,17 @@ public struct WallPlane: Sendable, Equatable {
     public var isUpper: Bool { face % 2 == 1 }
 }
 
+/// The block region of a `fix wall/region` command (e.g. the divider in
+/// Maxwell's demon), clipped to the simulation box.
+public struct WallBlock: Sendable, Equatable {
+    public var low: SIMD3<Double>
+    public var high: SIMD3<Double>
+
+    public init(low: SIMD3<Double>, high: SIMD3<Double>) {
+        self.low = low; self.high = high
+    }
+}
+
 /// Positions, types and bonds of all atoms at one timestep, sorted by LAMMPS
 /// atom ID, with the chosen per-atom quantity and the observables. Index `i`
 /// in `tags`, `types`, `positions`, `radii` and `perAtomValues` is the same
@@ -93,6 +104,8 @@ public struct SimulationSnapshot: Sendable {
     public var inputLine: String?
     /// Planes of `fix wall/*` commands.
     public var walls: [WallPlane]
+    /// Blocks of `fix wall/region` commands.
+    public var wallBlocks: [WallBlock]
 
     public init(sequence: UInt64 = 0, timestep: Int64 = 0, time: Double = 0, units: String = "lj",
                 typeCount: Int, dimension: Int = 3, periodic: [Bool] = [true, true, true],
@@ -104,7 +117,7 @@ public struct SimulationSnapshot: Sendable {
                 bonds: [SIMD2<UInt32>] = [], perAtomValues: [Float]? = nil, perAtomQuantity: String? = nil,
                 perAtomError: String? = nil, observables: [Observable] = [], observablesTimestep: Int64? = nil,
                 runMode: RunMode = .idle, runStep: Int64 = 0, runSteps: Int64 = 0, inputLine: String? = nil,
-                walls: [WallPlane] = []) {
+                walls: [WallPlane] = [], wallBlocks: [WallBlock] = []) {
         self.sequence = sequence; self.timestep = timestep; self.time = time; self.units = units
         self.typeCount = typeCount; self.dimension = dimension; self.periodic = periodic
         self.minimizing = minimizing; self.boxLow = boxLow; self.boxHigh = boxHigh; self.tilt = tilt
@@ -116,7 +129,7 @@ public struct SimulationSnapshot: Sendable {
         self.perAtomError = perAtomError
         self.observables = observables; self.observablesTimestep = observablesTimestep
         self.runMode = runMode; self.runStep = runStep; self.runSteps = runSteps; self.inputLine = inputLine
-        self.walls = walls
+        self.walls = walls; self.wallBlocks = wallBlocks
     }
 
     /// Fraction of the current run done (0...1), or nil when idle.
@@ -293,6 +306,14 @@ extension SimulationSnapshot {
                 }
             }
         }
+        var wallBlocks: [WallBlock] = []
+        if let base = raw.wall_blocks, raw.nwall_blocks > 0 {
+            for i in 0..<Int(raw.nwall_blocks) {
+                let block = base[i]
+                let low = SIMD3(block.lo.0, block.lo.1, block.lo.2), high = SIMD3(block.hi.0, block.hi.1, block.hi.2)
+                if all(low .<= high) { wallBlocks.append(WallBlock(low: low, high: high)) }
+            }
+        }
 
         self.init(
             sequence: raw.sequence, timestep: raw.timestep, time: raw.time, units: units,
@@ -320,7 +341,7 @@ extension SimulationSnapshot {
             runMode: RunMode(rawValue: Int(raw.run_mode)) ?? .idle,
             runStep: max(0, raw.run_step), runSteps: max(0, raw.run_steps),
             inputLine: line.isEmpty ? nil : line,
-            walls: walls)
+            walls: walls, wallBlocks: wallBlocks)
     }
 }
 

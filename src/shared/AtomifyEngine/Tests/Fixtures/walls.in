@@ -1,0 +1,15 @@
+# A box divided by a fix wall/region block (as in Maxwell's demon), and a
+# fix wall plane.
+units lj
+atom_style atomic
+boundary f f f
+region box block -4 4 -8 8 0 20 units box
+create_box 1 box
+region divider block -4 4 -0.01 0.01 -10 10 side out units box
+create_atoms 1 single 0 -4 5 units box
+mass 1 1.0
+pair_style lj/cut 2.5
+pair_coeff 1 1 1.0 1.0 2.5
+fix divider all wall/region divider harmonic 10.0 0.5 1.5
+fix top all wall/harmonic zhi 15.0 1.0 1.0 1.0 units box
+run 0

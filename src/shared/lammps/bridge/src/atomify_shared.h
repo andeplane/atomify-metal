@@ -70,6 +70,7 @@ struct AtomifySnapshotData {
   int64_t run_steps = 0;
   std::string input_line;
   std::vector<atomify_wall> walls;
+  std::vector<atomify_wall_block> wall_blocks;
   std::vector<int64_t> tags;
   std::vector<int32_t> types;
   std::vector<float> positions;

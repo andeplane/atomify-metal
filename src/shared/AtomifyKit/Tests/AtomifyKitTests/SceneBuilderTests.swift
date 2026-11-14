@@ -280,3 +280,80 @@ let sampleStyles = [SceneBuilder.fallbackStyle, red, blue]
         #expect(try #require(scene.lines.first).segments.count == 4)
     }
 }
+
+@Suite struct WallGeometryTests {
+    /// The box of `sampleFrame`: (-1, -2, -3) to (4, 5, 6).
+    func frame(walls: [WallPlane] = [], blocks: [WallBlock] = []) -> AtomFrame {
+        var frame = sampleFrame()
+        frame.walls = walls
+        frame.wallBlocks = blocks
+        return frame
+    }
+
+    @Test func noWallsNoPanels() {
+        let scene = SceneBuilder.scene(from: frame(), typeStyles: sampleStyles, colorMode: .type, selectedTag: nil,
+                                       showBox: true, bondRadius: 0)
+        #expect(scene.panels.isEmpty)
+        #expect(scene.lines.count == 1)    // the box
+    }
+
+    @Test func blockIsAGlassBoxWithEdges() throws {
+        let divider = WallBlock(low: SIMD3(-1, 1, -3), high: SIMD3(4, 1.02, 2))
+        let scene = SceneBuilder.scene(from: frame(blocks: [divider]), typeStyles: sampleStyles, colorMode: .type,
+                                       selectedTag: nil, showBox: false, bondRadius: 0)
+        let panels = try #require(scene.panels.first)
+        #expect(scene.panels.count == 1)
+        #expect(panels.quads.count == 6)
+        #expect(panels.color == SceneBuilder.wallFaceColor)
+        let edges = try #require(scene.lines.first)    // walls show without the box
+        #expect(scene.lines.count == 1)
+        #expect(edges.segments.count == 12)
+        #expect(edges.color == SceneBuilder.wallEdgeColor)
+        let points = edges.segments.flatMap { [$0.0, $0.1] }
+        #expect(points.allSatisfy { $0.y == 1 || isClose($0.y, 1.02) })
+        #expect(points.contains(SIMD3(4, 1, 2)))
+    }
+
+    @Test func blockIn2DIsAnOutline() {
+        var flat = frame(blocks: [WallBlock(low: SIMD3(0, 0, -0.5), high: SIMD3(1, 2, 0.5))])
+        flat.dimension = 2
+        let walls = SceneBuilder.wallGeometry(for: flat)
+        #expect(walls.faces.isEmpty)
+        #expect(walls.edges.count == 4)
+        #expect(walls.edges.allSatisfy { $0.0.z == 0 && $0.1.z == 0 })
+    }
+
+    @Test func planesSpanTheBox() throws {
+        // zlo on the box face: a face, no extra edges. x = 2 inside: a face and its outline.
+        let walls = SceneBuilder.wallGeometry(for: frame(walls: [WallPlane(face: 4, position: -3),
+                                                                 WallPlane(face: 1, position: 2)]))
+        #expect(walls.faces.count == 2)
+        let floor = walls.faces[0]
+        #expect(floor.origin == SIMD3(-1, -2, -3))
+        #expect(isClose(simd_length(simd_cross(floor.u, floor.v)), 5 * 7))
+        let inner = walls.faces[1]
+        #expect(inner.origin.x == 2)
+        #expect(isClose(simd_length(simd_cross(inner.u, inner.v)), 7 * 9))
+        #expect(walls.edges.count == 4)
+        #expect(walls.edges.allSatisfy { $0.0.x == 2 && $0.1.x == 2 })
+    }
+
+    @Test func planesOutsideTheBoxIn2DOrTriclinicAreLeftOut() {
+        #expect(SceneBuilder.wallGeometry(for: frame(walls: [WallPlane(face: 5, position: 7)])).faces.isEmpty)
+        var flat = frame(walls: [WallPlane(face: 0, position: 0)])
+        flat.dimension = 2
+        #expect(SceneBuilder.wallGeometry(for: flat).faces.isEmpty)
+        var tilted = frame(walls: [WallPlane(face: 0, position: 0)])
+        tilted.tilt = SIMD3(1, 0, 0)
+        #expect(SceneBuilder.wallGeometry(for: tilted).faces.isEmpty)
+    }
+
+    @Test func snapshotWallsReachTheFrame() {
+        let snapshot = SimulationSnapshot(typeCount: 1, boxLow: .zero, boxHigh: SIMD3(repeating: 4), tags: [], types: [],
+                                          positions: [], walls: [WallPlane(face: 0, position: 0)],
+                                          wallBlocks: [WallBlock(low: .zero, high: .one)])
+        let frame = AtomFrame(snapshot)
+        #expect(frame.walls == snapshot.walls)
+        #expect(frame.wallBlocks == snapshot.wallBlocks)
+    }
+}

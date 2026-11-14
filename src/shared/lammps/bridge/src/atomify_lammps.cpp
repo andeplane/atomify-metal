@@ -930,6 +930,8 @@ int atomify_sim_snapshot_lock(atomify_sim *sim, atomify_snapshot *out)
   out->observables = s.observable_views.empty() ? nullptr : s.observable_views.data();
   out->nwalls = static_cast<int32_t>(s.walls.size());
   out->walls = s.walls.empty() ? nullptr : s.walls.data();
+  out->nwall_blocks = static_cast<int32_t>(s.wall_blocks.size());
+  out->wall_blocks = s.wall_blocks.empty() ? nullptr : s.wall_blocks.data();
   return 1;
 }
 
