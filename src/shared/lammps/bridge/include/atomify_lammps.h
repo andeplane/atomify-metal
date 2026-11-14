@@ -80,6 +80,14 @@ typedef struct {
   double position;    // coordinate along that axis
 } atomify_wall;
 
+// A block region that a `fix wall/region` keeps atoms out of (or in), e.g.
+// the divider of a box. Clipped to the simulation box. Moving or variable
+// blocks and other region shapes are not listed.
+typedef struct {
+  double lo[3];
+  double hi[3];
+} atomify_wall_block;
+
 typedef struct {
   uint64_t sequence;        // increases by one for every published snapshot
   int64_t timestep;
@@ -131,6 +139,10 @@ typedef struct {
   // Planes of fix wall/* commands, in fix order.
   int32_t nwalls;
   const atomify_wall *walls;
+
+  // Blocks of fix wall/region commands, in fix order.
+  int32_t nwall_blocks;
+  const atomify_wall_block *wall_blocks;
 } atomify_snapshot;
 
 // Soft repulsive sphere in simulation coordinates, e.g. part of a hand.

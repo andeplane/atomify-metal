@@ -80,7 +80,7 @@ final class AppModel {
     }
 
     /// Launch argument that opens one example with no welcome and no
-    /// controls, for taking its gallery picture:
+    /// controls and no simulation box, for taking its gallery picture:
     /// `xcrun simctl launch booted <bundle id> -AtomifyCapture <example id>`.
     static let captureArgument = "AtomifyCapture"
 
@@ -98,6 +98,8 @@ final class AppModel {
         if let captureID, let example = catalog.example(id: captureID) {
             showsWelcome = false
             chromeHidden = screen == nil
+            // The box's white lines clutter the small gallery pictures.
+            session.showBox = false
             session.load(example, from: catalog)
             show(screen: screen)
             return

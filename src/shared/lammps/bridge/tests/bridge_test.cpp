@@ -68,6 +68,7 @@ struct Snapshot {
   int64_t run_step = -1, run_steps = -1;
   std::string input_line;
   std::vector<std::pair<int, double>> walls;
+  std::vector<atomify_wall_block> wall_blocks;
   bool valid = false;
 
   const Observable *find(int kind, const std::string &name) const
@@ -135,6 +136,7 @@ Snapshot copy(atomify_sim *sim)
   s.run_steps = raw.run_steps;
   s.input_line = raw.input_line;
   for (int i = 0; i < raw.nwalls; i++) s.walls.emplace_back(raw.walls[i].face, raw.walls[i].position);
+  for (int i = 0; i < raw.nwall_blocks; i++) s.wall_blocks.push_back(raw.wall_blocks[i]);
   atomify_sim_snapshot_unlock(sim);
   return s;
 }
@@ -688,6 +690,31 @@ void test_walls()
   }
   CHECK(run(sim, {"unfix w", "run 0"}));
   CHECK(copy(sim).walls.empty());
+  atomify_sim_destroy(sim);
+}
+
+// fix wall/region with a block (Maxwell's demon divider): the block clipped
+// to the box. Other region shapes are not listed.
+void test_wall_blocks()
+{
+  atomify_sim *sim = atomify_sim_create(0);
+  CHECK(run(sim, {"units lj", "atom_style atomic", "boundary f f f", "region box block -4 4 -8 8 0 50 units box",
+                  "create_box 1 box", "region wall block -4 4 -0.01 0.01 -10 10 side out units box",
+                  "region ball sphere 0 4 30 1 side out units box", "create_atoms 1 single 0 -4 20 units box",
+                  "mass 1 1.0", "pair_style lj/cut 2.5", "pair_coeff 1 1 1.0 1.0 2.5",
+                  "fix w all wall/region wall harmonic 10.0 0.5 1.5",
+                  "fix b all wall/region ball harmonic 10.0 0.5 1.5", "run 0"}));
+  Snapshot s = copy(sim);
+  CHECK(s.wall_blocks.size() == 1);
+  if (s.wall_blocks.size() == 1) {
+    const atomify_wall_block &b = s.wall_blocks[0];
+    CHECK(b.lo[0] == -4 && b.hi[0] == 4);
+    CHECK(b.lo[1] == -0.01 && b.hi[1] == 0.01);
+    CHECK(b.lo[2] == 0 && b.hi[2] == 10);    // clipped to the box
+  }
+  CHECK(s.walls.empty());
+  CHECK(run(sim, {"unfix w", "run 0"}));
+  CHECK(copy(sim).wall_blocks.empty());
   atomify_sim_destroy(sim);
 }
 
@@ -1282,6 +1309,7 @@ int main()
   test_error_input_line();
   test_run_status();
   test_walls();
+  test_wall_blocks();
   test_extra_pair_style();
   test_rejects_nonfinite_hand_input_and_preserves_last_good_frame();
   test_tracking_timeout_releases_grabs();

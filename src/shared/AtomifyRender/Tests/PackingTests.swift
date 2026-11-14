@@ -175,4 +175,33 @@ final class PackingTests: XCTestCase {
         XCTAssertEqual(out[0].color, red)
         XCTAssertTrue(out.allSatisfy { $0.end.w == 0 })
     }
+
+    func testPanelBoxFaces() {
+        let solid = PanelData.box(low: .zero, high: SIMD3(1, 2, 3), color: SIMD4(1, 1, 1, 0.1))
+        XCTAssertEqual(solid.quads.count, 6)
+        XCTAssertEqual(solid.color, SIMD4(1, 1, 1, 0.1))
+        // Faces normal to x: spanned by y and z, at x = 0 and x = 1.
+        XCTAssertEqual(solid.quads[0], PanelData.Quad(origin: .zero, u: SIMD3(0, 2, 0), v: SIMD3(0, 0, 3)))
+        XCTAssertEqual(solid.quads[1].origin, SIMD3(1, 0, 0))
+        let area = solid.quads.reduce(Float(0)) { $0 + simd_length(simd_cross($1.u, $1.v)) }
+        XCTAssertEqual(area, 2 * (2 + 3 + 6), accuracy: 1e-5)
+        // A flat box is one quad; a line has none.
+        let flat = PanelData.box(low: SIMD3(0, 1, 0), high: SIMD3(4, 1, 5), color: .one)
+        XCTAssertEqual(flat.quads, [PanelData.Quad(origin: SIMD3(0, 1, 0), u: SIMD3(0, 0, 5), v: SIMD3(4, 0, 0))])
+        XCTAssertTrue(PanelData.box(low: .zero, high: SIMD3(1, 0, 0), color: .one).quads.isEmpty)
+    }
+
+    func testPackPanels() {
+        let box = PanelData.box(low: .zero, high: .one, color: SIMD4(0.5, 0.6, 0.7, 0.1))
+        let invisible = PanelData.box(low: .zero, high: .one, color: SIMD4(1, 1, 1, 0))
+        XCTAssertEqual(ParticlePacking.panelCount([box, invisible]), 6)
+        var out = [GPUPanel](repeating: GPUPanel(origin: .zero, u: .zero, v: .zero, color: .zero), count: 6)
+        let written = out.withUnsafeMutableBufferPointer {
+            ParticlePacking.packPanels([invisible, box], into: $0.baseAddress!)
+        }
+        XCTAssertEqual(written, 6)
+        XCTAssertEqual(out[0], GPUPanel(origin: SIMD4(0, 0, 0, 1), u: SIMD4(0, 1, 0, 0), v: SIMD4(0, 0, 1, 0),
+                                        color: SIMD4(0.5, 0.6, 0.7, 0.1)))
+        XCTAssertEqual(MemoryLayout<GPUPanel>.stride, 64)
+    }
 }

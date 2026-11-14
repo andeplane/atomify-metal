@@ -128,18 +128,65 @@ public struct LineData: Sendable {
     }
 }
 
+/// Flat translucent quads (walls), drawn after everything opaque, without
+/// writing depth. A quad covers `origin + s * u + t * v` for s, t in 0...1.
+public struct PanelData: Sendable {
+    public struct Quad: Sendable, Equatable {
+        public var origin: SIMD3<Float>
+        public var u: SIMD3<Float>
+        public var v: SIMD3<Float>
+
+        public init(origin: SIMD3<Float>, u: SIMD3<Float>, v: SIMD3<Float>) {
+            self.origin = origin; self.u = u; self.v = v
+        }
+    }
+
+    public var quads: [Quad]
+    /// Linear RGB, and the opacity seen face on (more at grazing angles).
+    public var color: SIMD4<Float>
+
+    public init(quads: [Quad], color: SIMD4<Float>) {
+        self.quads = quads
+        self.color = color
+    }
+
+    /// The six faces of an axis-aligned box. A face of zero area is left
+    /// out, so a flat box is one quad.
+    public static func box(low: SIMD3<Float>, high: SIMD3<Float>, color: SIMD4<Float>) -> PanelData {
+        let size = high - low
+        var quads: [Quad] = []
+        for axis in 0..<3 {
+            let i = (axis + 1) % 3, j = (axis + 2) % 3
+            guard size[i] > 0, size[j] > 0 else { continue }
+            var u = SIMD3<Float>.zero, v = SIMD3<Float>.zero
+            u[i] = size[i]
+            v[j] = size[j]
+            quads.append(Quad(origin: low, u: u, v: v))
+            if size[axis] > 0 {
+                var origin = low
+                origin[axis] = high[axis]
+                quads.append(Quad(origin: origin, u: u, v: v))
+            }
+        }
+        return PanelData(quads: quads, color: color)
+    }
+}
+
 public struct SceneData: Sendable {
     public var particles: ParticleData
     public var bonds: BondData?
     public var lines: [LineData]
+    /// Translucent walls.
+    public var panels: [PanelData]
     /// Periodic copies of the particles to draw (offsets), [.zero] for none.
     public var images: [SIMD3<Float>]
 
     public init(particles: ParticleData, bonds: BondData? = nil, lines: [LineData] = [],
-                images: [SIMD3<Float>] = [.zero]) {
+                panels: [PanelData] = [], images: [SIMD3<Float>] = [.zero]) {
         self.particles = particles
         self.bonds = bonds
         self.lines = lines
+        self.panels = panels
         self.images = images
     }
 
@@ -158,7 +205,10 @@ public struct SceneData: Sendable {
               ArrayIdentity.same(a.radii, b.radii),
               ArrayIdentity.same(a.flags, b.flags),
               ArrayIdentity.same(images, other.images),
-              lines.count == other.lines.count else { return false }
+              lines.count == other.lines.count, panels.count == other.panels.count else { return false }
+        for (l, r) in zip(panels, other.panels) {
+            guard l.color == r.color, ArrayIdentity.same(l.quads, r.quads) else { return false }
+        }
         for (l, r) in zip(lines, other.lines) {
             guard l.color == r.color, l.width == r.width,
                   ArrayIdentity.sameSegments(l.segments, r.segments) else { return false }
