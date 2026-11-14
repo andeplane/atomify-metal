@@ -71,7 +71,7 @@ final class ColorTests: XCTestCase {
                 XCTAssertEqual(c.w, 1)
             }
         }
-        XCTAssertEqual(Colormap.allCases.count, 5)
+        XCTAssertEqual(Colormap.allCases.count, 6)
     }
 
     func testTableAndRange() {
