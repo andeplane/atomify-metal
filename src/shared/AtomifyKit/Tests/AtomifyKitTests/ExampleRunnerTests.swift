@@ -61,6 +61,17 @@ import Testing
         #expect(result.message == nil)
     }
 
+    @Test func continuesAfterTheScript() async throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let example = try #require(catalog.example(id: "lj"))
+        let limits = ExampleRunLimits(steps: 400, timeout: 60, continueAfterScript: true)
+        let result = await ExampleRunner.run(example, from: catalog, limits: limits, scratch: try scratchDirectory())
+        #expect(result.status == .ok)
+        // The 200 step script is over; the continuation run reaches the limit.
+        #expect(!result.completedInput)
+        #expect(result.steps >= 400)
+    }
+
     @Test func reportsTheFailingLine() async throws {
         let directory = try scratchDirectory()
         try "units lj\natom_style atomic\nbogus_command 1 2\n".write(
