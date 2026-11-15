@@ -65,15 +65,17 @@ under the same rules as the store build.
 
 "Atomify" is taken by the existing listing, and App Store names must be
 unique, so the new listing needs its own name. The name under the icon and in
-the menu bar stays "Atomify". Candidates (30 characters at most):
+the menu bar stays "Atomify".
 
-1. **Atomify Simulations** (recommended: says what it is, leaves "Pro" for the workbench)
-2. Atomify: Atoms in Motion
-3. Atomify Lab
+Anders chose "Atomify: Atoms and molecules in motion" (November 15, 2026).
+That is 38 characters and the limit is 30, so it is split over the name and
+the subtitle:
+
+**Atomify: Atoms in Motion**
 
 ### Subtitle (30 characters at most)
 
-Watch atoms move in real time
+Atoms and molecules in motion
 
 ### Promotional text (170 characters at most)
 
@@ -229,5 +231,5 @@ uploading anything.
 
 ## Still to do
 
-- Decide the listing name and confirm the bundle ID, then register the App
+- Confirm the bundle ID, then register the App
   ID, create the App Store Connect record, and export, validate and upload.
