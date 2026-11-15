@@ -257,8 +257,17 @@ was uploaded.
   times out waiting for plots, also on main before this work; it is a
   separate bug.
 
+## Submission
+
+- App Store Connect record: "Atomify: Atoms in Motion", app id 6835061561,
+  SKU `atomify-mac`, bundle id `com.compphys.atomify.mac`. It is a new
+  listing; the Qt Mac app (app id 1192327034) is untouched.
+- Build 3.0 (1) was uploaded and selected on version 3.0 on 2026-11-15.
+- Listing as drafted above, six 2880x1800 screenshots, category Education,
+  age rating 4+, free in all countries, privacy "Data Not Collected"
+  (published), no sign-in needed for review.
+- Submitted for App Review on 2026-11-15; status Waiting for Review.
+
 ## Still to do
 
-- Create the App Store Connect record for `com.compphys.atomify.mac`, fill in
-  the listing from this draft, upload the package and submit. Each of these
-  waits for Anders.
+- Wait for Apple's review result and handle any feedback.
