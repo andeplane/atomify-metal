@@ -38,6 +38,11 @@ enum Platform {
     /// on screen only, so offscreen pictures use the material fallback.
     nonisolated(unsafe) static var allowsLiquidGlass = true
 
+    /// On only in the Mac's store screenshots: the simulation screen leaves
+    /// the canvas behind the atoms transparent, so atoms rendered offscreen
+    /// can be put under the controls.
+    nonisolated(unsafe) static var transparentCanvas = false
+
     /// How to move around the atoms, for VoiceOver: touch words on iOS,
     /// pointer words on Mac.
     #if os(iOS)

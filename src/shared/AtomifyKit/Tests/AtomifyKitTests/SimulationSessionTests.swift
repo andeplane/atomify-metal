@@ -21,6 +21,20 @@ func waitUntil(_ what: String, timeout: Duration = .seconds(30), _ condition: ()
 /// Runs the real engine (needs CLammps.xcframework), so it is one test per
 /// behavior chain rather than many small ones.
 @MainActor @Suite(.serialized) struct SimulationSessionTests {
+    /// Off the display's clock, ticks come from a timer, so offscreen tools
+    /// run while the display sleeps.
+    @Test(.timeLimit(.minutes(1))) func runsOnATimerWhenNotFollowingTheDisplay() async throws {
+        let catalog = try ExampleCatalog.load(from: fixturesDirectory())
+        let example = try #require(catalog.example(id: "lj"))
+        let session = SimulationSession()
+        session.followsDisplay = false
+        session.continueAfterScript = true
+        session.load(example, from: catalog)
+        #expect(!session.usesDisplayTicker)
+        try await waitUntil("a scene past step 0") { session.scene != nil && session.stats.timestep > 0 }
+        session.stop()
+    }
+
     @Test(.timeLimit(.minutes(2))) func runsAnExampleEndToEnd() async throws {
         let catalog = try ExampleCatalog.load(from: fixturesDirectory())
         let example = try #require(catalog.example(id: "lj"))
