@@ -7,10 +7,15 @@ public struct ExampleRunLimits: Sendable, Equatable {
     public var steps: Int64
     /// Wall clock seconds before the example is cancelled as timed out.
     public var timeout: Double
+    /// Keep integrating after the script ends, as the apps do (their
+    /// examples set up a system and leave the running to the app), so
+    /// `steps` steps are taken even when the script has no run of its own.
+    public var continueAfterScript: Bool
 
-    public init(steps: Int64 = 100, timeout: Double = 120) {
+    public init(steps: Int64 = 100, timeout: Double = 120, continueAfterScript: Bool = false) {
         self.steps = steps
         self.timeout = timeout
+        self.continueAfterScript = continueAfterScript
     }
 }
 
@@ -133,7 +138,8 @@ public enum ExampleRunner {
 
         let ending = OutcomeBox()
         simulation.setPublishInterval(0.02)
-        simulation.start(script: copy.script, workingDirectory: copy.folder) { ending.set($0) }
+        simulation.start(script: copy.script, workingDirectory: copy.folder,
+                         continueAfterScript: limits.continueAfterScript) { ending.set($0) }
 
         var atoms = 0
         var steps: Int64 = 0

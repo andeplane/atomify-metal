@@ -1,6 +1,6 @@
 // atomify-check-examples: runs every bundled example and reports which fail.
 //
-//   swift run atomify-check-examples [--steps N] [--timeout S] [--filter TEXT] [--examples DIR]
+//   swift run atomify-check-examples [--steps N] [--timeout S] [--filter TEXT] [--examples DIR] [--continue]
 //
 // Each example runs until its input completes or N steps (default 100) after
 // its first run started, with a wall clock timeout of S seconds (default 120).
@@ -8,6 +8,8 @@
 // folder with an examples.json (default: src/macos/AtomifyMac/Examples).
 // Prints a table and exits 1 if any example failed or timed out. Examples
 // marked "atomifyMetal": {"skip": "reason"} in examples.json are skipped.
+// --continue keeps integrating after each script ends, as the apps do, so
+// examples without a run of their own (the iOS and Mac ones) also take N steps.
 //
 // The host counterpart without Xcode is src/shared/lammps/check-examples.sh.
 
@@ -25,8 +27,12 @@ var examplesDirectory = ExampleRunner.bundledExamplesDirectory(fromSourceFile: #
 var arguments = CommandLine.arguments.dropFirst()
 while let option = arguments.popFirst() {
     if option == "--help" || option == "-h" {
-        print("usage: atomify-check-examples [--steps N] [--timeout S] [--filter TEXT] [--examples DIR]")
+        print("usage: atomify-check-examples [--steps N] [--timeout S] [--filter TEXT] [--examples DIR] [--continue]")
         exit(0)
+    }
+    if option == "--continue" {
+        limits.continueAfterScript = true
+        continue
     }
     guard let value = arguments.popFirst() else { fail("\(option) needs a value") }
     switch option {

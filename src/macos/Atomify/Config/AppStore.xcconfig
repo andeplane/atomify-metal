@@ -1,0 +1,7 @@
+// Mac App Store identity for Atomify for Mac: its own listing, separate from
+// the iPhone and iPad app (com.compphys.atomify) and from the older Mac app.
+// Pass with xcodebuild -xcconfig src/macos/Atomify/Config/AppStore.xcconfig.
+ATOMIFY_BUNDLE_ID = com.compphys.atomify.mac
+DEVELOPMENT_TEAM = 4XKET6P69R
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development

@@ -35,9 +35,9 @@ targets:
       - path: Sources
       # The iOS app's views and model, shared as they are.
       - path: ../../ios/AtomifyIOS
+        # PrivacyInfo.xcprivacy comes along as a resource: same answers as on iOS.
         excludes:
           - AtomifyApp.swift
-          - PrivacyInfo.xcprivacy
       # The Mac app icon (the iOS one, in the macOS shape; tools/make-icon.swift).
       - path: Assets.xcassets
       # The iOS app's examples, copied into the app as a folder.
@@ -54,11 +54,15 @@ targets:
         ARCHS: arm64
         PRODUCT_BUNDLE_IDENTIFIER: $(ATOMIFY_BUNDLE_ID)
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Config/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Atomify
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
         INFOPLIST_KEY_NSHumanReadableCopyright: "GPL. LAMMPS is GPLv2; the examples come from Atomify."
-        ENABLE_HARDENED_RUNTIME: NO
-        ENABLE_APP_SANDBOX: NO
+        # What the Mac App Store requires: the sandbox (Config/Atomify.entitlements
+        # asks for nothing beyond it) and the hardened runtime.
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ENTITLEMENTS: Config/Atomify.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: MacAppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
