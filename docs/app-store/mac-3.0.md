@@ -157,14 +157,38 @@ viewer of ready-made simulations, while the other is a full editor.
 ### Screenshots
 
 The Mac App Store takes 1 to 10 screenshots at 1280 × 800, 1440 × 900,
-2560 × 1600 or 2880 × 1800. Planned set, at 2880 × 1800:
+2560 × 1600 or 2880 × 1800. The set is six RGB PNGs at 2880 × 1800 (the app
+window at 1440 × 900 points, 2x), made offscreen from the real app: each
+example runs for a few seconds, its atoms are rendered with the app's
+renderer, camera and view settings, and the window's controls are drawn on
+top. No window is shown. Reduced JPEG copies for review are in
+[`mac-3.0-screenshots/`](mac-3.0-screenshots/).
 
-1. Gas hydrates running, controls visible
-2. Water with the live dashboard open
-3. The simulation library
-4. An example's page with its description
-5. Hydrogen explosion with the view options
-6. The LAMMPS script page
+1. `01-gas_hydrates`: gas hydrates running, with the controls.
+2. `02-singlewater-dashboard`: the water molecule with the live dashboard (the angle plot has data).
+3. `03-gallery`: the simulation library.
+4. `04-sica_sheet_melt-detail`: the SiC nanosheet's page with its description.
+5. `05-h2_explosion-view`: the hydrogen explosion coloured by kinetic energy, with the view options.
+6. `06-flow_pois`: Poiseuille flow, with the controls.
+
+The window is never key, so the window buttons are grey and toolbar items
+(the detail page's title and Run button) draw in their inactive look; the
+controls over the simulation look as in the app.
+
+```sh
+xcodegen generate --spec src/macos/Atomify/project.yml
+xcodebuild -project src/macos/Atomify/Atomify.xcodeproj -scheme AtomifySnapshots \
+  -derivedDataPath build/macos-dd build
+build/macos-dd/Build/Products/Debug/AtomifySnapshots.app/Contents/MacOS/AtomifySnapshots \
+  --store build/app-store/mac-3.0/screenshots
+for f in build/app-store/mac-3.0/screenshots/*.png; do
+  sips -s format jpeg -s formatOptions 80 -z 900 1440 "$f" \
+    --out docs/app-store/mac-3.0-screenshots/"$(basename "$f" .png)".jpg
+done
+```
+
+The PNGs under `build/` are the ones to upload; they are not committed.
+Pass a name prefix after the folder (for example `05`) to remake one.
 
 ## Validation, November 15, 2026
 
@@ -205,6 +229,5 @@ uploading anything.
 
 ## Still to do
 
-- Store screenshots at 2880 × 1800 with the atoms drawn.
 - Decide the listing name and confirm the bundle ID, then register the App
   ID, create the App Store Connect record, and export, validate and upload.

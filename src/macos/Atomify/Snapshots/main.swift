@@ -10,8 +10,14 @@
 //     -derivedDataPath build/macos-dd build
 //   build/macos-dd/Build/Products/Debug/AtomifySnapshots.app/Contents/MacOS/AtomifySnapshots \
 //     build/screens [screen name prefix]
+//
+// With --store DIR [name prefix] it makes the Mac App Store screenshots
+// instead: 1440x900 points at 2x (2880x1800 RGB PNGs), each example run for
+// a few seconds, its atoms rendered offscreen as the Metal view would draw
+// them and the controls drawn on top (see storeShots below).
 import AppKit
 import AtomifyKit
+import AtomifyRender
 import MetalKit
 import SwiftUI
 
@@ -84,13 +90,128 @@ func snapshot(_ shot: Shot, size: CGSize, to directory: URL) async {
     window.close()
 }
 
+// MARK: Store screenshots
+
+struct StoreShot {
+    let name: String
+    /// Seconds the example runs before the picture, as in the iOS set.
+    let seconds: Double
+    let setUp: @MainActor (AppModel) -> Void
+}
+
+/// The Mac App Store set, mirroring the iPhone and iPad one.
+@MainActor
+func storeShots() -> [StoreShot] {
+    [
+        StoreShot(name: "01-gas_hydrates", seconds: 8) { $0.start(captureID: "gas_hydrates", screen: "play") },
+        StoreShot(name: "02-singlewater-dashboard", seconds: 8) {
+            $0.start(captureID: "singlewater", screen: "dashboard")
+        },
+        StoreShot(name: "03-gallery", seconds: 3) { $0.start(captureID: nil, screen: "gallery") },
+        StoreShot(name: "04-sica_sheet_melt-detail", seconds: 3) {
+            $0.start(captureID: nil, screen: "detail:sica_sheet_melt")
+        },
+        StoreShot(name: "05-h2_explosion-view", seconds: 8) { $0.start(captureID: "h2_explosion", screen: "view") },
+        StoreShot(name: "06-flow_pois", seconds: 8) { $0.start(captureID: "flow_pois", screen: "play") },
+    ]
+}
+
+/// A window that draws as the key, main window (active controls, coloured
+/// window buttons) without ever being put on screen or made key.
+final class ActiveLookingWindow: NSWindow {
+    override var isKeyWindow: Bool { true }
+    override var isMainWindow: Bool { true }
+}
+
+@MainActor
+func metalViews(in view: NSView) -> [MTKView] {
+    view.subviews.flatMap { $0 is MTKView ? [$0 as! MTKView] : metalViews(in: $0) }
+}
+
+@MainActor
+func storeSnapshot(_ shot: StoreShot, to directory: URL) async throws {
+    let points = CGSize(width: 1440, height: 900), scale: CGFloat = 2
+    let model = AppModel()
+    UserDefaults.standard.set(false, forKey: SettingsKey.showPerformance)
+    // Steps on a timer: the run must not wait for a display that is asleep.
+    model.session.followsDisplay = false
+    shot.setUp(model)
+    let window = ActiveLookingWindow(contentRect: CGRect(origin: .zero, size: points),
+                                     styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                                     backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false
+    window.isOpaque = false
+    window.backgroundColor = .clear
+    window.toolbarStyle = .unified
+    window.title = "Atomify"
+    window.appearance = NSAppearance(named: .darkAqua)
+    let host = NSHostingController(rootView: MacRootView().environment(model))
+    host.sceneBridgingOptions = [.toolbars, .title]
+    window.contentViewController = host
+    window.setContentSize(points)
+    try await Task.sleep(for: .seconds(shot.seconds))
+    guard let frameView = window.contentView?.superview else { throw OffscreenImage.Failure("No window frame") }
+    // The Metal view draws only on screen; its atoms are rendered below
+    // instead, and the controls are drawn over a transparent canvas.
+    let metal = metalViews(in: frameView).filter { !$0.isHidden && $0.window != nil }
+    metal.forEach { $0.isHidden = true }
+    frameView.layoutSubtreeIfNeeded()
+    frameView.displayIfNeeded()
+    guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(points.width * scale),
+                                     pixelsHigh: Int(points.height * scale), bitsPerSample: 8, samplesPerPixel: 4,
+                                     hasAlpha: true, isPlanar: false, colorSpaceName: .calibratedRGB,
+                                     bytesPerRow: 0, bitsPerPixel: 0) else {
+        throw OffscreenImage.Failure("No bitmap")
+    }
+    rep.size = points
+    frameView.cacheDisplay(in: frameView.bounds, to: rep)
+
+    var layers: [(image: CGImage, rect: CGRect)] = []
+    let session = model.session
+    if let scene = session.scene, !model.showsGallery {
+        for view in metal {
+            let atoms = try OffscreenImage.render(scene: scene, camera: session.camera,
+                                                  settings: session.renderSettings, pointSize: view.bounds.size,
+                                                  scale: scale)
+            layers.append((atoms, OffscreenImage.pixelRect(windowRect: view.convert(view.bounds, to: nil),
+                                                           scale: scale)))
+        }
+    }
+    let canvas = CGColor(srgbRed: 18 / 255, green: 18 / 255, blue: 20 / 255, alpha: 1)
+    let image = try OffscreenImage.composite(size: CGSize(width: points.width * scale, height: points.height * scale),
+                                             background: canvas, layers: layers, overlay: rep.cgImage)
+    let url = directory.appendingPathComponent("\(shot.name).png")
+    try OffscreenImage.png(image).write(to: url)
+    print("\(url.path): \(session.stats.atoms) atoms, step \(session.stats.timestep)")
+    session.stop()
+    window.contentViewController = nil
+    window.close()
+}
+
 Platform.allowsLiquidGlass = false
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
-let output = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "build/screens")
+var arguments = Array(CommandLine.arguments.dropFirst())
+let store = arguments.first == "--store"
+if store {
+    arguments.removeFirst()
+    Platform.transparentCanvas = true
+}
+let output = URL(fileURLWithPath: arguments.first ?? (store ? "build/app-store/mac-3.0/screenshots" : "build/screens"))
 try? FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-let only = CommandLine.arguments.dropFirst(2).first
+let only = arguments.dropFirst().first
 Task { @MainActor in
+    if store {
+        for shot in storeShots() where only == nil || shot.name.hasPrefix(only!) {
+            do {
+                try await storeSnapshot(shot, to: output)
+            } catch {
+                FileHandle.standardError.write(Data("\(shot.name): \(error)\n".utf8))
+                exit(1)
+            }
+        }
+        exit(0)
+    }
     for shot in screens() where only == nil || shot.name.hasPrefix(only!) {
         for (_, size) in sizes {
             await snapshot(shot, size: size, to: output)

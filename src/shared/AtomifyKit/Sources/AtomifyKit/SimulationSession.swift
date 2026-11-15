@@ -306,6 +306,10 @@ public final class SimulationSession {
 
     /// How often the session polls for snapshots.
     @ObservationIgnored public var tickInterval: Duration = .milliseconds(16)
+    /// Ticks on the display's refresh where there is a screen. Off, ticks
+    /// come from a timer every `tickInterval`, as without a screen: for
+    /// offscreen tools, whose runs must not stop while the display sleeps.
+    @ObservationIgnored public var followsDisplay = true
     /// How often stats, plots, console and selection refresh.
     @ObservationIgnored public var refreshInterval: Duration = .milliseconds(200)
     /// Most points drawn per plotted series.
@@ -619,7 +623,7 @@ public final class SimulationSession {
         stopPolling()
         // On the display's own clock where there is one, so every displayed
         // frame gets its share of the steps.
-        if let ticker = DisplayTicker(tick: { [weak self] in
+        if followsDisplay, let ticker = DisplayTicker(tick: { [weak self] in
             guard let self else { return false }
             self.tick()
             return true

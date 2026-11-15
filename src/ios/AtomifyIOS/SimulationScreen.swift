@@ -44,7 +44,7 @@ struct SimulationScreen: View {
         .animation(.easeInOut(duration: 0.2), value: model.chromeHidden)
         .animation(.easeInOut(duration: 0.25), value: model.showsWelcome)
         .animation(.spring(response: 0.35, dampingFraction: 0.9), value: model.panel)
-        .background(Color.canvas)
+        .background(Platform.transparentCanvas ? Color.clear : Color.canvas)
         .readsLayoutMetrics()
         .preferredColorScheme(.dark)
         .systemOverlaysHidden(model.chromeHidden)
