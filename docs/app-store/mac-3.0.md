@@ -229,7 +229,36 @@ uploading anything.
   asleep at night; they do not touch the changed code and need a rerun with
   the display awake.
 
+## Signed package, November 15, 2026
+
+Anders approved the bundle ID `com.compphys.atomify.mac` and its
+registration. The archive and export ran from `686e89d` with
+`-allowProvisioningUpdates` and produced
+`build/app-store/mac-3.0/export/Atomify.pkg` (14 MB, not committed). Nothing
+was uploaded.
+
+- Package: signed by "3rd Party Mac Developer Installer: Anders Hafreager
+  (4XKET6P69R)", chained to Apple's root.
+- App inside: signed by the cloud-managed "Apple Distribution" certificate
+  with the hardened runtime. Entitlements are the application identifier,
+  the team identifier and the App Sandbox, with no `get-task-allow`.
+  `codesign --verify --deep --strict` passes. The Mac Team Store profile is
+  embedded.
+- Info.plist: `com.compphys.atomify.mac`, 3.0 (1), `AtomifySourceRevision`
+  `686e89d80cce6c444d00bf2fd56ab255b8a20334`.
+- Created in the developer account: the App ID, its Mac App Store profile
+  and a Mac Installer Distribution certificate.
+- Not validated against Apple: there is no App Store Connect API key on the
+  Mac.
+- If export reports `No Accounts` while Xcode shows the account, the saved
+  login is missing from where `xcodebuild` reads it. Signing out and in
+  again in Xcode's Apple Accounts settings and quitting Xcode once fixes it.
+- With the display awake, the display-link tests pass. `runsAnExampleEndToEnd`
+  times out waiting for plots, also on main before this work; it is a
+  separate bug.
+
 ## Still to do
 
-- Confirm the bundle ID, then register the App
-  ID, create the App Store Connect record, and export, validate and upload.
+- Create the App Store Connect record for `com.compphys.atomify.mac`, fill in
+  the listing from this draft, upload the package and submit. Each of these
+  waits for Anders.
