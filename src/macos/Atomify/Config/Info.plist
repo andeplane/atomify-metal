@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Keys Xcode has no INFOPLIST_KEY_ setting for; merged with the generated Info.plist. -->
+<plist version="1.0">
+<dict>
+	<!-- Records the exact source used for an App Store archive. -->
+	<key>AtomifySourceRevision</key>
+	<string>$(ATOMIFY_SOURCE_REVISION)</string>
+	<!-- The app uses no encryption beyond the system's. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>
